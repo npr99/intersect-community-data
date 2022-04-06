@@ -1,3 +1,6 @@
+![IN-CORE HRRC Banner](https://github.com/npr99/intersect-community-data/blob/main/IN-CORE_HRRC_CodebookBanner.png?raw=true)
+
+
 # Source files to reference for automation:
 
 Rosenheim, Nathanael (2021) “Detailed Household and Housing Unit Characteristics: Data and Replication Code.” DesignSafe-CI. https://doi.org/10.17603/ds2-jwf6-s535.
