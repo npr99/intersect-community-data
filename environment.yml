@@ -1,0 +1,10 @@
+name: pyhui20220331
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pandas
+  - requests
+  - seaborn
+  - pip:
+    - fpdf2
