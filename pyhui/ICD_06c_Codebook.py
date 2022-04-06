@@ -668,5 +668,5 @@ class codebook():
         pdf.output(codebook_filepath)
 
         # Save second file to common directory
-        copy_codebook_filepath = self.outputfolders['top']+"/../../"+self.output_filename+'.pdf'
+        copy_codebook_filepath = self.outputfolders['top']+"/../"+self.output_filename+'.pdf'
         pdf.output(copy_codebook_filepath)
