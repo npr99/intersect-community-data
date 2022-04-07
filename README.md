@@ -58,8 +58,7 @@ The housing unit inventory file names include the following convention:
 Example description of the file name `hui_v2-0-0_Lumberton_NC_2010_rs1000.csv`:
 - Version 2 Housing Unit Inventory for Lumberton, NC, using 2010 Census data. Set the random seed to 1000 to replicate the data. 
 
-Each data file is a comma separated value (CSV) file and  
-each data file has a PDF file associated with it. The PDF file is the Codebook for the data file.
+Each data file is a comma separated value (CSV) file and each data file has a PDF file associated with it. The PDF file is the Codebook for the data file.
 The Codebook includes an overview of the project, details and notes on each variable, 
 links to verify the data, and figures for exploring the data. **NOTE** - To understand the data please refer to the Codebook.
 
@@ -69,6 +68,7 @@ The directory structure is as follows:
 ```
 ├───OutputData [ignored by github folder]
 ├───OutputData_LogFiles [ignored by github folder]
+├───SampleOutputData [manually added to github repository to show example results]
 └───pyhui
     ├───SourceData
     │   ├───api_census_gov
