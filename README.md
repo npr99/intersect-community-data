@@ -1,5 +1,7 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/npr99/intersect-community-data/HEAD?labpath=ICD_06dv1_run_HUI_v2_workflow.ipynb)
 
+[![DOI](https://zenodo.org/badge/478737101.svg)](https://zenodo.org/badge/latestdoi/478737101)
+
 ![IN-CORE HRRC Banner](https://github.com/npr99/intersect-community-data/blob/main/IN-CORE_HRRC_Banner.png?raw=true)
 
 **Repository Title**: Intersect Community Data
