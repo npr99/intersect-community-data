@@ -13,6 +13,9 @@
 # Ignore OuputData Folder
 OutputData*/
 
+# Ignore Temp.csv file
+temp.csv
+
 # User-specific files
 *.rsuser
 *.suo
