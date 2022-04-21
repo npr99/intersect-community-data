@@ -548,7 +548,7 @@ class codebook():
                 county_list = self.county_list_for_datacensusgov(self.communities,self.community)
                 #print('adding',county_list,'to',notes)
                 notes = notes.format(state_county = county_list)
-            pdf.cell(0, 10, f"Variable Notes: {variable}", 0, 1)
+            pdf.cell(w = 0, h = 10, txt = f"Variable Notes: {variable}", border = 0, ln = 1)
             pdf.multi_cell(0, 3, notes, ln = 3, align = 'L',
                             max_line_height=pdf.font_size*2)
             pdf.ln()

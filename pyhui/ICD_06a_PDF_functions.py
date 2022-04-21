@@ -40,10 +40,13 @@ class PDF(FPDF):
         # Setting font: helvetica bold 15
         self.set_font("helvetica", "B", 15)
         # Moving cursor to the right:
-        self.cell(80)
+        self.cell(w = 80)
         #pdf.set_y(-10)
         # Printing title:
-        self.cell(30, 10, self.header_text, 0, 0, "C")
+        self.cell(w = 30, 
+                  h = 10, 
+                  txt = self.header_text, 
+                  border = 0, ln = 0, align = "C")
         # Performing a line break:
         self.ln(15)
 
@@ -58,9 +61,12 @@ class PDF(FPDF):
         self.set_font("helvetica", "I", 8)
         # Printing page number:
         self.ln(23)
-        self.cell(0, 10, f"Page {self.page_no()}/{{nb}}", 0, 0, "C")
+        self.cell(w = 0, h = 10, 
+                    txt = f"Page {self.page_no()}/{{nb}}",
+                    border = 0, ln = 0, align = "C")
         self.ln()
-        self.cell(0, 0, self.footer_text, 0, 0, "C")
+        self.cell(w = 0, h = 0, txt = self.footer_text, 
+                    border = 0, ln = 0, align = "C")
 
     ## TABLE FUNCTIONS
     # Code from: https://github.com/bvalgard/create-pdf-with-python-fpdf2/blob/main/table_function.py
