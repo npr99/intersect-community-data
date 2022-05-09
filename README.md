@@ -26,7 +26,9 @@ Hazard Reduction and Recovery Center (HRRC): https://www.arch.tamu.edu/impact/ce
 
 **Keywords**: Social and Economic Population Data, Housing Unit, US Census, Synthetic Population
 
-**License**: Open Data Commons Attribution License (https://opendatacommons.org/licenses/by/summary/)
+**Output Data License**: Open Data Commons Attribution License (https://opendatacommons.org/licenses/by/summary/)
+
+**Program Code**: Mozilla Public License Version 2.0 (https://www.mozilla.org/en-US/MPL/2.0/)
 
 **DesignSafe-CI project identification number**: Project-2961 - Available at: https://www.designsafe-ci.org/data/browser/public/designsafe.storage.published/PRJ-2961
 
