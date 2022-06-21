@@ -10,8 +10,8 @@ import pandas as pd
 import sys  # saving CSV files
 import json  # used to read in Census variables
 
-from pyhui.SourceData.api_census_gov.acg_00b_hui_block2010 import *
-from pyhui.SourceData.api_census_gov.acg_00c_hispan_block2010 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00b_hui_block2010 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00c_hispan_block2010 import *
 
 class BaseInventory():
     """Utility methods for generating Housing Unit Inventory or Person Record Inventory"""
@@ -21,7 +21,7 @@ class BaseInventory():
     def get_data_based_on_varstems_and_roots(state_county: str, 
                                             varstems_roots_dictionary: dict = {},
                                             outputfolder: str = "popinv_workflow",
-                                            outputfolders = {'TidySourceData' : 'countydata/popinv_workflow'}
+                                            outputfolders = {'TidyCommunitySourceData' : 'countydata/popinv_workflow'}
                                             ):
         """
         General function that takes a dictionary of varstems and roots 
@@ -52,7 +52,7 @@ class BaseInventory():
 
         # Check if API call has already by completed
         csv_filename = f'{group}_{state_county}_{vintage}'
-        csv_filepath = outputfolders['TidySourceData']+"/"+csv_filename+'.csv'
+        csv_filepath = outputfolders['TidyCommunitySourceData']+"/"+csv_filename+'.csv'
         
         # Check if selected data already exists - if yes read in saved file
         if os.path.exists(csv_filepath):
@@ -331,7 +331,7 @@ class BaseInventory():
                         get_vars: str = 'GEO_ID',
                         var_stem: str = '',
                         for_geography: str = 'block:*',
-                        outputfolders = {'SourceData' : 'countydata/popinv_workflow'}):
+                        outputfolders = {'CommunitySourceData' : 'countydata/popinv_workflow'}):
 
         """General utility for obtaining census data in a county or group of counties.
 
@@ -360,7 +360,7 @@ class BaseInventory():
         json_filename = f'{var_stem}_{state_county}_{vintage}'
 
         # Add Source Data folder for Census API
-        censusapi_folder = outputfolders['SourceData']+'/api_census_gov'
+        censusapi_folder = outputfolders['CommunitySourceData']+'/api_census_gov'
         # Make directory to save output
         if not os.path.exists(censusapi_folder):
             os.mkdir(censusapi_folder)

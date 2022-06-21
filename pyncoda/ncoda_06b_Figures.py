@@ -6,7 +6,7 @@ import matplotlib.ticker as ticker
 import pandas as pd
 from IPython import display
 
-from pyhui.SourceData.api_census_gov.acg_00e_incore_huiv2 \
+from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
     import incore_v2_DataStructure
 
 def income_distribution(input_df,

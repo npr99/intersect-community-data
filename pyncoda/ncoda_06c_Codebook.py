@@ -3,8 +3,8 @@ import numpy as np
 import csv
 import random # used for selecting random examples of
 
-from pyhui.ICD_06a_PDF_functions import PDF, TitleStyle
-from pyhui.ICD_06b_Figures import income_distribution
+from pyncoda.ncoda_06a_PDF_functions import PDF, TitleStyle
+from pyncoda.ncoda_06b_Figures import income_distribution
 
 class codebook():
     """

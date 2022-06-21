@@ -23,7 +23,7 @@ The 2012 5-year American Community Survey provides detailed
 household level characteristics at the census tract level.
 
 ## Description of Program
-- program:    ICD_1av1_run_HUI_v2_workflow
+- program:    ncoda_1av1_run_HUI_v2_workflow
 - task:       Obtain and clean data for Housing Unit Inventory.
 - See github commits for description of program updates
 - Current Version:    2022-03-31 - preparing for publication
@@ -44,13 +44,13 @@ import os # For saving output to path
 import sys
 
 # open, read, and execute python program with reusable commands
-from pyhui.SourceData.api_census_gov.acg_05a_hui_functions \
+from pyncoda.CommunitySourceData.api_census_gov.acg_05a_hui_functions \
     import hui_workflow_functions
-from pyhui.ICD_00b_directory_design import directory_design
-from pyhui.ICD_06c_Codebook import *
-from pyhui.ICD_06b_Figures import *
+from pyncoda.ncoda_00b_directory_design import directory_design
+from pyncoda.ncoda_06c_Codebook import *
+from pyncoda.ncoda_06b_Figures import *
 
-from pyhui.SourceData.api_census_gov.acg_00e_incore_huiv2 \
+from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
     import incore_v2_DataStructure
 
 version = '2.0.0'
@@ -59,7 +59,7 @@ version_text = 'v2-0-0'
 # Save Outputfolder - due to long folder name paths output saved to folder with shorter name
 # files from this program will be saved with the program name - 
 # this helps to follow the overall workflow
-outputfolder = "..//ICD_workflow_2022-03-31"
+outputfolder = "..//ncoda_workflow_2022-03-31"
 # Make directory to save output
 if not os.path.exists(outputfolder):
     os.mkdir(outputfolder)
@@ -166,11 +166,11 @@ for community in communities.keys():
         figures_list.append(filename)
 
     # Paths for codebook text
-    sourcedata_filepath = "pyhui\\SourceData\\api_census_gov"
-    keyterms_filepath = sourcedata_filepath+ \
+    CommunitySourceData_filepath = "pyncoda\\CommunitySourceData\\api_census_gov"
+    keyterms_filepath = CommunitySourceData_filepath+ \
             '\\'+"acg_00a_keyterms.md"
 
-    projectoverview_filepath = 'pyhui\\'+ "ICD_00a_projectoverview.md"
+    projectoverview_filepath = 'pyncoda\\'+ "ncoda_00a_projectoverview.md"
 
     # Create PDF Codebook
     pdfcodebook = codebook(input_df = hui_incore_df_fixed,

@@ -17,20 +17,20 @@ ipython = get_ipython()
 import time
 
 # Save output as a log file function
-from pyhui \
-     import ICD_00c_save_output_log as logfile
+from pyncoda \
+     import ncoda_00c_save_output_log as logfile
      
 # Load in data structure dictionaries
-from pyhui.SourceData.api_census_gov.acg_00a_general_datastructures import *
-from pyhui.SourceData.api_census_gov.acg_00b_hui_block2010 import *
-from pyhui.SourceData.api_census_gov.acg_00c_hispan_block2010 import *
-from pyhui.SourceData.api_census_gov.acg_00d_hhinc_ACS5yr2012 import *
-from pyhui.SourceData.api_census_gov.acg_00e_incore_huiv2 \
+from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00b_hui_block2010 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00c_hispan_block2010 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00d_hhinc_ACS5yr2012 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
     import incore_v2_DataStructure
 
 # open, read, and execute python program with reusable commands
-from pyhui.SourceData.api_census_gov.acg_01a_BaseInventory import BaseInventory
-from pyhui.SourceData.api_census_gov.acg_02a_add_categorical_char \
+from pyncoda.CommunitySourceData.api_census_gov.acg_01a_BaseInventory import BaseInventory
+from pyncoda.CommunitySourceData.api_census_gov.acg_02a_add_categorical_char \
      import add_new_char_by_random_merge_2dfs
 
 

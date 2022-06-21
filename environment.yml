@@ -1,4 +1,4 @@
-name: pyhui20220422
+name: pyncoda20220422
 channels:
   - conda-forge
   - defaults

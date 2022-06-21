@@ -29,17 +29,17 @@ def directory_design(state_county_name,
         print('Creating folder',outputfolder_county,'to store output.')
 
     directory_names = {'logfiles' : 'Store text files with log of workflow.',
-                        'SourceData' : 'Source source data files. Helps with software \
-                            development and replication.',
-                        'TidySourceData' : 'Cleaned source data and \
-                            inputs for base inventory.', 
-                        'BaseInventory' : 'Initial inventories before random merge. \
-                            Use as inputs to uncertainty propagation.',
+                        'CommunitySourceData' : 'Source source data files. Helps with software '+
+                            'development and replication.',
+                        'TidyCommunitySourceData' : 'Cleaned source data and '+
+                            'inputs for base inventory.', 
+                        'BaseInventory' : 'Initial inventories before random merge. '+
+                            'Use as inputs to uncertainty propagation.',
                         'RandomMerge' : 'Results of random merge with flag columns.',
                         'Verify' : 'Results to compare inventories with source data.',
                         'Explore' : 'Explore output results.',
-                        'Uncertainty_propagation' : 'Results of MCS to determine \
-                            which random seed to use for validation.',
+                        'Uncertainty_propagation' : 'Results of MCS to determine '+
+                            'which random seed to use for validation.',
                         'Validation' : 'Application using inventory e.g. IN-CORE.'}
     
     # create self dictionary to store paths

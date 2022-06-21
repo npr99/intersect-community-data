@@ -9,8 +9,8 @@ import os  # Operating System (os) For folders and finding working directory
 import pandas as pd
 import sys  # saving CSV files
 
-from pyhui.SourceData.api_census_gov.acg_00b_hui_block2010 import *
-from pyhui.SourceData.api_census_gov.acg_00c_hispan_block2010 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00b_hui_block2010 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00c_hispan_block2010 import *
 
 class add_new_char_by_random_merge_2dfs():
     """"
