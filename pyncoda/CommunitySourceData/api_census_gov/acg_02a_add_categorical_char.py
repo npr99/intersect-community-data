@@ -163,7 +163,21 @@ class add_new_char_by_random_merge_2dfs():
         """
         # Create copy of input df - try to prevent chaining conflict
         add_geovarid_df = input_df.copy()
-        
+
+        # Save a list of the current columns - without geovarid
+        column_list = list(add_geovarid_df.columns)
+
+        # Check if blockid in column list
+        if ('blockid' in column_list) & \
+            ('block' not in column_list):
+            print("Adding Block2010 to column list")
+            # create  column in input df
+            # Version 2.0 of HUI renames Block2010 to blockid
+            add_geovarid_df['Block2010'] = add_geovarid_df['blockid']
+
+        # Save a list of the current columns - without geovarid
+        column_list = list(add_geovarid_df.columns)
+
         # Set geoid FIPS code by concatenating state, county, census geography ids
         # Check if geocodes are strings
         geo_levels = {'State':  {'length' : 2, 'total_len' : 2,  'required' : ['state'] },
@@ -171,13 +185,12 @@ class add_new_char_by_random_merge_2dfs():
                       'Tract':  {'length' : 6, 'total_len' : 11, 'required' : ['state','county','tract']},
                       'BlockGroup' : {'length' : 1, 'total_len' : 12, 'required' : ['state','county','tract','blockgroup'],
                                       'notes' :'Block Group code is first digit of block id'},
-                      'Block':  {'length' : 4, 'total_len' : 15, 'required' : ['state','county','tract','block']}}
+                      'Block':  {'length' : 4, 'total_len' : 15, 'required' : ['state','county','tract','block']}
+                      }
 
         # Name of Geovar to add
         geovarid = self.geolevel+self.geovintage
 
-        # Save a list of the current columns - without geovarid
-        column_list = list(add_geovarid_df.columns)
         # Check to see what geolevels are available 
         geolevels_available = []
         # Check to see what geovarids are available
@@ -281,6 +294,7 @@ class add_new_char_by_random_merge_2dfs():
         check_length = self.check_var_length(
             add_geovarid_df,geovarid,total_length_of_geovar)
         return add_geovarid_df[new_columnlist]
+    
 
     @staticmethod
     def check_var_length(input_df,var,expected_length):

@@ -78,6 +78,140 @@ class hua_workflow_functions():
         except:
             print("Unable to print version information")
 
+    def check_addpt_huicounter(self, addpt_df):
+        """
+        Check the that the Address Point Inventory includes
+        variables for the housing unit counter by structure
+        """
+        # Check that the Address Point Inventory includes
+        # variables for the housing unit counter by structure
+        # if not, add them
+        if 'huicounter' not in addpt_df.columns:
+            addpt_df['huicounter_addpt'] = 0
+
+            # By structure id create a counter for huid
+            addpt_df['huicounter_addpt'] = addpt_df.groupby('strctid').cumcount() + 1
+
+            # Copy huicounter three times to create a new column for each
+            # Additional columns needed for the random merge
+            addpt_df['huicounter1'] = addpt_df['huicounter_addpt']
+            addpt_df['huicounter2'] = addpt_df['huicounter_addpt']
+            addpt_df['huicounter3'] = addpt_df['huicounter_addpt']
+
+        return addpt_df
+
+    def check_addpt_predictownershp(self, addpt_df):
+        """
+        Predict structure ownership (tenure) based on the 
+        number of housing units in the structure
+        """
+
+        if 'ownershp1' not in addpt_df.columns:
+            addpt_df['ownershp1'] = 0
+
+            # Change ownershp if huestimate is greater than 0
+            # Assume that structure is owner occupied if 
+            # the number of estimate housing units is 1 or 2
+            # If husestimate is greater than 2 assume renter occupied
+            addpt_df.loc[addpt_df['huestimate'] ==1, 'ownershp1'] = 1
+            addpt_df.loc[addpt_df['huestimate'] ==2, 'ownershp1'] = 1
+
+            # the ownership variable is temporary in the addpt_df
+
+        # For second round ownership assume all structures with more than 2
+        # housing units are renter occupied
+        if 'ownershp2' not in addpt_df.columns:
+            addpt_df['ownershp2'] = 0
+            addpt_df.loc[addpt_df['huestimate'] >2, 'ownershp2'] = 2
+
+        # For third round ownership assume all structure are renter occupied
+        if 'ownershp3' not in addpt_df.columns:
+            addpt_df['ownershp3'] = 0
+            addpt_df.loc[addpt_df['huestimate'] >0, 'ownershp3'] = 2
+
+        return addpt_df
+
+    def update_addpt_predictownershp(self, hua_df, addpt_df):
+        """
+        Update predicted structure ownership (tenure) based on the 
+        the tenure of the first round housing units allocated
+        to the structure.
+        """
+
+
+        # Check the average value of tenure status by structure
+        updated_ownership_df = hua_df[['ownershp','strctid']].\
+            groupby('strctid').mean()
+        updated_ownership_df.reset_index(inplace=True)
+
+        # rename ownership column to predictownershp
+        updated_ownership_df.rename(columns={'ownershp':'predictownershp'},
+            inplace=True)
+        # Update the ownership variable in the addpt_df
+        # merge based on structure id
+        addptv2_df = pd.merge(left = addpt_df, 
+                      right = updated_ownership_df,
+                      on='strctid', 
+                      how='left')
+
+        # Update the ownership variable in the addpt_df based on predicted ownership
+        condition1 = (addptv2_df['predictownershp'] != addptv2_df['ownershp1'])
+        condition2 = (~addptv2_df['predictownershp'].isna())
+        condition3 = (addptv2_df['ownershp1']==1)
+
+        addptv2_df.loc[condition1 & condition2 & condition3,'ownershp1'] \
+            = addptv2_df['predictownershp']
+
+        # Check ownership is 1 or 2
+        addptv2_df.loc[addptv2_df['ownershp1'] >2, 'ownershp1'] = 2
+        addptv2_df.loc[(addptv2_df['ownershp1'] > 1) & 
+                       (addptv2_df['ownershp1'] < 2), 'ownershp1'] = 1
+        addptv2_df.loc[(addptv2_df['ownershp1'] > 0) & 
+                       (addptv2_df['ownershp1'] < 1), 'ownershp1'] = 0
+
+        # drop predictownershp column
+        addptv2_df.drop(columns=['predictownershp'], inplace=True)
+
+        return addptv2_df
+
+    def check_hui_ownershp(self, hui_df):
+        """
+        Check the that the Housing Unit Inventory includes
+        variables for the ownership prediction
+        """
+        # Check that the Housing Unit Inventory includes
+        # variables for the ownership prediction
+        # if not, add them
+
+        for ownershpvar in ['ownershp1','ownershp2','ownershp3']:
+            if ownershpvar not in hui_df.columns:
+
+                # Copy ownership variable to new column
+                hui_df[ownershpvar] = hui_df['ownershp'] 
+
+        return hui_df
+
+    def check_hui_huicounter(self, hui_df):
+        """
+        Check the that the Housing Unit Inventory includes
+        variables for the housing unit counter
+        """
+        # Check that the Housing Unit Inventory includes
+        # variables for the housing unit counter
+        # if not, add them
+
+        i = 1
+        for huicounter in ['huicounter1','huicounter2','huicounter3']:
+            if huicounter not in hui_df.columns:
+
+                # Copy huicounter three times to create a new column for each
+                # Additional columns needed for the random merge
+                hui_df[huicounter] = i
+
+            # increment i by 1
+            i += 1
+
+        return hui_df
 
     def run_hua_workflow(self, savelog=True):
         """
@@ -87,7 +221,7 @@ class hua_workflow_functions():
         hua_df = {}
 
         # Save output description as text
-        output_filename = f'hui_{self.version_text}_{self.state_county}_{self.basevintage}_rs{self.seed}'
+        output_filename = f'hua_{self.version_text}_{self.state_county}_{self.basevintage}_rs{self.seed}'
         self.output_filename = output_filename
         if savelog == True:
             log_filepath = self.outputfolders['logfiles']+"/"+output_filename+'.log'
@@ -103,53 +237,68 @@ class hua_workflow_functions():
         print("    Merge housing unit and address point data with first 3 counters.")
         print("***************************************\n")
         # intersect by each housing unit counter over geolevel options
-        hui_intersect_addpt_df = self.hui_df.copy()
-        addpt_intersect_hui_df = self.addpt_df.copy()
+        # Copy dataframes and check that they have the required columns
+        hui_intersect_addpt_df = self.check_hui_huicounter(self.hui_df.copy())
+        addpt_intersect_hui_df = self.check_addpt_huicounter(self.addpt_df.copy())
+
+        # add ownership predicted to address point data
+        addpt_intersect_hui_df = self.check_addpt_predictownershp(addpt_intersect_hui_df)
+        hui_intersect_addpt_df = self.check_hui_ownershp(hui_intersect_addpt_df)
+
         for huicounter in ['huicounter1','huicounter2','huicounter3']:
-            hui_addptr1 = add_new_char_by_random_merge_2dfs(
-                    dfs = {'primary'  : {'data': hui_intersect_addpt_df, 
-                                    'primarykey' : 'huid',
-                                    'geolevel' : 'Housing Unit Inventory',
-                                    'geovintage' :'2010',
-                                    'notes' : 'Housing Unit records.'},
-                    'secondary' : {'data': addpt_intersect_hui_df, 
-                                    'primarykey' : 'addptid', # primary key needs to be different from new char
-                                    'geolevel' : 'Address Point Inventory',
-                                    'geovintage' :'2010',
-                                    'notes' : 'Address Points for Possible Housing Units.'}},
-                    seed = self.seed,
-                    common_group_vars = [huicounter, 'tenure'],
-                    new_char = 'guid',
-                    extra_vars = ['strctid','plcname10','x','y'],
-                    geolevel = "Block",
-                    geovintage = "2010",
-                    by_groups = {'NA' : {'by_variables' : []}},
-                    fillna_value= '-999',
-                    state_county = self.state_county,
-                    outputfile = "hui_addpt_guidr1",
-                    outputfolder = self.outputfolders['RandomMerge'])
+            for ownershp in ['ownershp1','ownershp2','ownershp3']:
 
-            # Set up round options
-            rounds = {'options': {
-                    'huiall' : {'notes' : 'Attempt to merge hui on all common group vars.',
-                                    'common_group_vars' : 
-                                            hui_addptr1.common_group_vars,
-                                    'by_groups' :
-                                            hui_addptr1.by_groups},
-                    },
-                    'geo_levels' : ['Block'] # ['Block','BlockGroup','Tract','County']  
-                    }
+                # Setup random Merge hui and addpt dataframes
+                hui_addptr1 = add_new_char_by_random_merge_2dfs(
+                        dfs = {'primary'  : {'data': hui_intersect_addpt_df, 
+                                        'primarykey' : 'huid',
+                                        'geolevel' : 'Housing Unit Inventory',
+                                        'geovintage' :'2010',
+                                        'notes' : 'Housing Unit records.'},
+                        'secondary' : {'data': addpt_intersect_hui_df, 
+                                        'primarykey' : 'addptid', # primary key needs to be different from new char
+                                        'geolevel' : 'Address Point Inventory',
+                                        'geovintage' :'2010',
+                                        'notes' : 'Address Points for Possible Housing Units.'}},
+                        seed = self.seed,
+                        common_group_vars = [huicounter, ownershp],
+                        new_char = 'strctid',
+                        extra_vars = ['addrptid','guid','huestimate','huicounter_addpt','plcname10','x','y'],
+                        geolevel = "Block",
+                        geovintage = "2010",
+                        by_groups = {'NA' : {'by_variables' : []}},
+                        fillna_value= '-999',
+                        state_county = self.state_county,
+                        outputfile = "hui_addpt_guidr1",
+                        outputfolder = self.outputfolders['RandomMerge'])
 
-            # Update hui addpt file for next merge
-            hua_addptr1_df = hui_addptr1.run_random_merge_2dfs(rounds)
-            hui_intersect_addpt_df = hua_addptr1_df['primary']
-            addpt_intersect_hui_df = hua_addptr1_df['secondary']
+                # Set up round options
+                rounds = {'options': {
+                        'huiall' : {'notes' : 'Attempt to merge hui on all common group vars.',
+                                        'common_group_vars' : 
+                                                hui_addptr1.common_group_vars,
+                                        'by_groups' :
+                                                hui_addptr1.by_groups}
+                        },
+                        'geo_levels' : ['Block'] # ['Block','BlockGroup']  
+                        }
 
-        print("\n***************************************")
-        print("   Update Predicted Tenure.")
-        print("***************************************\n")
+                # Update hui addpt file for next merge
+                hua_addptr1_df = hui_addptr1.run_random_merge_2dfs(rounds)
+                hui_intersect_addpt_df = hua_addptr1_df['primary']
+                addpt_intersect_hui_df = hua_addptr1_df['secondary']
 
-        # look at the predicted tenure for each structure
+            # After first round of assigning housing units to the first 
+            # housing unit counter update tenure for the structure
+            # this will allow a duplex to be assigned only renters or owners
+            print("\n***************************************")
+            print("   Update Predicted Tenure.")
+            print("***************************************\n")
+            addpt_intersect_hui_df = \
+                self.update_addpt_predictownershp(
+                    hua_df = hui_intersect_addpt_df,
+                    addpt_df = addpt_intersect_hui_df)
+
 
         print("\n***************************************")
         print("    Merge housing unit and address point data with first no counters.")
@@ -166,9 +315,9 @@ class hua_workflow_functions():
                                 'geovintage' :'2010',
                                 'notes' : 'Address Points for Possible Housing Units.'}},
                 seed = self.seed,
-                common_group_vars = ['tenure'],
-                new_char = 'guid',
-                extra_vars = ['strctid','plcname10','x','y'],
+                common_group_vars = ['ownershp1'],
+                new_char = 'strctid',
+                extra_vars = ['addrptid','guid','huestimate','huicounter_addpt','plcname10','x','y'],
                 geolevel = "Block",
                 geovintage = "2010",
                 by_groups = {'NA' : {'by_variables' : []}},
@@ -180,7 +329,7 @@ class hua_workflow_functions():
         rounds = {'options': {
                 'huinocounter' : {'notes' : 'Attempt to merge hui without counter.',
                                 'common_group_vars' : 
-                                        ['tenure'],
+                                        hui_addptr1.common_group_vars,
                                 'by_groups' :
                                         hui_addptr2.by_groups},
                 'huinocounternotenure' : {'notes' : 'Attempt to merge hui by geolevel only.',
@@ -189,7 +338,7 @@ class hua_workflow_functions():
                                 'by_groups' :
                                         hui_addptr2.by_groups},
                 },
-                'geo_levels' : ['Block','BlockGroup','Tract','County']  
+                'geo_levels' : ['Block','BlockGroup']  
                 }
         # Run random merge
         hua_addptr2_df = hui_addptr2.run_random_merge_2dfs(rounds)
@@ -199,4 +348,3 @@ class hua_workflow_functions():
             logfile.stop()
 
         return hua_addptr2_df
-    
