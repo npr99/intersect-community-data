@@ -4,7 +4,7 @@ import csv
 import random # used for selecting random examples of
 
 from pyncoda.ncoda_06a_PDF_functions import PDF, TitleStyle
-from pyncoda.ncoda_06b_Figures import income_distribution
+from pyncoda.ncoda_04a_Figures import income_distribution
 
 class codebook():
     """

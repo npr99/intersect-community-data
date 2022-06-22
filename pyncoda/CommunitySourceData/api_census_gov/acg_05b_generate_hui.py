@@ -48,7 +48,7 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_05a_hui_functions \
     import hui_workflow_functions
 from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda.ncoda_06c_Codebook import *
-from pyncoda.ncoda_06b_Figures import *
+from pyncoda.ncoda_04a_Figures import *
 
 from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
     import incore_v2_DataStructure
