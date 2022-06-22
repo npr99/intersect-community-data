@@ -107,7 +107,7 @@ class hua_workflow_functions():
         """
 
         if 'ownershp1' not in addpt_df.columns:
-            addpt_df['ownershp1'] = 0
+            addpt_df['ownershp1'] = -777
 
             # Change ownershp if huestimate is greater than 0
             # Assume that structure is owner occupied if 
@@ -121,12 +121,12 @@ class hua_workflow_functions():
         # For second round ownership assume all structures with more than 2
         # housing units are renter occupied
         if 'ownershp2' not in addpt_df.columns:
-            addpt_df['ownershp2'] = 0
+            addpt_df['ownershp2'] = -777
             addpt_df.loc[addpt_df['huestimate'] >2, 'ownershp2'] = 2
 
         # For third round ownership assume all structure are renter occupied
         if 'ownershp3' not in addpt_df.columns:
-            addpt_df['ownershp3'] = 0
+            addpt_df['ownershp3'] = -777
             addpt_df.loc[addpt_df['huestimate'] >0, 'ownershp3'] = 2
 
         return addpt_df
@@ -166,8 +166,7 @@ class hua_workflow_functions():
         addptv2_df.loc[addptv2_df['ownershp1'] >2, 'ownershp1'] = 2
         addptv2_df.loc[(addptv2_df['ownershp1'] > 1) & 
                        (addptv2_df['ownershp1'] < 2), 'ownershp1'] = 1
-        addptv2_df.loc[(addptv2_df['ownershp1'] > 0) & 
-                       (addptv2_df['ownershp1'] < 1), 'ownershp1'] = 0
+        addptv2_df.loc[(addptv2_df['ownershp1'] < 1), 'ownershp1'] = -777
 
         # drop predictownershp column
         addptv2_df.drop(columns=['predictownershp'], inplace=True)
@@ -188,6 +187,10 @@ class hua_workflow_functions():
 
                 # Copy ownership variable to new column
                 hui_df[ownershpvar] = hui_df['ownershp'] 
+
+                # Fill in missing values with 0
+                # this should apply to vacant structures
+                hui_df.loc[hui_df[ownershpvar].isna(), ownershpvar] = 0
 
         return hui_df
 
@@ -329,7 +332,7 @@ class hua_workflow_functions():
         rounds = {'options': {
                 'huinocounter' : {'notes' : 'Attempt to merge hui without counter.',
                                 'common_group_vars' : 
-                                        hui_addptr1.common_group_vars,
+                                        hui_addptr2.common_group_vars,
                                 'by_groups' :
                                         hui_addptr2.by_groups},
                 'huinocounternotenure' : {'notes' : 'Attempt to merge hui by geolevel only.',

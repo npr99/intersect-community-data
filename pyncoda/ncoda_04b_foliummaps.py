@@ -35,12 +35,9 @@ def folium_marker_layer_map(gdf,
                 'gray', 'black', 'lightgray']
     i = 0
     for color_level in color_levels:
-        print(color_level)
         layer_map_name=layername+' '+ str(i+1)
         feature_group = FeatureGroup(name=layer_map_name)
         locations = gdf.loc[gdf[gdfvar] == color_level]
-
-        return locations
         
         for idx, row in locations.iterrows():
             # Get lat and lon of points
