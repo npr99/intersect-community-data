@@ -4,6 +4,8 @@
 # terms of the Mozilla Public License v2.0 which accompanies this distribution,
 # and is available at https://www.mozilla.org/en-US/MPL/2.0/
 
+import pandas as pd
+import geopandas as gpd
 import folium as fm
 from folium import plugins # Add minimap and search plugin functions to maps
 from folium.map import *
@@ -31,10 +33,15 @@ def folium_marker_layer_map(gdf,
                 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 
                 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 
                 'gray', 'black', 'lightgray']
-    for i in range(0,color_levels):
-        layer_map_name=layername+' '+str(i+1)
+    i = 0
+    for color_level in color_levels:
+        print(color_level)
+        layer_map_name=layername+' '+ str(i+1)
         feature_group = FeatureGroup(name=layer_map_name)
-        locations = gdf.loc[gdf[gdfvar] == i+1]
+        locations = gdf.loc[gdf[gdfvar] == color_level]
+
+        return locations
+        
         for idx, row in locations.iterrows():
             # Get lat and lon of points
             lon = row['geometry'].x
@@ -47,6 +54,8 @@ def folium_marker_layer_map(gdf,
                                         popup=label,
                                         icon=fm.Icon(color=colorlist[i],
                                             icon ='home')))
+        
+        i = i + 1
         map.add_child(feature_group)
     
 
@@ -62,4 +71,55 @@ def folium_marker_layer_map(gdf,
     ne_corner = [gdf.bounds.maxy.max(),gdf.bounds.maxx.max()]
     map.fit_bounds([sw_corner, ne_corner])
 
+    return map
+
+def count_huid_by_building(hua_df, 
+                           bldg_inv_gdf,
+                            blocknum = '',
+                            groupby_vars = ['x','y']):
+    """
+    Select housing units in a block
+    """
+
+    # Check if Block2010 is missing
+    if 'Block2010' not in hua_df.columns:
+        # Add block id 2010 as string
+        # zero pad block id to 15 digits
+        hua_df['Block2010'] = hua_df['blockid'].apply(lambda x : str(int(x)).zfill(15))
+
+    # check if block number is set
+    if blocknum != '':
+        condition1 = (hua_df['Block2010'] == blocknum)
+        block_df = hua_df.loc[condition1].copy()
+    else:
+        block_df = hua_df.copy()
+
+    # count by geometry
+    huid_count_df = hua_df[['huid']+groupby_vars].groupby(groupby_vars).count()
+    # reset index
+    huid_count_df = huid_count_df.reset_index()
+
+    return huid_count_df
+
+def map_selected_block(hua_df, blocknum):
+
+    # count huid by building
+    huid_count_df = count_huid_by_building(hua_df, blocknum)
+
+    # convert points to gdf
+    huid_count_gdf = gpd.GeoDataFrame(
+        huid_count_df, geometry=gpd.points_from_xy(huid_count_df.x, huid_count_df.y))
+
+    """
+    # convert dataframe to geodataframe using geometry
+    from shapely.wkt import loads
+    huid_count_gdf = gpd.GeoDataFrame(huid_count_df).copy(deep=True)
+    huid_count_gdf['geometry'] = huid_count_gdf['geometry'].apply(lambda x : loads(x))
+    """
+
+    # Map housing units in block
+    map = folium_marker_layer_map(gdf = huid_count_gdf,
+                            gdfvar="huid",
+                            layername = "HUID count",
+                            color_levels = 3)
     return map
