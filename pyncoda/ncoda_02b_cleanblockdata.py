@@ -152,7 +152,12 @@ def obtain_join_block_place_puma_data(county_fips: str = '48167',
     geolevels = ['place','puma']
     for geolevel in geolevels:
         print('Spatially Join',geolevel,'Columns',join_cols[geolevel],'with Block Data.')
-        gdf['block'] = spatial_join_points_to_poly(gdf['block'] ,gdf[geolevel] ,f'rppnt{yr}4269',f'blk{yr}4269',geolevel,join_cols[geolevel])
+        gdf['block'] = spatial_join_points_to_poly(
+                    gdf['block'],
+                    gdf[geolevel] ,
+                    f'rppnt{yr}4269',f'blk{yr}4269',
+                    geolevel,
+                    join_cols[geolevel])
 
     # Save Work at this point as CSV
     savefile = sys.path[0]+"/"+output_folder+"/"+f"tl_{year}_{county_fips}_tabblockplacepuma{yr}"+"EPSG4269.csv"
@@ -173,7 +178,9 @@ def single_layer_folium_map(gdf,layer_name, output_folder):
 
     style_function = lambda x: {'color':'green','fillColor': 'transparent' }
 
-    fm.GeoJson(gdf[['geometry']],name=layer_name,style_function=style_function,).add_to(gdf_map)
+    fm.GeoJson(gdf[['geometry']],
+              name=layer_name,
+              style_function=style_function,).add_to(gdf_map)
     
     fm.LayerControl().add_to(gdf_map)
     
