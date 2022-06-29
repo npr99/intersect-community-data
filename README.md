@@ -78,6 +78,7 @@ All program files (python files) are named with the following convention:
     - 04 - Data Visualization
     - 05 - Data Output (combined workflow steps for producing csv files)
     - 06 - Data Production (codebook, data sharing, archiving, etc.)
+    - 07 - Data workflows (produce files for other programs)
 * Program run order step (e.g run a before b or b depends on code in a)
 * version  (e.g v2 - version 2 of the file)
     - Github used for incremental version control, version number updated when program file has a major change.
