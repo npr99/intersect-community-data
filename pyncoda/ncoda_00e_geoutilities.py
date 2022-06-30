@@ -7,9 +7,21 @@
 import pandas as pd
 import geopandas as gpd
 import geopandas as gpd # For obtaining and cleaning spatial data
+import folium as fm # folium has more dynamic maps - but requires internet connection
+# Nearest neighboring point
+import numpy as np
+import scipy as scipy
+from scipy.spatial import KDTree # required to find nearest point location
 
+# Use shapely.wkt loads to convert WKT to GeoSeries
+from shapely.wkt import loads
+# new method 
+# https://pyproj4.github.io/pyproj/stable/gotchas.html#axis-order-changes-in-proj-6
+from pyproj import CRS
 
-def df2gdf_WKTgeometry(df: pd.DataFrame, projection = "epsg:4326", reproject ="epsg:4326",
+def df2gdf_WKTgeometry(df: pd.DataFrame, 
+                       projection = "epsg:4326", 
+                       reproject ="epsg:4326",
                        geometryvar = 'geometry'):
 
     """Function to convert dataframe with WKT Geometry to Geodata Frame
@@ -41,16 +53,14 @@ def df2gdf_WKTgeometry(df: pd.DataFrame, projection = "epsg:4326", reproject ="e
     # Check version replication # to do - add way to print warning when version is not same as test
     # check_package_version(gpd,"0.9.0") - example call of function - returns confirmation or warning
 
-    # Use shapely.wkt loads to convert WKT to GeoSeries
-    from shapely.wkt import loads
-
-    gdf = gpd.GeoDataFrame(df).copy(deep=True) # deep copy to ensure not linked to source df
+    print(f"Converting {geometryvar} to Geodataframe")
+    gdf = gpd.GeoDataFrame(df).copy(deep=True) 
+        # deep copy to ensure not linked to source df
     gdf[geometryvar] = gdf[geometryvar].apply(lambda x: loads(x))
 
     # Geodata frame requires geometry and CRS to be set
     gdf = gdf.set_geometry(gdf[geometryvar])
-    # new method https://pyproj4.github.io/pyproj/stable/gotchas.html#axis-order-changes-in-proj-6
-    from pyproj import CRS
+
     gdf.crs = CRS(projection)
     
     # reproject data
@@ -58,11 +68,48 @@ def df2gdf_WKTgeometry(df: pd.DataFrame, projection = "epsg:4326", reproject ="e
     
     return gdf
 
-# Nearest neighboring point
-import numpy as np
-import scipy as scipy
-from scipy.spatial import KDTree # required to find nearest point location
+def add_representative_point(polygon_gdf,
+                             year,
+                             epsg: int = 4269,):
+    """
+    Add representative point to a polygon
 
+    epsg: 4326 or 4269 for lat/lon point
+    https://gis.stackexchange.com/questions/170839/is-re-projection-needed-from-srid-4326-wgs-84-to-srid-4269-nad-83
+
+    epsg default is 4269 but use 4326 if that is the current projection
+    EPSG 4269 uses NAD 83, and is the US Census default, which will have slightly different lat lon points 
+    when compared to EPSG 4326 which uses WGS 84.
+    """
+
+    test_crs = polygon_gdf.crs
+    if test_crs == "epsg:4269":
+        epsg = 4269
+    elif test_crs == "epsg:4326":
+        epsg = 4326
+    else:
+        # Ensure both points and polygons have the same CRS
+        polygon_gdf = polygon_gdf.to_crs(epsg=epsg)
+
+    yr = year[2:4]
+
+    # Add Representative Point
+    polygon_gdf.loc[polygon_gdf.index, f'rppnt{yr}{epsg}'] =\
+        polygon_gdf['geometry'].representative_point()
+    polygon_gdf[f'rppnt{yr}{epsg}'].label = \
+        f"Representative Point {year} EPSG {epsg} (WKT)"
+    polygon_gdf[f'rppnt{yr}{epsg}'].notes = \
+        f"Internal Point within census block {year} poly EPSG {epsg}"
+
+    # Add Column that Duplicates Polygon Geometry - 
+    # allows for switching between point and polygon geometries for spatial join
+    polygon_gdf.loc[polygon_gdf.index, f'blk{yr}{epsg}'] = polygon_gdf['geometry']
+    polygon_gdf[f'blk{yr}{epsg}'].label = \
+        f"{year} Census Block Polygon EPSG {epsg} (WKT)"
+    polygon_gdf[f'blk{yr}{epsg}'].notes = \
+        f"Polygon Shape Points for {year} Census Block EPSG {epsg}"
+
+    return polygon_gdf
 
 def nearest_pt_search(gdf_a: gpd.GeoDataFrame, gdf_b: gpd.GeoDataFrame, 
                     uniqueid_a: str, uniqueid_b: str, k=1,
@@ -70,11 +117,11 @@ def nearest_pt_search(gdf_a: gpd.GeoDataFrame, gdf_b: gpd.GeoDataFrame,
         """Given two sets of points add unique id from locations a to locations b
         Inspired by: https://towardsdatascience.com/using-scikit-learns-binary-trees-to-efficiently-find-latitude-and-longitude-neighbors-909979bd929b
         
-        This function is used to itdentify buildings associated with businesses, schools, hospitals.
+        This function is used to identify buildings associated with businesses, schools, hospitals.
         The locations of businesses might be geocoded by address and may not overlap
         the actual structure. This function helps resolve this issue.
         
-        Tested Python Enviroment:
+        Tested Python Environment:
             Python Version      3.7.10
             geopandas version:  0.9.0
             pandas version:     1.2.4
@@ -87,7 +134,7 @@ def nearest_pt_search(gdf_a: gpd.GeoDataFrame, gdf_b: gpd.GeoDataFrame,
             uniqueid_b: Unique ID for gdf with locations b
             k : The amount of neighbors to return
             dist_cutoff : Integer value distance - meters if CRS UTM
-                if distance is greater than cutoff neighbor is not considererd
+                if distance is greater than cutoff neighbor is not considered
                 initially set to 9999 which will set the value to outliers
         Returns:
             GeoDataFrame: Locations b with nearest unique id from Locations a Geopandas DataFrame object
@@ -143,13 +190,13 @@ def nearest_pt_search(gdf_a: gpd.GeoDataFrame, gdf_b: gpd.GeoDataFrame,
             # Which neighbor is this match
             locations['neighbor'] = i+1
             
-            # Crtitical step - select column with distances for neighbor i
+            # Critical step - select column with distances for neighbor i
             locations['distance'] = distances[:,i]
             # look for distances greater than cutoff  
             locations['distoutlier'] = np.where(locations['distance'] > dist_cutoff, True, False)
             
             # add location a index
-            # Crtitical step - select column with indices for neighbor i
+            # Critical step - select column with indices for neighbor i
             locations['location a index'] = indices[:,i]
                        
             # clear index if distance is greater than cutoff
@@ -173,40 +220,103 @@ def nearest_pt_search(gdf_a: gpd.GeoDataFrame, gdf_b: gpd.GeoDataFrame,
     
         return locationmatch
 
-def spatial_join_polygon_point(points_gdf,
-                                polygon_gdf,
+
+def spatial_join_points_to_poly(points_gdf, 
+                                polygon_gdf, 
+                                point_var, 
+                                poly_var, 
+                                geolevel, 
                                 epsg: int = 4326,
-                                join_column_list: list = []):
+                                join_column_list: list = [],
+                                buffer_dist: int = 0.001,):
     """
+    Function adds polygon variables to block points.
+    point_var: Variable with WKT Point Geometry for Polygon GDF
+    poly_var: Variable with WKT Polygon Geometry for Polygon GDF
+    geolevel: Geography level of the polygon - example Place or PUMA
+    join_column_list: Variable list to be transferer from Polygon File to Block File
+    buffer_dist: buffer distance in degrees for lat/lon around point bounds
+     - https://en.wikipedia.org/wiki/Decimal_degrees
+     - example: 0.001 for 1/1000th of a degree or approximately 100 meters
+     - example: 0.0001 for 1/10000th of a degree or approximately 10 meters
     Original code idea from 
     https://geoffboeing.com/2016/10/r-tree-spatial-index-python/
+
+    Geopandas has a function sjoin that could be used
+    however sjoin can be slow and does not allow for selecting columns
+
+    future improvement: if there are multiple polygons for a point,
+    the function could create multiple rows for the point.
     """
 
     # Ensure both points and polygons have the same CRS
     points_gdf = points_gdf.to_crs(epsg=epsg)
     polygon_gdf = polygon_gdf.to_crs(epsg=epsg)
 
-    # build the r-tree index - for Points
+    # Find the bounds of the point File
+
+    minx = points_gdf.bounds.minx.min() - buffer_dist # subtract buffer from minimum values
+    miny = points_gdf.bounds.miny.min() - buffer_dist
+    maxx = points_gdf.bounds.maxx.max() + buffer_dist
+    maxy = points_gdf.bounds.maxy.max() + buffer_dist
+    points_gdf_bounds = [minx, miny, maxx, maxy]
+
+    # Select polygons within Bounds of Study Area
+    # build the r-tree index - for polygon file
+    print("Polygon file has",polygon_gdf.shape[0],geolevel,"polygons.")
+    sindex_poly_gdf = polygon_gdf.sindex
+    possible_matches_index = list(sindex_poly_gdf.intersection(points_gdf_bounds))
+    area_poly_gdf = polygon_gdf.iloc[possible_matches_index]
+    print("Identified",area_poly_gdf.shape[0],geolevel,"polygons to spatially join.")
+
+    # build the r-tree index - Using Representative Point
+    points_gdf.loc[points_gdf.index,'geometry'] = points_gdf[point_var]
     sindex_points_gdf = points_gdf.sindex
 
     #Loops for spatial join are time consuming
     #Here is a way to know that the loop is running and how long it takes to run
     #https://cmdlinetips.com/2018/01/two-ways-to-compute-executing-time-in-python/
+    # find the points that intersect with each subpolygon and add ID to Point
+    for index, polygon in area_poly_gdf.iterrows():
+        if index%100==0:
+            print('.', end ="")
 
-    # find the points that intersect with each subpolygon
-    for index, polygon in polygon_gdf.iterrows():
-    # find approximate matches with r-tree, then precise matches from those 
-    # approximate ones
-        possible_matches_index = list(sindex_points_gdf.\
-            intersection(polygon['geometry'].bounds))
+        # find approximate matches with r-tree, then precise matches from those approximate ones
+        possible_matches_index = \
+            list(sindex_points_gdf.intersection(polygon['geometry'].bounds))
         possible_matches = points_gdf.iloc[possible_matches_index]
-        precise_matches = possible_matches[possible_matches.\
-            intersects(polygon['geometry'])]
-
+        precise_matches = \
+            possible_matches[possible_matches.intersects(polygon['geometry'])]
         for col in join_column_list:
-            points_gdf.loc[precise_matches.index,col] = polygon[col]
+            points_gdf.loc[precise_matches.index,geolevel+col] = polygon[col]
+
+    # Switch Geometry back to Polygon
+    points_gdf.loc[points_gdf.index,'geometry'] = points_gdf[poly_var]
 
     return points_gdf
+
+def single_layer_folium_map(gdf,layer_name, output_folder):   
+    # Find the bounds of the Census Block File
+    minx = gdf.bounds.minx.min()
+    miny = gdf.bounds.miny.min()
+    maxx = gdf.bounds.maxx.max()
+    maxy = gdf.bounds.maxy.max()
+
+    # plot the intersections and the city
+    gdf_map = fm.Map(location=[(miny+maxy)/2,(minx+maxx)/2], zoom_start=10)
+    #fm.GeoJson(gdf).add_to(gdf_map)
+
+    style_function = lambda x: {'color':'green','fillColor': 'transparent' }
+
+    fm.GeoJson(gdf[['geometry']],
+              name=layer_name,
+              style_function=style_function,).add_to(gdf_map)
+    
+    fm.LayerControl().add_to(gdf_map)
+    
+    gdf_map.save(output_folder+'/'+layer_name+'.html')
+    
+    return gdf_map
 
 """ Test application with establishments and lodes
 ## Attempt Nearest Point Merge with Jobs and Establishments

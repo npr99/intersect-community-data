@@ -71,7 +71,7 @@ Program file names are designed to be unique and descriptive. The file names pro
 All program files (python files) are named with the following convention:
 * Acronym  (e.g ICD - for Intersect Community Data)
 * Data science workflow step:
-    - 00 - Administrative or Overview of Data
+    - 00 - Administrative, Overview of Data, General Utility Functions
     - 01 - Obtain Data (read in ata from api, wget, data parsing, etc.)
     - 02 - Data Cleaning (merging files, adding new columns, checking keys, etc.)
     - 03 - Data Analysis
