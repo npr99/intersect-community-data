@@ -228,7 +228,7 @@ def spatial_join_points_to_poly(points_gdf,
                                 geolevel, 
                                 epsg: int = 4326,
                                 join_column_list: list = [],
-                                buffer_dist: int = 0.001,):
+                                buffer_dist: int = 0.001):
     """
     Function adds polygon variables to block points.
     point_var: Variable with WKT Point Geometry for Polygon GDF

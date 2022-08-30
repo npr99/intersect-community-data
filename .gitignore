@@ -15,6 +15,7 @@ OutputData*/
 # Ignore Temp.csv file
 temp.csv
 # Ignore IN-CORE outputs
+hui*.csv
 *_HUA_*.csv
 
 # User-specific files
