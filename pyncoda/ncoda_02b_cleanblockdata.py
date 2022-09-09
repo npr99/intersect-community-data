@@ -47,7 +47,10 @@ def obtain_join_block_place_puma_data(county_fips: str = '48167',
 
     # Check if outputfile already exists
     filename = f"tl_{year}_{county_fips}_tabblockplacepuma{yr}"+"EPSG4269.csv"
-    if os.path.exists(output_folder+'/'+filename) & replace == False:
+    print(f'Checking if file exists: {output_folder}/{filename}')
+    # Checing if file exists
+    if os.path.exists(f'{output_folder}/{filename}') and replace == False:
+        print(f'File exists. Skipping. Use replace=True to overwrite.')
         print("Block data already exists for ",county_fips)
         blockdata_df = pd.read_csv(output_folder+'/'+filename)
         # Convert df to gdf

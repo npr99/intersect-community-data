@@ -3,7 +3,7 @@ from scipy.stats import pearsonr
 import pandas as pd
 from pyncoda.ncoda_00d_cleanvarsutils import *
 
-def predict_residential_addresspoints(builidng_to_block_gdf,
+def predict_residential_addresspoints(building_to_block_gdf,
                                      hui_df,
                                      hui_blockid,
                                      bldg_blockid,
@@ -20,8 +20,8 @@ def predict_residential_addresspoints(builidng_to_block_gdf,
     be split into sub functions.
     """
     
-    # Create a copy of the buiding data frame
-    bldg_df = builidng_to_block_gdf.copy(deep=True)
+    # Create a copy of the building data frame
+    bldg_df = building_to_block_gdf.copy(deep=True)
     # start by assuming that buildings have 0 residential address points
     bldg_df['residentialAP1'] = 0
     bldg_df['residentialAP1'].label = "Residential Address Point Round 1"
