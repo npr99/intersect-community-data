@@ -384,7 +384,7 @@ class generate_addpt_functions():
                 print("Could not upload file to INCORE")
                 print("dataset_id is set to the dataframe")
                 # Read in csv as dataframe
-                address_point_df = pd.read_csv(csv_filepath)
+                address_point_df = pd.read_csv(csv_filepath, low_memory=False)
                 return address_point_df
                 
             return dataset_id
@@ -395,11 +395,11 @@ class generate_addpt_functions():
 
         # Set up census block place puma gdf for merge
         select_cols = ['BLOCKID10_str','BLOCKID10','geometry','rppnt104269']
-        census_blocks_df_cols = census_block_place_puma_gdf[select_cols]
+        census_blocks_df_cols = census_block_place_puma_gdf[select_cols].copy(deep=True)
 
         # Set up housing unit estimate file for merge
         select_cols = ['guid','blockBLOCKID10_str','huestimate']
-        huesimate_df_cols = huesimate_df[select_cols]
+        huesimate_df_cols = huesimate_df[select_cols].copy(deep=True)
 
         # Look at address point count by block
         hui_blockid = 'blockid'
@@ -618,7 +618,7 @@ class generate_addpt_functions():
         select_cols = ['addrptid','strctid','guid','blockid','BLOCKID10_str',
             'building_geometry','block10_geometry','rppnt104269',
             'huestimate','residential','bldgobs','flag_ap']
-        address_point_inventory_cols = address_point_inventory_geo[select_cols]
+        address_point_inventory_cols = address_point_inventory_geo[select_cols].copy(deep=True)
 
         ### Merge Address Point inventory with Building and Census Data
         '''
@@ -692,7 +692,7 @@ class generate_addpt_functions():
         Now that the data frame is a regular data frame can use geometry columns as string to fix the issue.
         '''
         ## read in the address point inventory csv file
-        address_point_df = pd.read_csv(csv_filepath)
+        address_point_df = pd.read_csv(csv_filepath, low_memory=False)
 
         # Set Address Point Geometry
         # The default geometry is the building representative point
@@ -722,9 +722,11 @@ class generate_addpt_functions():
         condition1 = (address_point_gdf['COUNTYFP10'].isna())
         address_point_gdf.loc[condition1,'COUNTYFP10'] = 999
         address_point_gdf.loc[condition1,'placeNAME10'] = "Outside County"
-        address_point_gdf.loc[condition1,'placeGEOID10'] = 999
         address_point_gdf.loc[condition1,'blockid'] = 999999999999999
         address_point_gdf.loc[condition1,'BLOCKID10_str'] = 'B999999999999999'
+        # Check if placeGEOID10 is missing
+        condition1 = (address_point_gdf['placeGEOID10'].isna())
+        address_point_gdf.loc[condition1,'placeGEOID10'] = 9999999
 
         # Remove .0 from data
         address_point_gdfv2 = address_point_gdf.\

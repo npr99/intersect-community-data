@@ -33,6 +33,13 @@ def folium_marker_layer_map(gdf,
                 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 
                 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 
                 'gray', 'black', 'lightgray']
+
+    #  Check if color levels is larger than color list
+    if len(color_levels) > len(colorlist):
+        print(f"Color levels = {len(color_levels)} is larger than color list ({len(colorlist)})")
+        # increase the color list to match the number of color levels
+        colorlist = colorlist * (len(color_levels) // len(colorlist) + 1)
+        
     i = 0
     for color_level in color_levels:
         layer_map_name=layername+' '+ str(i+1)
@@ -71,7 +78,6 @@ def folium_marker_layer_map(gdf,
     return map
 
 def count_huid_by_building(hua_df, 
-                           bldg_inv_gdf,
                             blocknum = '',
                             groupby_vars = ['x','y']):
     """
@@ -82,6 +88,7 @@ def count_huid_by_building(hua_df,
     if 'Block2010' not in hua_df.columns:
         # Add block id 2010 as string
         # zero pad block id to 15 digits
+        print("Adding Block2010")
         hua_df['Block2010'] = hua_df['blockid'].apply(lambda x : str(int(x)).zfill(15))
 
     # check if block number is set
@@ -92,7 +99,7 @@ def count_huid_by_building(hua_df,
         block_df = hua_df.copy()
 
     # count by geometry
-    huid_count_df = hua_df[['huid']+groupby_vars].groupby(groupby_vars).count()
+    huid_count_df = block_df[['huid']+groupby_vars].groupby(groupby_vars).count()
     # reset index
     huid_count_df = huid_count_df.reset_index()
 
@@ -114,9 +121,16 @@ def map_selected_block(hua_df, blocknum):
     huid_count_gdf['geometry'] = huid_count_gdf['geometry'].apply(lambda x : loads(x))
     """
 
+    # Create list if HUID count unique values
+    huid_count_levels = huid_count_gdf['huid'].unique().tolist()
+    print("Housing unit counts",huid_count_levels)
+
+    return huid_count_gdf
+    ''' 
     # Map housing units in block
     map = folium_marker_layer_map(gdf = huid_count_gdf,
                             gdfvar="huid",
                             layername = "HUID count",
-                            color_levels = 3)
+                            color_levels = huid_count_levels)
     return map
+    '''

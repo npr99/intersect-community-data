@@ -17,9 +17,12 @@ ipython = get_ipython()
 import time
 
 # Save output as a log file function
+from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda \
      import ncoda_00c_save_output_log as logfile
-     
+from pyncoda.ncoda_00e_geoutilities import *
+
+
 # Load in data structure dictionaries
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
@@ -37,11 +40,10 @@ class hua_workflow_functions():
     """
 
     def __init__(self,
+            community,
             hui_df,
             addpt_df,
             bldg_df,
-            state_county: str,
-            state_county_name: str,
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
@@ -50,11 +52,10 @@ class hua_workflow_functions():
             outputfolders = {},
             savefiles: bool = True):
 
+        self.community = community
         self.hui_df = hui_df
         self.addpt_df = addpt_df
         self.bldg_df = bldg_df
-        self.state_county = state_county
-        self.state_county_name = state_county_name
         self.seed = seed
         self.version = version
         self.version_text = version_text
@@ -216,7 +217,7 @@ class hua_workflow_functions():
 
         return hui_df
 
-    def run_hua_workflow(self, savelog=True):
+    def run_hua_functions(self, savelog=True):
         """
         Workflow to produce Housing Unit Allocation
         """
@@ -224,7 +225,7 @@ class hua_workflow_functions():
         hua_df = {}
 
         # Save output description as text
-        output_filename = f'hua_{self.version_text}_{self.state_county}_{self.basevintage}_rs{self.seed}'
+        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_rs{self.seed}'
         self.output_filename = output_filename
         if savelog == True:
             log_filepath = self.outputfolders['logfiles']+"/"+output_filename+'.log'
@@ -233,7 +234,7 @@ class hua_workflow_functions():
             self.save_environment_version_details()
 
         print("\n***************************************")
-        print("    Run Housing Unit Allocation for",self.state_county_name)
+        print("    Run Housing Unit Allocation for",self.community)
         print("***************************************\n")
 
         print("\n***************************************")
@@ -266,12 +267,12 @@ class hua_workflow_functions():
                         seed = self.seed,
                         common_group_vars = [huicounter, ownershp],
                         new_char = 'strctid',
-                        extra_vars = ['addrptid','guid','huestimate','huicounter_addpt','plcname10','x','y'],
+                        extra_vars = ['addrptid','guid','huestimate','huicounter_addpt','placeNAME10','x','y'],
                         geolevel = "Block",
                         geovintage = "2010",
                         by_groups = {'NA' : {'by_variables' : []}},
                         fillna_value= '-999',
-                        state_county = self.state_county,
+                        state_county = self.community,
                         outputfile = "hui_addpt_guidr1",
                         outputfolder = self.outputfolders['RandomMerge'])
 
@@ -320,12 +321,12 @@ class hua_workflow_functions():
                 seed = self.seed,
                 common_group_vars = ['ownershp1'],
                 new_char = 'strctid',
-                extra_vars = ['addrptid','guid','huestimate','huicounter_addpt','plcname10','x','y'],
+                extra_vars = ['addrptid','guid','huestimate','huicounter_addpt','placeNAME10','x','y'],
                 geolevel = "Block",
                 geovintage = "2010",
                 by_groups = {'NA' : {'by_variables' : []}},
                 fillna_value= '-999',
-                state_county = self.state_county,
+                state_county = self.community,
                 outputfile = "hui_addpt_guidr2",
                 outputfolder = self.outputfolders['RandomMerge'])
         # Set up round options
@@ -351,3 +352,62 @@ class hua_workflow_functions():
             logfile.stop()
 
         return hua_addptr2_df
+
+    def housing_unit_allocation_workflow(self):
+        '''
+        Workflow to run housing unit allocation functions
+        Returns a pandas dataframe with the housing unit allocation
+        Each observation is a housing unit allocated to an address point
+        Each address point is allocated to a building if there is a building 
+        within the census block or nearby block group.
+        '''
+        print("Running up Housing Unit Allocation for",self.community)
+
+        # Set up output file and check if it exists
+        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_rs{self.seed}'
+        csv_filepath = self.outputfolders['top']+"/"+output_filename+'.csv'
+        savefile = sys.path[0]+"/"+csv_filepath
+        if os.path.exists(savefile):
+            print("The file already exists: "+savefile)
+            huav2_df = pd.read_file(csv_filepath)
+            # Convert df to gdf
+            huav2_gdf = df2gdf_WKTgeometry(df = huav2_df, 
+                        projection = "epsg:4269", 
+                        reproject ="epsg:4269",
+                        geometryvar = 'geometry')
+
+            return huav2_gdf
+
+
+        # Generate base housing unit inventory
+        base_hua_df = self.run_hua_functions(savelog=False)
+
+        # Save version for IN-CORE in v2 format
+        hua_incore_df = base_hua_df['primary']
+
+
+        # Convert HUA to geodataframe format
+        hua_incore_gdf = gpd.GeoDataFrame(
+            hua_incore_df, geometry=gpd.points_from_xy(hua_incore_df.x, hua_incore_df.y))
+
+        # Merge building inventory with housing unit allocation results
+        huav2_gdf = pd.merge(left = hua_incore_gdf, 
+                            right = self.bldg_inv_gdf[['guid','archetype','geometry']], 
+                            on='guid', how='outer')
+
+        # If Geometry is null, use X,Y coordinates from Address Point
+        # use geometry_y unless missing - then use geometry_x
+        huav2_gdf['geometry'] = huav2_gdf['geometry_y']
+        huav2_gdf.loc[huav2_gdf['geometry'].isnull(), 'geometry'] = huav2_gdf['geometry_x']
+        # drop geometry_x and geometry_y columns
+        huav2_gdf.drop(columns=['geometry_x','geometry_y'], inplace=True)
+
+        # Convert Block2010 to string
+        # fill in missing values
+        huav2_gdf['Block2010'] = huav2_gdf['Block2010'].fillna(999999999999999)
+        huav2_gdf['Block2010'] = huav2_gdf['Block2010'].apply(lambda x : str(int(x)).zfill(15))
+
+        #Save results for community name
+        huav2_gdf.to_csv(savefile, index=False)
+
+        return huav2_gdf
