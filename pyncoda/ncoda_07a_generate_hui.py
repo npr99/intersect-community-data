@@ -51,8 +51,9 @@ from pyincore import IncoreClient, DataService
 from pyncoda.CommunitySourceData.api_census_gov.acg_05a_hui_functions \
     import hui_workflow_functions
 from pyncoda.ncoda_00b_directory_design import directory_design
-from pyncoda.ncoda_06c_Codebook import *
 from pyncoda.ncoda_04a_Figures import *
+from pyncoda.ncoda_06c_Codebook import *
+from pyncoda.ncoda_06d_INCOREDataService import *
 
 from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
     import incore_v2_DataStructure
@@ -93,77 +94,6 @@ class generate_hui_functions():
             os.mkdir(self.outputfolder)
 
 
-    def loginto_incore_dataservice(self):
-        """
-        code for logging into IN-CORE
-        
-        Set up pyincore and read in data
-        IN-CORE is an open source python package that can be used to model the resilience of a community. To download IN-CORE, see:
-
-        https://incore.ncsa.illinois.edu/
-
-        Registration is free.
-
-        """
-
-        client = IncoreClient()
-        # IN-CORE caches files on the local machine, it might be necessary to clear the memory
-        #client.clear_cache() 
-
-        # create data_service object for loading files
-        data_service = DataService(client)
-
-        return data_service
-
-    def check_file_on_incore(self, title):
-        """
-        Check if HUI data is on IN-CORE
-        """
-
-        data_service = self.loginto_incore_dataservice()
-        # Search Data Services for dataset
-
-        url = urllib.parse.urljoin(data_service.base_url, "search")
-        search_title = {"text": title}
-        matched_datasets = data_service.client.get(url, params=search_title)
-
-        return matched_datasets
-
-    def return_dataservice_id(self, title, output_filename):
-        
-        # Check if file exists on IN-CORE
-        matched_datasets = self.check_file_on_incore(title)
-        match_count = len(matched_datasets.json())
-        print(f'Number of datasets matching {title}: {match_count}')
-    
-        if match_count == 1:
-            for dataset in matched_datasets.json():
-                incore_filename = dataset['fileDescriptors'][0]['filename']
-                if (dataset['title'] == title) and (incore_filename == output_filename+'.csv'):
-                    print(f'Dataset {title} already exists in IN-CORE')
-                    print(f'Dataset already exists in IN-CORE with filename {incore_filename}')
-                    dataset_id = dataset['id']
-                    print("Use dataset_id:",dataset_id)
-                    
-                    # Exit function and return dataset_id
-                    return dataset_id
-                else:
-                    print(f'Dataset {title} ')
-                    print(f'with matching filename {incore_filename} does not exist in IN-CORE')
-
-                    return None
-        elif match_count == 0:
-            print(f'Dataset {title} does not exist in IN-CORE')
-
-            return None
-        else:
-            print("There are multiple datasets matching the title. Please select one.")
-            for i, dataset in enumerate(matched_datasets):
-                print(i,matched_datasets[i]['dataset']['id'])
-            dataset_id = matched_datasets[int(input("Enter dataset number: "))]['dataset']["id"]
-            print("Use dataset_id:",dataset_id)
-            return dataset_id
-
     def generate_hui_v2_for_incore(self):
         """
         Generate HUI data for IN-CORE
@@ -179,7 +109,7 @@ class generate_hui_functions():
             county_list = ''
 
             # Check if file exists on IN-CORE
-            dataset_id = self.return_dataservice_id(title, output_filename)
+            dataset_id = return_dataservice_id(title, output_filename)
 
             # if dataset_id is not None, return id
             if dataset_id is not None:
@@ -290,7 +220,7 @@ class generate_hui_functions():
                 "format": "table"
                 }
 
-            data_service = self.loginto_incore_dataservice()
+            data_service = loginto_incore_dataservice()
             created_dataset = data_service.create_dataset(properties = dataset_metadata)
             dataset_id = created_dataset['id']
             print('dataset is created with id ' + dataset_id)
