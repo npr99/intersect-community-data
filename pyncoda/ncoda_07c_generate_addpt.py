@@ -87,6 +87,7 @@ class generate_addpt_functions():
     """
 
     def __init__(self,
+            community,
             communities,
             hui_df,
             bldg_inv_gdf,
@@ -102,6 +103,7 @@ class generate_addpt_functions():
             outputfolder: str ="",
             savefiles: bool = True):
 
+        self.community = community
         self.communities = communities
         self.hui_df = hui_df
         self.bldg_inv_gdf = bldg_inv_gdf
@@ -124,7 +126,10 @@ class generate_addpt_functions():
         Create one file that has the census block, place, and puma for each block
         for all counties in the community.
         """
-
+        print("***************")
+        print("Obtaining Census Block, Place, and PUMA Data")
+        print("***************")
+        print("")
         yr = year[2:4]
         check_folder = self.outputfolder
         output_filename = f'tl_{year}_{community}_tabblockplacepuma{yr}EPSG4269'
@@ -133,7 +138,7 @@ class generate_addpt_functions():
 
         # Check if file exists
         if os.path.exists(savefile):
-            print("File already exists"+savefile)
+            print("File already exists: "+savefile)
             census_block_place_puma_df = pd.read_csv(savefile)
 
             # Convert df to gdf
@@ -181,6 +186,11 @@ class generate_addpt_functions():
                                     community,
                                     year,
                                     census_block_place_puma_gdf):
+
+        print("***************")
+        print("Predicting Housing Unit Estimates")
+        print("***************")
+        print("")
 
         check_folder = self.outputfolder
         output_filename = f'huest_{self.version_text}_{community}_{self.basevintage}_{year}_{self.bldg_inv_id}'
@@ -294,11 +304,20 @@ class generate_addpt_functions():
 
         ## Attach files to the dataset created
         files = [csv_filepath]
-        full_dataset = data_service.add_files_to_dataset(dataset_id, files)
+        try:
+            data_service.add_files_to_dataset(dataset_id, files)
 
-        print('The file(s): '+ output_filename +" have been uploaded to IN-CORE")
-        print("Dataset now on IN-CORE, use dataset_id:",dataset_id)
-        print("Dataset is only in personal account, contact IN-CORE to make public")
+            print('The file(s): '+ output_filename +" have been uploaded to IN-CORE")
+            print("Dataset now on IN-CORE, use dataset_id:",dataset_id)
+            print("Dataset is only in personal account, contact IN-CORE to make public")
+        except:
+            print("Error uploading file to IN-CORE")
+
+            print("Delete dataset from IN-CORE: "+dataset_id)
+            data_service.delete_dataset(dataset_id)
+            dataset_idv2 = "No Dataset ID"
+            print("Dataset Id set to: "+dataset_idv2)
+            return dataset_idv2
 
         return dataset_id
 
@@ -306,413 +325,432 @@ class generate_addpt_functions():
         """
         Generate Address Point data for IN-CORE
         """
+        print("***************")
+        print("Address Point Inventory Workflow")
+        print("***************")
+        print("")
 
         # set year
-        year = self.year
+        year = str(self.year)
         
-        for community in self.communities.keys():
-            title = "Address Point Inventory v2.0.0 data for "+self.communities[community]['community_name']
-            print("Generating",title)
-            output_filename = f'addpt_{self.version_text}_{community}_{self.basevintage}_{year}_{self.bldg_inv_id}'
-            csv_filepath = self.outputfolder+"/"+output_filename+'.csv'
-            savefile = sys.path[0]+"/"+csv_filepath
+        # Set community
+        community = self.community
+        title = "Address Point Inventory v2.0.0 data for "+self.communities[community]['community_name']
+        print("Generating",title)
+        output_filename = f'addpt_{self.version_text}_{community}_{self.basevintage}_{year}_{self.bldg_inv_id}'
+        csv_filepath = self.outputfolder+"/"+output_filename+'.csv'
+        savefile = sys.path[0]+"/"+csv_filepath
 
-            # Check if file exists on IN-CORE
-            dataset_id = return_dataservice_id(title, output_filename)
+        # Check if file exists on IN-CORE
+        dataset_id = return_dataservice_id(title, output_filename)
 
-            # if dataset_id is not None, return id
-            if dataset_id is not None:
-                print("Dataset already exists on IN-CORE, use dataset_id:",dataset_id)
-                return dataset_id
+        # if dataset_id is not None, return id
+        if dataset_id is not None:
+            print("Dataset already exists on IN-CORE, use dataset_id:",dataset_id)
+            return dataset_id
 
-            # Workflow for generating Address Point Inventory data for IN-CORE
-            census_block_place_puma_gdf = \
-                self.obtain_census_block_place_puma_gdf(community = community, 
-                                                        year = year)
+        # Workflow for generating Address Point Inventory data for IN-CORE
+        census_block_place_puma_gdf = \
+            self.obtain_census_block_place_puma_gdf(community = community, 
+                                                    year = year)
 
-            huesimate_df = \
-                self.predict_housingunit_estimate(community = community,
-                                                year = year,
-                                                census_block_place_puma_gdf = census_block_place_puma_gdf)
+        huesimate_df = \
+            self.predict_housingunit_estimate(community = community,
+                                            year = year,
+                                            census_block_place_puma_gdf = census_block_place_puma_gdf)
 
-            # make a county list for community
-            county_list = ''
-            for county in self.communities[community]['counties'].keys():
-                state_county = self.communities[community]['counties'][county]['FIPS Code']
-                state_county_name  = self.communities[community]['counties'][county]['Name']
-                print(state_county_name,': county FIPS Code',state_county)
-                county_list = county_list + state_county_name+': county FIPS Code '+state_county
+        # make a county list for community
+        county_list = ''
+        for county in self.communities[community]['counties'].keys():
+            state_county = self.communities[community]['counties'][county]['FIPS Code']
+            state_county_name  = self.communities[community]['counties'][county]['Name']
+            print(state_county_name,': county FIPS Code',state_county)
+            county_list = county_list + state_county_name+': county FIPS Code '+state_county
 
-                # Check if file exists on local drive
-            if os.path.exists(savefile):
-                print("File already exists on local drive but"+
-                    "not on incore dataservice"
-                    +savefile)
-                # upload file to INCORE dataservice
-                dataset_id = self.upload_addpt_file_to_incore(
-                    community = community,
-                    year = year,
-                    county_list = county_list,
-                    csv_filepath = csv_filepath,
-                    output_filename = output_filename)
-                return dataset_id
-            """
-            Convert the Building inventory into a list of address points
-
-            """
-
-            # Set up census block place puma gdf for merge
-            select_cols = ['BLOCKID10_str','BLOCKID10','geometry','rppnt104269']
-            census_blocks_df_cols = census_block_place_puma_gdf[select_cols]
-
-            # Set up housing unit estimate file for merge
-            select_cols = ['guid','blockBLOCKID10_str','huestimate']
-            huesimate_df_cols = huesimate_df[select_cols]
-
-            # Look at address point count by block
-            hui_blockid = 'blockid'
-            bldg_blockid = 'BLOCKID10'
-            hua_block_counts = self.hui_df[[hui_blockid,'huid']].groupby(hui_blockid).agg('count')
-            hua_block_counts.reset_index(inplace = True)
-            hua_block_counts = hua_block_counts.\
-                rename(columns={'huid': "tothupoints", hui_blockid : bldg_blockid })
-            # Sum tothupoints
-            hua_apcount = hua_block_counts['tothupoints'].sum()
-            print("Total number of expected housing unit address points in county:",hua_apcount)
-
-            # merge address point counts by block with building data
-            census_blocks_df_cols = pd.merge(right = census_blocks_df_cols,
-                            left = hua_block_counts,
-                            right_on = bldg_blockid,
-                            left_on =  bldg_blockid,
-                            how = 'outer')   
-
-            # fill in missing tothupoints with 0 values
-            census_blocks_df_cols['tothupoints'] = census_blocks_df_cols['tothupoints'].fillna(value=0)
-
-            ### Prepare Building Inventory to Expand Based on Housing Unit Estimate
-            '''
-            For the address point inventory to work there needs to be 
-            one observation for each possible housing unit. 
-            This means that for buildings that have multiple housing units 
-            there will be one address point for each housing unit.
-
-            For places that do not have buildings but have people the 
-            address point inventory will provide details on housing units 
-            impacted outside of the study area.
-            '''
-
-            # If the residentialAP3v1 is used to expand the dataset observations without residential address points will be lost.
-            # To keep all buildings add an expand variable
-            huesimate_df_cols.loc[(huesimate_df_cols['huestimate']==0),'expandvar'] = 1
-            huesimate_df_cols.loc[(huesimate_df_cols['huestimate']>0),'expandvar'] = huesimate_df_cols['huestimate']
-            # Check to make sure expand variable was generated correctly
-            #pd.crosstab(huesimate_df_cols['expandvar'].loc[huesimate_df_cols['expandvar']<=3],
-            #            huesimate_df_cols['huestimate'], margins=True, margins_name="Total")
-
-            ## Expand GUID List
-            # Using the expand variable expand building inventory.
-            # Clean up missing values for expand variable
-            ### Expand var can not be negative
-            huesimate_df_cols.loc[(huesimate_df_cols['expandvar']<0)] = 0
-            ### Expand var cannot be missing
-            huesimate_df_cols.loc[(huesimate_df_cols.expandvar.isna(),'expandvar')] = 1
-
-            # The address point inventory is the expanded housing unit estimate dataframe
-            # code to expand dataframe using .repeat() method
-            huesimate_df_cols_expand = huesimate_df_cols.reindex(
-                huesimate_df_cols.index.repeat(huesimate_df_cols['expandvar']))
-            
-            # Expand Residential Address Point Count File
-            ## Using the count of address point variable expand residential address point count file
-            # The expand variable can not have missing values
-            census_blocks_df_cols.loc[(census_blocks_df_cols['tothupoints'].isna()) \
-                ,'expandvar'] = 0
-            census_blocks_df_cols.loc[(census_blocks_df_cols['tothupoints']>=0),\
-                'expandvar'] = census_blocks_df_cols['tothupoints']
-
-            # Expand data using repeat method
-            census_blocks_df_cols_expand = census_blocks_df_cols.reindex(
-                census_blocks_df_cols.index.repeat(census_blocks_df_cols['expandvar']))
-
-            ## Merge Two Address Point Files
-            '''
-            Combing the address points based on building inventory and 
-            the address points based on the 2010 Census will create one file 
-            that has address points for the entire county.
-
-            The combined file will show where the building inventory may 
-            be missing information within the study community. 
-            The combined file will also help to show the populations 
-            impacted both inside the study community and in neighboring areas.
-
-            To merge the two files need to add a counter to each file by blockid.
-            '''
-            # Add counter by block id - use cumulative count method
-            census_blocks_df_cols_expand['blockidcounter'] = \
-                census_blocks_df_cols_expand.groupby('BLOCKID10').cumcount()
-
-            # Add counter by block id - use cumulative count method
-            huesimate_df_cols_expand['blockidcounter'] = \
-                huesimate_df_cols_expand.groupby('blockBLOCKID10_str').cumcount()
-
-            # Merge 2 files based on blockid and blockid counter - 
-            # keep all observations from both files with full outer join
-            address_point_inventory = pd.merge(left = huesimate_df_cols_expand, 
-                                            right = census_blocks_df_cols_expand,
-                                            left_on=['blockBLOCKID10_str','blockidcounter'], 
-                                            right_on=['BLOCKID10_str','blockidcounter'], how='outer')
-
-            '''
-            # Check merge - examples were Building Id is missing
-            displaycols = ['guid','BLOCKID10']
-            condition = address_point_inventory['guid'].isna()
-            address_point_inventory[displaycols].loc[condition].head()
-            # Check merge - examples were there is no census data
-            displaycols = ['guid','BLOCKID10']
-            condition = address_point_inventory['tothupoints'].isnull()
-            address_point_inventory[displaycols].loc[condition].head()
-            '''
-
-            # Fix issue with missing blockid vs BLOCKID10
-            address_point_inventory.loc[address_point_inventory.BLOCKID10_str.isna(),
-                'BLOCKID10_str'] = address_point_inventory['blockBLOCKID10_str']
-
-            cols = [col for col in address_point_inventory]
-            #### The Address Point ID is based on the building id first then the block id
-            '''
-            In the best case scenario every address point is connected to a 
-            building but in cases where the building id is missing 
-            then the address point is based on the Census Block ID.
-            '''
-            address_point_inventory.loc[(address_point_inventory['guid'].isna()),
-                'strctid'] = address_point_inventory.\
-                apply(lambda x: "C"+ str(x['BLOCKID10_str']).zfill(36), axis=1)
-            address_point_inventory.loc[(address_point_inventory['guid'].notna()),
-                'strctid'] = address_point_inventory.\
-                apply(lambda x: "ST"+ str(x['guid']).zfill(36), axis=1)
-
-            # Sort Address Points by The first part of the address point 
-            address_point_inventory.sort_values(by=['strctid'])
-            # Add Counter by Building
-            address_point_inventory['apcounter'] = address_point_inventory.groupby('strctid').cumcount()
-
-            '''
-            To make a unique id for the address points need to have a combination of unique values. 
-            The first part of the address point id is based on either the building id or the block id.
-            Within each Building or Census Block the counter variable provides a way to 
-            identify address points within a block.
-            '''
-            address_point_inventory['addrptid'] = address_point_inventory.apply(lambda x: x['strctid'] + "AP" +
-                                                                    str(int(x['apcounter'])).zfill(6), axis=1)
-            # Move Primary Key Column to first Column
-            cols = ['addrptid']  + [col for col in address_point_inventory if col != 'addrptid']
-            address_point_inventory = address_point_inventory[cols]
-
-            # Confirm Primary Key is Unique and Non-Missing
-            # address_point_inventory.addrptid.describe()
-
-            #### Generate Flag Variables
-            # For the merged dataset identify cases where either building or census data is missing.
-            # Create Address Poing Flag Variable
-            address_point_inventory['flag_ap'] = 0
-            address_point_inventory.loc[(address_point_inventory['tothupoints'].isnull()),'flag_ap'] = 1
-            address_point_inventory.loc[(address_point_inventory['guid'].isna()),'flag_ap'] = 2
-            address_point_inventory.loc[(address_point_inventory['BLOCKID10_str'].isnull()),'flag_ap'] = 3
-            # Check to make sure expand variable was generated correctly
-            address_point_inventory.groupby(['flag_ap']).count()
-
-            ## Identify observations that represent the primary building
-            '''
-            In some future exploration cases it would be of interest to run cross 
-            tabulations on just the buildings, instead of all of the address points. 
-            To identify the buildings it is possible to use the address point counter (apcounter) 
-            and the address point flag (flag_ap). If the counter is 0 and the flag is 0 or 1 then the 
-            address point observation is the first address point in a building.
-            '''
-            # create a binary variable 0 - not the primary building observation, 1 - use to count buildings
-            address_point_inventory['bldgobs'] = 0
-            # If the ap count is 0 and the flag is 0 or 1 then the bldgobs should be 1
-            address_point_inventory.loc[(address_point_inventory['apcounter'] == 0) &
-                                        (address_point_inventory['flag_ap'] <= 1), 'bldgobs'] = 1
-
-            ## Set Geometry for Address Points
-            '''
-            The location of the address point will be important for identifying the 
-            hazard impact. There are two options for the address point location.
-
-            If there is a building representative point use the building representative point
-            If there building data is missing use the representative point from the census block
-            '''
-            # Merge guid and geometry from building inventory to address point inventory
-            address_point_inventory_geo = pd.merge(left = address_point_inventory,
-                                                right = self.bldg_inv_gdf[['guid','geometry']],
-                                                left_on=['guid'],
-                                                right_on=['guid'], 
-                                                how='left')
-            # Rename geometry column to block geometry
-            address_point_inventory_geo.rename(columns={'geometry_x':'block10_geometry'}, inplace=True)
-
-            # Rename geometry column to building geometry
-            address_point_inventory_geo.rename(columns={'geometry_y':'building_geometry'}, inplace=True)
-
-            ### Identify Residential Address Points
-            '''
-            For Address Points that have an estimate for the number of housing units, or if the building data is
-            missing then the address point is likely to be a residential address point.
-
-            The knowledge that an address point is residential will help prioritize the 
-            allocation of housing units to address points.
-
-            For address points in buildings with more than housing unit the number of 
-            housing units also provides a way to prioritize renters and owners. 
-            With renters more likely to be allocated to buildings with greater numbers of housing units.
-            '''
-            address_point_inventory_geo['residential'] = 0
-            # If the building id is missing then the address point is residential
-            address_point_inventory_geo.loc[(address_point_inventory_geo['guid'].isna()),'residential'] = 1
-            # The the variable residentialAP3v1 is greater than 0 then the address point is residential
-            address_point_inventory_geo.loc[(address_point_inventory_geo['huestimate']>0),'residential'] = 1
-            # Check new variable
-            # address_point_inventory_geo[['flag_ap','residential']].groupby(['flag_ap']).sum()
-
-            ## Keep primary columns
-            '''
-            The address point county file has many columns but only a few are needed to 
-            generate the address point inventory.
-            '''
-            ## Create block id variable from substring of BLOCKID10_str
-            address_point_inventory_geo['blockid'] = address_point_inventory_geo['BLOCKID10_str'].str[1:16]
-            select_cols = ['addrptid','strctid','guid','blockid','BLOCKID10_str',
-                'building_geometry','block10_geometry','rppnt104269',
-                'huestimate','residential','bldgobs','flag_ap']
-            address_point_inventory_cols = address_point_inventory_geo[select_cols]
-
-            ### Merge Address Point inventory with Building and Census Data
-            '''
-            To analyze the impact of the hazard the address point inventory needs to include 
-            building information and census place information. 
-            The building information will include building type, year built, 
-            and appraised values (when available). 
-            The Census information will include city name and count information.
-            '''
-            # Keep columns for merge
-            merge_cols = ['guid',self.archetype_var]
-            building_df_merge_cols = self.bldg_inv_gdf[merge_cols]
-
-            # merge selected columns from building inventory to address point inventory
-            address_point_inventory_cols_bldg = pd.merge(
-                                            address_point_inventory_cols, 
-                                            building_df_merge_cols,
-                                            left_on='guid', 
-                                            right_on='guid', 
-                                            how='left')
-
-            # For the merge only need a select number of columns
-            merge_cols = ['BLOCKID10_str','placeGEOID10','placeNAME10','COUNTYFP10']
-            census_blocks_df_merge_cols = census_block_place_puma_gdf[merge_cols]
-
-            # merge selected columns from building inventory to address point inventory
-            address_point_inventory_cols_bldg_block = pd.merge(
-                                            address_point_inventory_cols_bldg, 
-                                            census_blocks_df_merge_cols,
-                                            left_on='BLOCKID10_str', 
-                                            right_on='BLOCKID10_str', 
-                                            how='left')
-
-            # address_point_inventory_cols_bldg_block[['placeNAME10','guid']].groupby(['placeNAME10']).count()
-            ### Identify Unincorporated Areas with Place Name
-            '''
-            There are many address points that fall just outside of city limits in unincorporated places. 
-            For these areas use the county information to label the place names as the County Name.
-            '''
-            condition1 = (address_point_inventory_cols_bldg_block['placeNAME10'].isna())
-            address_point_inventory_cols_bldg_block.loc[
-                            condition1, 'placeNAME10'] = "Unincorporated"
-
-            # Check new variable
-            #pd.crosstab(address_point_inventory_cols_bldg_block['placeNAME10'], 
-            #            address_point_inventory_cols_bldg_block['COUNTYFP10'], margins=True, margins_name="Total")
-
-
-            ### Save Work as CSV
-            '''
-            A CSV file with the Well Known Text (WKT) geometry provides flexibility for saving and working with files.
-            '''
-            # Move Foreign Key Columns Block ID State, County, Tract to first Columns
-            first_columns = ['addrptid','guid','strctid','blockid','placeGEOID10','placeNAME10','COUNTYFP10']
-            cols = first_columns + [col for col in address_point_inventory_cols_bldg_block if col not in first_columns]
-            address_point_inventory_cols_bldg_block = address_point_inventory_cols_bldg_block[cols]
-
-            #Save results for community name
-            address_point_inventory_cols_bldg_block.to_csv(savefile, index=False)
-
-            # Save second set of files in common directory
-            common_directory = self.outputfolder+"/../"+output_filename
-            address_point_inventory_cols_bldg_block.to_csv(common_directory+'.csv', index=False)
-
-            #### Add X Y variables
-            '''
-            To be consistent with previous address point inventories add X and Y variables
-
-            Issue with missing geometries could not be fixed earlier because 
-            data frames were geodataframes. 
-            Now that the data frame is a regular data frame can use geometry columns as string to fix the issue.
-            '''
-            ## read in the address point inventory csv file
-            address_point_df = pd.read_csv(csv_filepath)
-
-            # Set Address Point Geometry
-            # The default geometry is the building representative point
-            address_point_df['geometry'] = address_point_df['building_geometry']
-            # When the building representative point is missing use the Census Block Representative Point
-            address_point_df.loc[(address_point_df['geometry'].isnull()),'geometry'] = address_point_df['rppnt104269']
-
-            # Convert Data Frame to Geodataframe
-            address_point_gdf = gpd.GeoDataFrame(address_point_df)
-            address_point_gdf['geometry'] = address_point_gdf['geometry'].apply(lambda x: loads(x))
-
-            # Add X and Y variables
-            address_point_gdf['x'] = address_point_gdf['geometry'].x
-            address_point_gdf['y'] = address_point_gdf['geometry'].y
-
-            ### ISSUE - There are buildings on the edge of the county
-            '''
-            These observations do not geocode inside the county boundary.
-
-            Observations with missing values can not be converted to integer and therefore will have the trailing .0 - since they are a float.
-
-            The address point inventory needs to have all buildings
-            in the inventory. If a building is missing then the housing unit 
-            allocation method will not work.
-            '''
-            # Set observations outside of the county to with filled in values
-            condition1 = (address_point_gdf['COUNTYFP10'].isna())
-            address_point_gdf.loc[condition1,'COUNTYFP10'] = 999
-            address_point_gdf.loc[condition1,'placeNAME10'] = "Outside County"
-            address_point_gdf.loc[condition1,'placeGEOID10'] = 999
-            address_point_gdf.loc[condition1,'blockid'] = 999999999999999
-            address_point_gdf.loc[condition1,'BLOCKID10_str'] = 'B999999999999999'
-
-            # Remove .0 from data
-            address_point_gdfv2 = address_point_gdf.\
-                applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
-            # drop columns not needed for analysis
-            address_point_gdfv2.drop(['geometry','building_geometry','block10_geometry','rppnt104269'], \
-                axis=1, inplace=True)
-            
-            # Resave results for community name
-            address_point_gdfv2.to_csv(savefile, index=False)
-
+            # Check if file exists on local drive
+        if os.path.exists(savefile):
+            print("File already exists on local drive but"+
+                "not on incore dataservice"
+                +savefile)
             # upload file to INCORE dataservice
-            dataset_id = self.upload_addpt_file_to_incore(
+            dataset_id_final = self.upload_addpt_file_to_incore(
                 community = community,
                 year = year,
                 county_list = county_list,
                 csv_filepath = csv_filepath,
                 output_filename = output_filename)
+            
+            if dataset_id_final == "No Dataset ID":
+                print("Could not upload file to INCORE")
+                print("dataset_id is set to the dataframe")
+                # Read in csv as dataframe
+                address_point_df = pd.read_csv(csv_filepath)
+                return address_point_df
+                
+            return dataset_id
+        """
+        Convert the Building inventory into a list of address points
 
-        return dataset_id
+        """
+
+        # Set up census block place puma gdf for merge
+        select_cols = ['BLOCKID10_str','BLOCKID10','geometry','rppnt104269']
+        census_blocks_df_cols = census_block_place_puma_gdf[select_cols]
+
+        # Set up housing unit estimate file for merge
+        select_cols = ['guid','blockBLOCKID10_str','huestimate']
+        huesimate_df_cols = huesimate_df[select_cols]
+
+        # Look at address point count by block
+        hui_blockid = 'blockid'
+        bldg_blockid = 'BLOCKID10'
+        hua_block_counts = self.hui_df[[hui_blockid,'huid']].groupby(hui_blockid).agg('count')
+        hua_block_counts.reset_index(inplace = True)
+        hua_block_counts = hua_block_counts.\
+            rename(columns={'huid': "tothupoints", hui_blockid : bldg_blockid })
+        # Sum tothupoints
+        hua_apcount = hua_block_counts['tothupoints'].sum()
+        print("Total number of expected housing unit address points in county:",hua_apcount)
+
+        # merge address point counts by block with building data
+        census_blocks_df_cols = pd.merge(right = census_blocks_df_cols,
+                        left = hua_block_counts,
+                        right_on = bldg_blockid,
+                        left_on =  bldg_blockid,
+                        how = 'outer')   
+
+        # fill in missing tothupoints with 0 values
+        census_blocks_df_cols['tothupoints'] = census_blocks_df_cols['tothupoints'].fillna(value=0)
+
+        ### Prepare Building Inventory to Expand Based on Housing Unit Estimate
+        '''
+        For the address point inventory to work there needs to be 
+        one observation for each possible housing unit. 
+        This means that for buildings that have multiple housing units 
+        there will be one address point for each housing unit.
+
+        For places that do not have buildings but have people the 
+        address point inventory will provide details on housing units 
+        impacted outside of the study area.
+        '''
+
+        # If the residentialAP3v1 is used to expand the dataset observations without residential address points will be lost.
+        # To keep all buildings add an expand variable
+        huesimate_df_cols.loc[(huesimate_df_cols['huestimate']==0),'expandvar'] = 1
+        huesimate_df_cols.loc[(huesimate_df_cols['huestimate']>0),'expandvar'] = huesimate_df_cols['huestimate']
+        # Check to make sure expand variable was generated correctly
+        #pd.crosstab(huesimate_df_cols['expandvar'].loc[huesimate_df_cols['expandvar']<=3],
+        #            huesimate_df_cols['huestimate'], margins=True, margins_name="Total")
+
+        ## Expand GUID List
+        # Using the expand variable expand building inventory.
+        # Clean up missing values for expand variable
+        ### Expand var can not be negative
+        huesimate_df_cols.loc[(huesimate_df_cols['expandvar']<0)] = 0
+        ### Expand var cannot be missing
+        huesimate_df_cols.loc[(huesimate_df_cols.expandvar.isna(),'expandvar')] = 1
+
+        # The address point inventory is the expanded housing unit estimate dataframe
+        # code to expand dataframe using .repeat() method
+        huesimate_df_cols_expand = huesimate_df_cols.reindex(
+            huesimate_df_cols.index.repeat(huesimate_df_cols['expandvar']))
+        
+        # Expand Residential Address Point Count File
+        ## Using the count of address point variable expand residential address point count file
+        # The expand variable can not have missing values
+        census_blocks_df_cols.loc[(census_blocks_df_cols['tothupoints'].isna()) \
+            ,'expandvar'] = 0
+        census_blocks_df_cols.loc[(census_blocks_df_cols['tothupoints']>=0),\
+            'expandvar'] = census_blocks_df_cols['tothupoints']
+
+        # Expand data using repeat method
+        census_blocks_df_cols_expand = census_blocks_df_cols.reindex(
+            census_blocks_df_cols.index.repeat(census_blocks_df_cols['expandvar']))
+
+        ## Merge Two Address Point Files
+        '''
+        Combing the address points based on building inventory and 
+        the address points based on the 2010 Census will create one file 
+        that has address points for the entire county.
+
+        The combined file will show where the building inventory may 
+        be missing information within the study community. 
+        The combined file will also help to show the populations 
+        impacted both inside the study community and in neighboring areas.
+
+        To merge the two files need to add a counter to each file by blockid.
+        '''
+        # Add counter by block id - use cumulative count method
+        census_blocks_df_cols_expand['blockidcounter'] = \
+            census_blocks_df_cols_expand.groupby('BLOCKID10').cumcount()
+
+        # Add counter by block id - use cumulative count method
+        huesimate_df_cols_expand['blockidcounter'] = \
+            huesimate_df_cols_expand.groupby('blockBLOCKID10_str').cumcount()
+
+        # Merge 2 files based on blockid and blockid counter - 
+        # keep all observations from both files with full outer join
+        address_point_inventory = pd.merge(left = huesimate_df_cols_expand, 
+                                        right = census_blocks_df_cols_expand,
+                                        left_on=['blockBLOCKID10_str','blockidcounter'], 
+                                        right_on=['BLOCKID10_str','blockidcounter'], how='outer')
+
+        '''
+        # Check merge - examples were Building Id is missing
+        displaycols = ['guid','BLOCKID10']
+        condition = address_point_inventory['guid'].isna()
+        address_point_inventory[displaycols].loc[condition].head()
+        # Check merge - examples were there is no census data
+        displaycols = ['guid','BLOCKID10']
+        condition = address_point_inventory['tothupoints'].isnull()
+        address_point_inventory[displaycols].loc[condition].head()
+        '''
+
+        # Fix issue with missing blockid vs BLOCKID10
+        address_point_inventory.loc[address_point_inventory.BLOCKID10_str.isna(),
+            'BLOCKID10_str'] = address_point_inventory['blockBLOCKID10_str']
+
+        cols = [col for col in address_point_inventory]
+        #### The Address Point ID is based on the building id first then the block id
+        '''
+        In the best case scenario every address point is connected to a 
+        building but in cases where the building id is missing 
+        then the address point is based on the Census Block ID.
+        '''
+        address_point_inventory.loc[(address_point_inventory['guid'].isna()),
+            'strctid'] = address_point_inventory.\
+            apply(lambda x: "C"+ str(x['BLOCKID10_str']).zfill(36), axis=1)
+        address_point_inventory.loc[(address_point_inventory['guid'].notna()),
+            'strctid'] = address_point_inventory.\
+            apply(lambda x: "ST"+ str(x['guid']).zfill(36), axis=1)
+
+        # Sort Address Points by The first part of the address point 
+        address_point_inventory.sort_values(by=['strctid'])
+        # Add Counter by Building
+        address_point_inventory['apcounter'] = address_point_inventory.groupby('strctid').cumcount()
+
+        '''
+        To make a unique id for the address points need to have a combination of unique values. 
+        The first part of the address point id is based on either the building id or the block id.
+        Within each Building or Census Block the counter variable provides a way to 
+        identify address points within a block.
+        '''
+        address_point_inventory['addrptid'] = address_point_inventory.apply(lambda x: x['strctid'] + "AP" +
+                                                                str(int(x['apcounter'])).zfill(6), axis=1)
+        # Move Primary Key Column to first Column
+        cols = ['addrptid']  + [col for col in address_point_inventory if col != 'addrptid']
+        address_point_inventory = address_point_inventory[cols]
+
+        # Confirm Primary Key is Unique and Non-Missing
+        # address_point_inventory.addrptid.describe()
+
+        #### Generate Flag Variables
+        # For the merged dataset identify cases where either building or census data is missing.
+        # Create Address Poing Flag Variable
+        address_point_inventory['flag_ap'] = 0
+        address_point_inventory.loc[(address_point_inventory['tothupoints'].isnull()),'flag_ap'] = 1
+        address_point_inventory.loc[(address_point_inventory['guid'].isna()),'flag_ap'] = 2
+        address_point_inventory.loc[(address_point_inventory['BLOCKID10_str'].isnull()),'flag_ap'] = 3
+        # Check to make sure expand variable was generated correctly
+        address_point_inventory.groupby(['flag_ap']).count()
+
+        ## Identify observations that represent the primary building
+        '''
+        In some future exploration cases it would be of interest to run cross 
+        tabulations on just the buildings, instead of all of the address points. 
+        To identify the buildings it is possible to use the address point counter (apcounter) 
+        and the address point flag (flag_ap). If the counter is 0 and the flag is 0 or 1 then the 
+        address point observation is the first address point in a building.
+        '''
+        # create a binary variable 0 - not the primary building observation, 1 - use to count buildings
+        address_point_inventory['bldgobs'] = 0
+        # If the ap count is 0 and the flag is 0 or 1 then the bldgobs should be 1
+        address_point_inventory.loc[(address_point_inventory['apcounter'] == 0) &
+                                    (address_point_inventory['flag_ap'] <= 1), 'bldgobs'] = 1
+
+        ## Set Geometry for Address Points
+        '''
+        The location of the address point will be important for identifying the 
+        hazard impact. There are two options for the address point location.
+
+        If there is a building representative point use the building representative point
+        If there building data is missing use the representative point from the census block
+        '''
+        # Merge guid and geometry from building inventory to address point inventory
+        address_point_inventory_geo = pd.merge(left = address_point_inventory,
+                                            right = self.bldg_inv_gdf[['guid','geometry']],
+                                            left_on=['guid'],
+                                            right_on=['guid'], 
+                                            how='left')
+        # Rename geometry column to block geometry
+        address_point_inventory_geo.rename(columns={'geometry_x':'block10_geometry'}, inplace=True)
+
+        # Rename geometry column to building geometry
+        address_point_inventory_geo.rename(columns={'geometry_y':'building_geometry'}, inplace=True)
+
+        ### Identify Residential Address Points
+        '''
+        For Address Points that have an estimate for the number of housing units, or if the building data is
+        missing then the address point is likely to be a residential address point.
+
+        The knowledge that an address point is residential will help prioritize the 
+        allocation of housing units to address points.
+
+        For address points in buildings with more than housing unit the number of 
+        housing units also provides a way to prioritize renters and owners. 
+        With renters more likely to be allocated to buildings with greater numbers of housing units.
+        '''
+        address_point_inventory_geo['residential'] = 0
+        # If the building id is missing then the address point is residential
+        address_point_inventory_geo.loc[(address_point_inventory_geo['guid'].isna()),'residential'] = 1
+        # The the variable residentialAP3v1 is greater than 0 then the address point is residential
+        address_point_inventory_geo.loc[(address_point_inventory_geo['huestimate']>0),'residential'] = 1
+        # Check new variable
+        # address_point_inventory_geo[['flag_ap','residential']].groupby(['flag_ap']).sum()
+
+        ## Keep primary columns
+        '''
+        The address point county file has many columns but only a few are needed to 
+        generate the address point inventory.
+        '''
+        ## Create block id variable from substring of BLOCKID10_str
+        address_point_inventory_geo['blockid'] = address_point_inventory_geo['BLOCKID10_str'].str[1:16]
+        select_cols = ['addrptid','strctid','guid','blockid','BLOCKID10_str',
+            'building_geometry','block10_geometry','rppnt104269',
+            'huestimate','residential','bldgobs','flag_ap']
+        address_point_inventory_cols = address_point_inventory_geo[select_cols]
+
+        ### Merge Address Point inventory with Building and Census Data
+        '''
+        To analyze the impact of the hazard the address point inventory needs to include 
+        building information and census place information. 
+        The building information will include building type, year built, 
+        and appraised values (when available). 
+        The Census information will include city name and count information.
+        '''
+        # Keep columns for merge
+        merge_cols = ['guid',self.archetype_var]
+        building_df_merge_cols = self.bldg_inv_gdf[merge_cols]
+
+        # merge selected columns from building inventory to address point inventory
+        address_point_inventory_cols_bldg = pd.merge(
+                                        address_point_inventory_cols, 
+                                        building_df_merge_cols,
+                                        left_on='guid', 
+                                        right_on='guid', 
+                                        how='left')
+
+        # For the merge only need a select number of columns
+        merge_cols = ['BLOCKID10_str','placeGEOID10','placeNAME10','COUNTYFP10']
+        census_blocks_df_merge_cols = census_block_place_puma_gdf[merge_cols]
+
+        # merge selected columns from building inventory to address point inventory
+        address_point_inventory_cols_bldg_block = pd.merge(
+                                        address_point_inventory_cols_bldg, 
+                                        census_blocks_df_merge_cols,
+                                        left_on='BLOCKID10_str', 
+                                        right_on='BLOCKID10_str', 
+                                        how='left')
+
+        # address_point_inventory_cols_bldg_block[['placeNAME10','guid']].groupby(['placeNAME10']).count()
+        ### Identify Unincorporated Areas with Place Name
+        '''
+        There are many address points that fall just outside of city limits in unincorporated places. 
+        For these areas use the county information to label the place names as the County Name.
+        '''
+        condition1 = (address_point_inventory_cols_bldg_block['placeNAME10'].isna())
+        address_point_inventory_cols_bldg_block.loc[
+                        condition1, 'placeNAME10'] = "Unincorporated"
+
+        # Check new variable
+        #pd.crosstab(address_point_inventory_cols_bldg_block['placeNAME10'], 
+        #            address_point_inventory_cols_bldg_block['COUNTYFP10'], margins=True, margins_name="Total")
+
+
+        ### Save Work as CSV
+        '''
+        A CSV file with the Well Known Text (WKT) geometry provides flexibility for saving and working with files.
+        '''
+        # Move Foreign Key Columns Block ID State, County, Tract to first Columns
+        first_columns = ['addrptid','guid','strctid','blockid','placeGEOID10','placeNAME10','COUNTYFP10']
+        cols = first_columns + [col for col in address_point_inventory_cols_bldg_block if col not in first_columns]
+        address_point_inventory_cols_bldg_block = address_point_inventory_cols_bldg_block[cols]
+
+        #Save results for community name
+        address_point_inventory_cols_bldg_block.to_csv(savefile, index=False)
+
+        # Save second set of files in common directory
+        #common_directory = self.outputfolder+"/../"+output_filename
+        #address_point_inventory_cols_bldg_block.to_csv(common_directory+'.csv', index=False)
+
+        #### Add X Y variables
+        '''
+        To be consistent with previous address point inventories add X and Y variables
+
+        Issue with missing geometries could not be fixed earlier because 
+        data frames were geodataframes. 
+        Now that the data frame is a regular data frame can use geometry columns as string to fix the issue.
+        '''
+        ## read in the address point inventory csv file
+        address_point_df = pd.read_csv(csv_filepath)
+
+        # Set Address Point Geometry
+        # The default geometry is the building representative point
+        address_point_df['geometry'] = address_point_df['building_geometry']
+        # When the building representative point is missing use the Census Block Representative Point
+        address_point_df.loc[(address_point_df['geometry'].isnull()),'geometry'] = address_point_df['rppnt104269']
+
+        # Convert Data Frame to Geodataframe
+        address_point_gdf = gpd.GeoDataFrame(address_point_df)
+        address_point_gdf['geometry'] = address_point_gdf['geometry'].apply(lambda x: loads(x))
+
+        # Add X and Y variables
+        address_point_gdf['x'] = address_point_gdf['geometry'].x
+        address_point_gdf['y'] = address_point_gdf['geometry'].y
+
+        ### ISSUE - There are buildings on the edge of the county
+        '''
+        These observations do not geocode inside the county boundary.
+
+        Observations with missing values can not be converted to integer and therefore will have the trailing .0 - since they are a float.
+
+        The address point inventory needs to have all buildings
+        in the inventory. If a building is missing then the housing unit 
+        allocation method will not work.
+        '''
+        # Set observations outside of the county to with filled in values
+        condition1 = (address_point_gdf['COUNTYFP10'].isna())
+        address_point_gdf.loc[condition1,'COUNTYFP10'] = 999
+        address_point_gdf.loc[condition1,'placeNAME10'] = "Outside County"
+        address_point_gdf.loc[condition1,'placeGEOID10'] = 999
+        address_point_gdf.loc[condition1,'blockid'] = 999999999999999
+        address_point_gdf.loc[condition1,'BLOCKID10_str'] = 'B999999999999999'
+
+        # Remove .0 from data
+        address_point_gdfv2 = address_point_gdf.\
+            applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+        # drop columns not needed for analysis
+        address_point_gdfv2.drop(['geometry','building_geometry','block10_geometry','rppnt104269'], \
+            axis=1, inplace=True)
+        
+        # Resave results for community name
+        address_point_gdfv2.to_csv(savefile, index=False)
+
+        # upload file to INCORE dataservice
+        # try to upload file to INCORE dataservice
+        dataset_id_final = self.upload_addpt_file_to_incore(
+            community = community,
+            year = year,
+            county_list = county_list,
+            csv_filepath = csv_filepath,
+            output_filename = output_filename)
+
+        if dataset_id_final == "No Dataset ID":
+            print("Could not upload file to INCORE")
+            print("dataset_id is the dataframe")
+            return address_point_gdfv2
+
+        return dataset_id_final
 
     
 
