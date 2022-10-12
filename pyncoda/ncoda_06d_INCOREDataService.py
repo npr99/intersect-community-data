@@ -26,21 +26,21 @@ def loginto_incore_dataservice():
     #client.clear_cache() 
 
     # create data_service object for loading files
-    data_service = DataService(client)
+    data_service_login = DataService(client)
 
-    return data_service
+    return data_service_login
 
 def check_file_on_incore(title):
     """
     Check if HUI data is on IN-CORE
     """
 
-    data_service = loginto_incore_dataservice()
+    data_service_checkfile = loginto_incore_dataservice()
     # Search Data Services for dataset
 
-    url = urllib.parse.urljoin(data_service.base_url, "search")
+    url = urllib.parse.urljoin(data_service_checkfile.base_url, "search")
     search_title = {"text": title}
-    matched_datasets = data_service.client.get(url, params=search_title)
+    matched_datasets = data_service_checkfile.client.get(url, params=search_title)
 
     return matched_datasets
 

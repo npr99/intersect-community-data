@@ -158,7 +158,7 @@ class generate_hui_functions():
             hui_incore_df_fixed.to_csv(savefile, index=False)
 
             # Save second set of files in common directory
-            common_directory = outputfolders['top']+"/../../"+output_filename
+            common_directory = outputfolders['top']+"/../"+output_filename
             hui_incore_df_fixed.to_csv(common_directory+'.csv', index=False)
             
             # Generate figures for explore data
@@ -220,14 +220,14 @@ class generate_hui_functions():
                 "format": "table"
                 }
 
-            data_service = loginto_incore_dataservice()
-            created_dataset = data_service.create_dataset(properties = dataset_metadata)
+            data_service_hui = loginto_incore_dataservice()
+            created_dataset = data_service_hui.create_dataset(properties = dataset_metadata)
             dataset_id = created_dataset['id']
             print('dataset is created with id ' + dataset_id)
 
             ## Attach files to the dataset created
             files = [csv_filepath]
-            full_dataset = data_service.add_files_to_dataset(dataset_id, files)
+            full_dataset = data_service_hui.add_files_to_dataset(dataset_id, files)
 
             print('The file(s): '+ output_filename +" have been uploaded to IN-CORE")
             print("Dataset now on IN-CORE, use dataset_id:",dataset_id)

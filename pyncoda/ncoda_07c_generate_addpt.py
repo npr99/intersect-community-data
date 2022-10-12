@@ -297,15 +297,15 @@ class generate_addpt_functions():
             "format": "table"
             }
 
-        data_service = loginto_incore_dataservice()
-        created_dataset = data_service.create_dataset(properties = dataset_metadata)
+        data_service_addpt = loginto_incore_dataservice()
+        created_dataset = data_service_addpt.create_dataset(properties = dataset_metadata)
         dataset_id = created_dataset['id']
         print('dataset is created with id ' + dataset_id)
 
         ## Attach files to the dataset created
         files = [csv_filepath]
         try:
-            data_service.add_files_to_dataset(dataset_id, files)
+            data_service_addpt.add_files_to_dataset(dataset_id, files)
 
             print('The file(s): '+ output_filename +" have been uploaded to IN-CORE")
             print("Dataset now on IN-CORE, use dataset_id:",dataset_id)
@@ -314,7 +314,7 @@ class generate_addpt_functions():
             print("Error uploading file to IN-CORE")
 
             print("Delete dataset from IN-CORE: "+dataset_id)
-            data_service.delete_dataset(dataset_id)
+            data_service_addpt.delete_dataset(dataset_id)
             dataset_idv2 = "No Dataset ID"
             print("Dataset Id set to: "+dataset_idv2)
             return dataset_idv2
@@ -369,8 +369,8 @@ class generate_addpt_functions():
 
             # Check if file exists on local drive
         if os.path.exists(savefile):
-            print("File already exists on local drive but"+
-                "not on incore dataservice"
+            print("File already exists on local drive but "+
+                "not on incore dataservice: "
                 +savefile)
             # upload file to INCORE dataservice
             dataset_id_final = self.upload_addpt_file_to_incore(
@@ -387,7 +387,7 @@ class generate_addpt_functions():
                 address_point_df = pd.read_csv(csv_filepath, low_memory=False)
                 return address_point_df
                 
-            return dataset_id
+            return dataset_id_final
         """
         Convert the Building inventory into a list of address points
 
