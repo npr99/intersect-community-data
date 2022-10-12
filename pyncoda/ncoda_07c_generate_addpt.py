@@ -193,7 +193,7 @@ class generate_addpt_functions():
         print("")
 
         check_folder = self.outputfolder
-        output_filename = f'huest_{self.version_text}_{community}_{self.basevintage}_{year}_{self.bldg_inv_id}'
+        output_filename = f'huest_{self.version_text}_{community}_{year}_{self.bldg_inv_id}'
         csv_filepath = check_folder+"/"+output_filename+'.csv'
         savefile = sys.path[0]+"/"+csv_filepath
         if os.path.exists(savefile):
@@ -337,7 +337,7 @@ class generate_addpt_functions():
         community = self.community
         title = "Address Point Inventory v2.0.0 data for "+self.communities[community]['community_name']
         print("Generating",title)
-        output_filename = f'addpt_{self.version_text}_{community}_{self.basevintage}_{year}_{self.bldg_inv_id}'
+        output_filename = f'addpt_{self.version_text}_{community}_{year}_{self.bldg_inv_id}'
         csv_filepath = self.outputfolder+"/"+output_filename+'.csv'
         savefile = sys.path[0]+"/"+csv_filepath
 

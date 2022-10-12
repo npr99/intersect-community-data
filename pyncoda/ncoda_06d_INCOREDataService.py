@@ -21,12 +21,12 @@ def loginto_incore_dataservice():
 
     """
 
-    client = IncoreClient()
+    client_login = IncoreClient()
     # IN-CORE caches files on the local machine, it might be necessary to clear the memory
-    #client.clear_cache() 
+    #client_login.clear_cache() 
 
     # create data_service object for loading files
-    data_service_login = DataService(client)
+    data_service_login = DataService(client_login)
 
     return data_service_login
 
