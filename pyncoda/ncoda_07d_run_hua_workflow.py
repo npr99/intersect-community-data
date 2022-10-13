@@ -43,7 +43,7 @@ class hua_workflow_functions():
             community,
             hui_df,
             addpt_df,
-            bldg_df,
+            bldg_gdf,
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
@@ -55,7 +55,7 @@ class hua_workflow_functions():
         self.community = community
         self.hui_df = hui_df
         self.addpt_df = addpt_df
-        self.bldg_df = bldg_df
+        self.bldg_gdf = bldg_gdf
         self.seed = seed
         self.version = version
         self.version_text = version_text
@@ -392,7 +392,7 @@ class hua_workflow_functions():
 
         # Merge building inventory with housing unit allocation results
         huav2_gdf = pd.merge(left = hua_incore_gdf, 
-                            right = self.bldg_inv_gdf[['guid','archetype','geometry']], 
+                            right = self.bldg_gdf[['guid','archetype','geometry']], 
                             on='guid', how='outer')
 
         # If Geometry is null, use X,Y coordinates from Address Point

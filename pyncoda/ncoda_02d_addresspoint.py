@@ -38,7 +38,14 @@ def predict_residential_addresspoints(building_to_block_gdf,
     # residential archetypes with 1 housing unit
     for residential_archetype in residential_archetypes:
         condition = (bldg_df[archetype_var] == residential_archetype)
-        bldg_df.loc[condition,'residentialAP1'] = 1
+        # Check if HU estimate is in dictionary key
+        if 'HU estimate' in residential_archetypes[residential_archetype].keys():
+            # Assign HU estimate to residential address points
+            hu_estimate = residential_archetypes[residential_archetype]['HU estimate']
+            bldg_df.loc[condition,'residentialAP1'] = hu_estimate
+        else:
+            # Assign 1 to residential address points
+            bldg_df.loc[condition,'residentialAP1'] = 1
         # Length of data frame
         len_bldg_df = bldg_df.loc[condition].shape[0]
         print(len_bldg_df,"Buildings have Residential Archetype",residential_archetype)

@@ -125,12 +125,11 @@ def map_selected_block(hua_df, blocknum):
     huid_count_levels = huid_count_gdf['huid'].unique().tolist()
     print("Housing unit counts",huid_count_levels)
 
-    return huid_count_gdf
-    ''' 
+
     # Map housing units in block
     map = folium_marker_layer_map(gdf = huid_count_gdf,
                             gdfvar="huid",
                             layername = "HUID count",
                             color_levels = huid_count_levels)
     return map
-    '''
+    
