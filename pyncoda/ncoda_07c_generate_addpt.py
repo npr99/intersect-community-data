@@ -268,8 +268,7 @@ class generate_addpt_functions():
         return huesimate_df
 
     def upload_addpt_file_to_incore(self,
-                        community,
-                        year,
+                        title,
                         county_list,
                         csv_filepath,
                         output_filename):
@@ -280,7 +279,6 @@ class generate_addpt_functions():
         ## Upload Address Point Inventory to IN-CORE
         # Upload CSV file to IN-CORE and save dataset_id
         # note you have to put the correct dataType as well as format
-        title = "Address Point Inventory v2.0.0 data for " + community + " " + str(year)
         addpt_description =  '\n'.join(["2010 Address Point Inventory v2.0.0 with required IN-CORE columns. " 
                 "Compatible with pyincore v1.4. " 
                 "Unit of observation is address point. " 
@@ -335,7 +333,7 @@ class generate_addpt_functions():
         
         # Set community
         community = self.community
-        title = "Address Point Inventory v2.0.0 data for "+self.communities[community]['community_name']
+        title = "Address Point Inventory v2.0.0 data for "+community + " " + str(year)
         print("Generating",title)
         output_filename = f'addpt_{self.version_text}_{community}_{year}_{self.bldg_inv_id}'
         csv_filepath = self.outputfolder+"/"+output_filename+'.csv'
@@ -374,8 +372,7 @@ class generate_addpt_functions():
                 +savefile)
             # upload file to INCORE dataservice
             dataset_id_final = self.upload_addpt_file_to_incore(
-                community = community,
-                year = year,
+                title = title,
                 county_list = county_list,
                 csv_filepath = csv_filepath,
                 output_filename = output_filename)
@@ -411,6 +408,22 @@ class generate_addpt_functions():
         # Sum tothupoints
         hua_apcount = hua_block_counts['tothupoints'].sum()
         print("Total number of expected housing unit address points in county:",hua_apcount)
+
+        # Check to make sure that bldg_blockid is a string in both dataframes
+        if not isinstance(census_blocks_df_cols[bldg_blockid][0], str):
+            print("Converting Census Block Dataframe block id to string")
+            try:
+                census_blocks_df_cols[bldg_blockid] = census_blocks_df_cols[bldg_blockid].astype(str)
+            except:
+                print("Could not convert block id to string")
+                return None
+        if not isinstance(hua_block_counts[bldg_blockid][0], str):
+            print("Converting HU Block Counts Dataframe block id to string")
+            try:
+                hua_block_counts[bldg_blockid] = hua_block_counts[bldg_blockid].astype(str)
+            except:
+                print("Could not convert block id to string")
+                return None
 
         # merge address point counts by block with building data
         census_blocks_df_cols = pd.merge(right = census_blocks_df_cols,
@@ -741,8 +754,7 @@ class generate_addpt_functions():
         # upload file to INCORE dataservice
         # try to upload file to INCORE dataservice
         dataset_id_final = self.upload_addpt_file_to_incore(
-            community = community,
-            year = year,
+            title = title,
             county_list = county_list,
             csv_filepath = csv_filepath,
             output_filename = output_filename)
