@@ -21,7 +21,7 @@ from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda \
      import ncoda_00c_save_output_log as logfile
 from pyncoda.ncoda_00e_geoutilities import *
-
+from pyncoda.ncoda_06d_INCOREDataService import *
 
 # Load in data structure dictionaries
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
@@ -352,6 +352,60 @@ class hua_workflow_functions():
             logfile.stop()
 
         return hua_addptr2_df
+    
+    def upload_hua_file_to_incore(self,
+                        title,
+                        county_list,
+                        csv_filepath,
+                        output_filename):
+        '''
+        Metadata and upload to incore dataservice 
+        for housing unit allocation inventory
+        '''
+        ## Upload Housing Unit Allocation Inventory to IN-CORE
+        # Upload CSV file to IN-CORE and save dataset_id
+        # note you have to put the correct dataType as well as format
+        hua_description =  '\n'.join(["2010 Housing Unit Allocation Results v2.0.0 with required IN-CORE columns. " 
+                "Compatible with pyincore v1.4. " 
+                "Unit of observation is housing unit. " 
+                "Each housing unit is associated with a building in the building inventory. "
+                "Building Inventory ID is the last part of the filename. " 
+                "Housing Unit Allocation is a random process, this HUA only represents one possible allocation. "
+                "The building inventory ID is the last part of the file name. "
+                "Rosenheim, Nathanael. (2022). npr99/intersect-community-data. Zenodo. " 
+                "https://doi.org/10.5281/zenodo.6476122. "
+                "File includes data for "+county_list])
+
+        dataset_metadata = {
+            "title":title,
+            "description": hua_description,
+            "dataType": "incore:housingUnitAllocation",
+            "format": "table"
+            }
+
+        data_service_addpt = loginto_incore_dataservice()
+        created_dataset = data_service_addpt.create_dataset(properties = dataset_metadata)
+        dataset_id = created_dataset['id']
+        print('dataset is created with id ' + dataset_id)
+
+        ## Attach files to the dataset created
+        files = [csv_filepath]
+        try:
+            data_service_addpt.add_files_to_dataset(dataset_id, files)
+
+            print('The file(s): '+ output_filename +" have been uploaded to IN-CORE")
+            print("Dataset now on IN-CORE, use dataset_id:",dataset_id)
+            print("Dataset is only in personal account, contact IN-CORE to make public")
+        except:
+            print("Error uploading file to IN-CORE")
+
+            print("Delete dataset from IN-CORE: "+dataset_id)
+            data_service_addpt.delete_dataset(dataset_id)
+            dataset_idv2 = "No Dataset ID"
+            print("Dataset Id set to: "+dataset_idv2)
+            return dataset_idv2
+
+        return dataset_id
 
     def housing_unit_allocation_workflow(self):
         '''
