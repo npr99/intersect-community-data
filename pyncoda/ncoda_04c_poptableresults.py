@@ -1,6 +1,22 @@
 import numpy as np
 import pandas as pd
 
+'''
+    Dictionaries with conditions for labeling categorical variables
+'''
+gqtype_valuelabels = {'categorical_variable': {'variable' : 'gqtype',
+                            'variable_label' : 'Group Quarters Type',
+                            'notes' : '5 Household Income Groups based on random income.'},
+                'value_list' : {
+                    0 : {'value': 0, 'value_label' : '0. NA (non-group quarters)'},
+                    1 : {'value': 1, 'value_label': "1 Correctional facilities for adults"},
+                    2 : {'value': 2, 'value_label': "2. Juvenile facilities"},
+                    3 : {'value': 3, 'value_label': "3. Nursing facilities/Skilled-nursing facilities"},
+                    4 : {'value': 4, 'value_label': "4. Other institutional facilities"},
+                    5 : {'value': 5, 'value_label': "5. College/University student housing"},
+                    6 : {'value': 6, 'value_label': "6. Military quarters"},
+                    7 : {'value': 7, 'value_label': "7. Other noninstitutional facilities"}}
+                }
 
 class PopResultsTable:
     """Utility methods for Population related data:
@@ -11,6 +27,8 @@ class PopResultsTable:
         Creates tables for data exploration and visualization
     """
 
+
+    @staticmethod
     def add_label_cat_conditions_df(df, conditions):
         """Label Categorical Variable Values and add to dataframe.
         Use this function with values are based on conditions.
@@ -37,6 +55,7 @@ class PopResultsTable:
 
         return df
 
+    @staticmethod
     def add_label_cat_values_df(df, valuelabels, variable = ''):
         """Label Categorical Variable Values and add to dataframe.
         Use this function with categorical values 
@@ -289,6 +308,7 @@ class PopResultsTable:
 
         return df
 
+
     @staticmethod
     def pop_results_table(input_df, **kwargs):
         """Explore and visualize population data with a formatted table.
@@ -360,6 +380,8 @@ class PopResultsTable:
             df = PopResultsTable.add_hhinc_df(df)
         if 'poverty' in current_col_list:
             df = PopResultsTable.add_poverty_df(df)
+        if 'gqtype' in current_col_list:
+            df = PopResultsTable.add_label_cat_values_df(df, valuelabels = gqtype_valuelabels)
 
         if who == "Total Households":
             variable = 'huid'

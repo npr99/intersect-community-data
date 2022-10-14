@@ -9,6 +9,7 @@ import geopandas as gpd
 import folium as fm
 from folium import plugins # Add minimap and search plugin functions to maps
 from folium.map import *
+import contextily as cx
 
 def folium_marker_layer_map(gdf,
                              gdfvar,
@@ -19,6 +20,11 @@ def folium_marker_layer_map(gdf,
     Color code markers based on variable levels
     """
     
+    # Check that gdf is a geodataframe
+    if not isinstance(gdf, gpd.geodataframe.GeoDataFrame):
+        # convert points to gdf
+        gdf = gpd.GeoDataFrame(
+            gdf, geometry=gpd.points_from_xy(gdf.x, gdf.y), crs="EPSG:4326")
     # Check projection is epsg:4326
     
     # Find the bounds of the Census Block File
@@ -91,6 +97,10 @@ def count_gdfvar_by_building(hua_df,
         # zero pad block id to 15 digits
         print("Adding Block2010")
         hua_df['Block2010'] = hua_df['blockid'].apply(lambda x : str(int(x)).zfill(15))
+    # Check if Block2010 is a string
+    if hua_df['Block2010'].dtype != 'object':
+        print("Converting Block2010 to string")
+        hua_df['Block2010'] = hua_df['Block2010'].apply(lambda x : str(int(x)).zfill(15))
 
     # check if block number is set
     if blocknum != '':
@@ -137,3 +147,11 @@ def map_selected_block(df,
                             color_levels = gdfvar_count_levels)
     return map
     
+def racedot_map(gdf, column, category):
+    gdf = gdf.to_crs(epsg=3857)
+    ax = gdf.plot(figsize=(10, 10), column=column,
+                      categorical=category, legend=True, markersize = 0.1)
+    cx.add_basemap(ax, source=cx.providers.Stamen.TonerLite)
+    cx.add_basemap(ax, source=cx.providers.Stamen.TonerLabels)
+
+    return ax

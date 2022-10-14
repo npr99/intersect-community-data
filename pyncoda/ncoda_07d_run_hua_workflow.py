@@ -369,7 +369,7 @@ class hua_workflow_functions():
         savefile = sys.path[0]+"/"+csv_filepath
         if os.path.exists(savefile):
             print("The file already exists: "+savefile)
-            huav2_df = pd.read_file(csv_filepath)
+            huav2_df = pd.read_csv(csv_filepath)
             # Convert df to gdf
             huav2_gdf = df2gdf_WKTgeometry(df = huav2_df, 
                         projection = "epsg:4269", 
