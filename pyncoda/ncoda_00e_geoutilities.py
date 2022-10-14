@@ -94,7 +94,7 @@ def add_representative_point(polygon_gdf,
     yr = year[2:4]
 
     # Add Representative Point
-    polygon_gdf.loc[polygon_gdf.index, f'rppnt{yr}{epsg}'] =\
+    polygon_gdf[f'rppnt{yr}{epsg}'] =\
         polygon_gdf['geometry'].representative_point()
     polygon_gdf[f'rppnt{yr}{epsg}'].label = \
         f"Representative Point {year} EPSG {epsg} (WKT)"
@@ -103,7 +103,7 @@ def add_representative_point(polygon_gdf,
 
     # Add Column that Duplicates Polygon Geometry - 
     # allows for switching between point and polygon geometries for spatial join
-    polygon_gdf.loc[polygon_gdf.index, f'blk{yr}{epsg}'] = polygon_gdf['geometry']
+    polygon_gdf[f'blk{yr}{epsg}'] = polygon_gdf['geometry']
     polygon_gdf[f'blk{yr}{epsg}'].label = \
         f"{year} Census Block Polygon EPSG {epsg} (WKT)"
     polygon_gdf[f'blk{yr}{epsg}'].notes = \
@@ -248,30 +248,33 @@ def spatial_join_points_to_poly(points_gdf,
     future improvement: if there are multiple polygons for a point,
     the function could create multiple rows for the point.
     """
+    # make copies of input df and gdf
+    copy_point_gdf = points_gdf.copy(deep=True)
+    copy_polygon_gdf = polygon_gdf.copy(deep=True)
 
     # Ensure both points and polygons have the same CRS
-    points_gdf = points_gdf.to_crs(epsg=epsg)
-    polygon_gdf = polygon_gdf.to_crs(epsg=epsg)
+    copy_point_gdf = copy_point_gdf.to_crs(epsg=epsg)
+    copy_polygon_gdf = copy_polygon_gdf.to_crs(epsg=epsg)
 
     # Find the bounds of the point File
 
-    minx = points_gdf.bounds.minx.min() - buffer_dist # subtract buffer from minimum values
-    miny = points_gdf.bounds.miny.min() - buffer_dist
-    maxx = points_gdf.bounds.maxx.max() + buffer_dist
-    maxy = points_gdf.bounds.maxy.max() + buffer_dist
-    points_gdf_bounds = [minx, miny, maxx, maxy]
+    minx = copy_point_gdf.bounds.minx.min() - buffer_dist # subtract buffer from minimum values
+    miny = copy_point_gdf.bounds.miny.min() - buffer_dist
+    maxx = copy_point_gdf.bounds.maxx.max() + buffer_dist
+    maxy = copy_point_gdf.bounds.maxy.max() + buffer_dist
+    copy_point_gdf_bounds = [minx, miny, maxx, maxy]
 
     # Select polygons within Bounds of Study Area
     # build the r-tree index - for polygon file
-    print("Polygon file has",polygon_gdf.shape[0],geolevel,"polygons.")
-    sindex_poly_gdf = polygon_gdf.sindex
-    possible_matches_index = list(sindex_poly_gdf.intersection(points_gdf_bounds))
-    area_poly_gdf = polygon_gdf.iloc[possible_matches_index]
+    print("Polygon file has",copy_polygon_gdf.shape[0],geolevel,"polygons.")
+    sindex_poly_gdf = copy_polygon_gdf.sindex
+    possible_matches_index = list(sindex_poly_gdf.intersection(copy_point_gdf_bounds))
+    area_poly_gdf = copy_polygon_gdf.iloc[possible_matches_index]
     print("Identified",area_poly_gdf.shape[0],geolevel,"polygons to spatially join.")
 
     # build the r-tree index - Using Representative Point
-    points_gdf.loc[points_gdf.index,'geometry'] = points_gdf[point_var]
-    sindex_points_gdf = points_gdf.sindex
+    copy_point_gdf['geometry'] = copy_point_gdf[point_var]
+    sindex_copy_point_gdf = copy_point_gdf.sindex
 
     #Loops for spatial join are time consuming
     #Here is a way to know that the loop is running and how long it takes to run
@@ -283,17 +286,17 @@ def spatial_join_points_to_poly(points_gdf,
 
         # find approximate matches with r-tree, then precise matches from those approximate ones
         possible_matches_index = \
-            list(sindex_points_gdf.intersection(polygon['geometry'].bounds))
-        possible_matches = points_gdf.iloc[possible_matches_index]
+            list(sindex_copy_point_gdf.intersection(polygon['geometry'].bounds))
+        possible_matches = copy_point_gdf.iloc[possible_matches_index]
         precise_matches = \
             possible_matches[possible_matches.intersects(polygon['geometry'])]
         for col in join_column_list:
-            points_gdf.loc[precise_matches.index,geolevel+col] = polygon[col]
+            copy_point_gdf.loc[precise_matches.index,geolevel+col] = polygon[col]
 
     # Switch Geometry back to Polygon
-    points_gdf.loc[points_gdf.index,'geometry'] = points_gdf[poly_var]
+    copy_point_gdf['geometry'] = copy_point_gdf[poly_var]
 
-    return points_gdf
+    return copy_point_gdf
 
 def single_layer_folium_map(gdf,layer_name, output_folder):   
     # Find the bounds of the Census Block File

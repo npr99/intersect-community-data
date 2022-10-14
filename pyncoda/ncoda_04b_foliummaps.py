@@ -77,9 +77,10 @@ def folium_marker_layer_map(gdf,
 
     return map
 
-def count_huid_by_building(hua_df, 
+def count_gdfvar_by_building(hua_df, 
                             blocknum = '',
-                            groupby_vars = ['x','y']):
+                            groupby_vars = ['x','y'],
+                            gdvar: str = 'huid'):
     """
     Select housing units in a block
     """
@@ -99,20 +100,23 @@ def count_huid_by_building(hua_df,
         block_df = hua_df.copy()
 
     # count by geometry
-    huid_count_df = block_df[['huid']+groupby_vars].groupby(groupby_vars).count()
+    gdvar_count_df = block_df[[gdvar]+groupby_vars].groupby(groupby_vars).count()
     # reset index
-    huid_count_df = huid_count_df.reset_index()
+    gdvar_count_df = gdvar_count_df.reset_index()
 
-    return huid_count_df
+    return gdvar_count_df
 
-def map_selected_block(hua_df, blocknum):
+def map_selected_block(df, 
+                        blocknum, 
+                        gdfvar: str = "huid",
+                        laryername: str = "HUID count"):
 
-    # count huid by building
-    huid_count_df = count_huid_by_building(hua_df, blocknum)
+    # count gdfvar by building
+    gdfvar_count_df = count_gdfvar_by_building(df, blocknum, gdvar=gdfvar)
 
     # convert points to gdf
-    huid_count_gdf = gpd.GeoDataFrame(
-        huid_count_df, geometry=gpd.points_from_xy(huid_count_df.x, huid_count_df.y))
+    gdfvar_count_gdf = gpd.GeoDataFrame(
+        gdfvar_count_df, geometry=gpd.points_from_xy(gdfvar_count_df.x, gdfvar_count_df.y))
 
     """
     # convert dataframe to geodataframe using geometry
@@ -121,15 +125,15 @@ def map_selected_block(hua_df, blocknum):
     huid_count_gdf['geometry'] = huid_count_gdf['geometry'].apply(lambda x : loads(x))
     """
 
-    # Create list if HUID count unique values
-    huid_count_levels = huid_count_gdf['huid'].unique().tolist()
-    print("Housing unit counts",huid_count_levels)
+    # Create list if gdfvar count unique values
+    gdfvar_count_levels = gdfvar_count_gdf[gdfvar].unique().tolist()
+    #print("unique counts",gdfvar_count_levels)
 
 
     # Map housing units in block
-    map = folium_marker_layer_map(gdf = huid_count_gdf,
-                            gdfvar="huid",
-                            layername = "HUID count",
-                            color_levels = huid_count_levels)
+    map = folium_marker_layer_map(gdf = gdfvar_count_gdf,
+                            gdfvar=gdfvar,
+                            layername = laryername,
+                            color_levels = gdfvar_count_levels)
     return map
     

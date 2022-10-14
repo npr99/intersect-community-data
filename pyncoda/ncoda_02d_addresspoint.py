@@ -69,12 +69,14 @@ def predict_residential_addresspoints(building_to_block_gdf,
     print(len_bldg_df,"Buildings have ",building_area_var,"_by_AP less than",building_area_cutoff)
 
     # Check residential address points count
-    condition = (bldg_df['residentialAP1'] == 1)
+    condition = (bldg_df['residentialAP1'] >= 1)
     len_bldg_df = bldg_df.loc[condition].shape[0]
     print(len_bldg_df,"Buildings assigned residential.")
 
-    # Set residential binary using residentialAP1
-    bldg_df['residential'] = bldg_df['residentialAP1']
+    # Set residential binary using residentialAP1 if residentialAP1 >= 1
+    bldg_df['residential'] = 0
+    condition = (bldg_df['residentialAP1'] >= 1)
+    bldg_df.loc[condition,'residential'] = 1
     bldg_df['bldgcount'] = 1
     
     # Look at address point count by block
