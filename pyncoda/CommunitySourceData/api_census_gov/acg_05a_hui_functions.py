@@ -216,13 +216,30 @@ class hui_workflow_functions():
 
         return block_income_df
 
+    def try_polish(self, input_df):
+        
+        output_df = input_df.copy()
+        try:
+            print("Add random income.")
+            output_df = add_randincome(output_df,self.seed)
+            print("Add poverty.")
+            output_df = add_poverty(output_df)
+            print("Make category 0 for numprec, vacancy and gqtype")  
+            output_df = fill_missingvalues(output_df)
+            print("Drop extra columns.")                                                                  
+            output_df = drop_extra_columns(output_df)
+        except:
+            print('Data not ready for final polish.')
+
+        return output_df
+    
     def final_polish_hui(self, input_df):
 
         print("\n***************************************")
         print("    Try to polish final hui data.")
         print("***************************************\n")
 
-        hui_df = self.final_hui_polish(input_df)
+        hui_df = self.try_polish(input_df)
 
         print("\n***************************************")
         print("    Save cleaned data file.")
@@ -319,20 +336,3 @@ class hui_workflow_functions():
         return output_df    
 
 
-    def final_hui_polish(self, input_df):
-        
-        output_df = input_df.copy()
-        try:
-            print("Add random income.")
-            output_df = add_randincome(output_df,self.seed)
-            print("Add poverty.")
-            output_df = add_poverty(output_df)
-            print("Make category 0 for numprec, vacancy and gqtype")  
-            output_df = fill_missingvalues(output_df)
-            print("Drop extra columns.")                                                                  
-            output_df = drop_extra_columns(output_df)
-        except:
-            print('Data not ready for final polish.')
-
-        return output_df
-    

@@ -1,4 +1,7 @@
-def add_randage(self, df, seed, varname):
+import pandas as pd
+import numpy as np
+
+def add_randage(df, seed, varname):
     random_generator = np.random.RandomState(seed)
 
     output_df = df.copy()
@@ -19,7 +22,7 @@ def add_randage(self, df, seed, varname):
     return output_df
 
 
-def add_P12age_groups(self,input_df,varname):
+def add_P12age_groups(input_df,varname):
     """
     Add age groups for PC12
     """
@@ -65,7 +68,7 @@ def add_P12age_groups(self,input_df,varname):
 
     return output_df
 
-def add_H17age_groups(self,input_df,varname):
+def add_H17age_groups(input_df,varname):
     """
     Add age groups for H17
     """
@@ -97,7 +100,7 @@ def add_H17age_groups(self,input_df,varname):
 
     return output_df
 
-@staticmethod
+
 def add_H18age_groups(input_df,varname):
     """
     Add age groups for H18
@@ -124,7 +127,6 @@ def add_H18age_groups(input_df,varname):
 
     return output_df
 
-@staticmethod
 def add_B19037age_groups(input_df,varname):
     """
     Add age groups for B19037
@@ -152,7 +154,6 @@ def add_B19037age_groups(input_df,varname):
 
     return output_df
 
-@staticmethod
 def add_P43age_groups(input_df,varname):
     """
     Add age groups for P43
@@ -179,53 +180,3 @@ def add_P43age_groups(input_df,varname):
 
     return output_df
 
-def hui_tidy_P43(self):
-    """
-    Obtain, Tidy, and transfor data with population
-    in group quarters by age, sex, by gqtype
-
-    """
-
-    print("\n***************************************")
-    print("    Set up Data structures for obtaining data.")
-    print("***************************************\n")
-    vintage = '2010'
-    dataset_name = 'dec/sf1' 
-    group = 'P43'
-    prec_P43_dict = createAPI_datastructure.obtain_api_metadata(
-            vintage = vintage,
-            dataset_name = dataset_name,
-            group = group,
-            outputfolder = self.outputfolder,
-            version_text = self.version_text)
-    
-    # Need to add graft chars to metadata
-    # Graft chars are used to check the merge by variables in grafting function
-    prec_P43_dict['metadata']['graft_chars'] = ['gqytpe']
-
-    
-    print("\n***************************************")
-    print("   Obtain and Clean P43 Data.")
-    print("***************************************\n")
-    block_df = {}
-    block_df["P43"] = BaseInventory.get_apidata(state_county = self.state_county,
-                                    geo_level = 'block',
-                                    vintage = "2010", 
-                                    mutually_exclusive_varstems_roots_dictionaries =
-                                                        [prec_P43_dict],
-                                    outputfolders = self.outputfolders,
-                                    outputfile = "P43")
-
-
-    # Add random age
-    print("Add random age and P43 age groups.")
-    block_df["P43"] = self.add_randage(
-                                block_df["P43"],
-                                seed = self.seed,
-                                varname = 'randageP43')
-    # Add agegroups to block_df["hhage_hispan"]
-    block_df["P43"] = self.add_P43age_groups(
-                                block_df["P43"],
-                                varname = 'randageP43')
-
-    return block_df["P43"]

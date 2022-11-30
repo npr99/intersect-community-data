@@ -1,8 +1,9 @@
 import numpy as np
+import pandas as pd
 
 # Code for adding random income
 # Dictionary with round options
-@staticmethod
+
 def make_incomegroup_dict():
     ## Add min and max income values
     incomegroup_dict = {1: {'minincome': 0, 'maxincome': 9999},
@@ -30,7 +31,6 @@ def make_incomegroup_dict():
 
     return incomegroup_dict
 
-@staticmethod
 def add_minmaxincome(input_df,incomegroup_dict):
     #condition = (df['incomegroup'].notnull())
     output_df = input_df.copy()
@@ -41,7 +41,7 @@ def add_minmaxincome(input_df,incomegroup_dict):
 
     return output_df
 
-@staticmethod
+
 def remove_cat0_randincome(input_df):
     """
     For category 0 need to replace values with missing.
@@ -60,8 +60,8 @@ def remove_cat0_randincome(input_df):
 
     return output_df
 
-@staticmethod
-def add_randincome(self, df, seed):
+
+def add_randincome(df, seed):
     random_generator = np.random.RandomState(seed)
 
     output_df = df.copy()
@@ -87,7 +87,7 @@ def add_randincome(self, df, seed):
 
     return output_df
 
-@staticmethod
+
 def add_poverty(input_df):
     """
     Add poverty based on US Census Poverty Thresholds
@@ -128,7 +128,7 @@ def add_poverty(input_df):
 
     return output_df
 
-@staticmethod    
+
 def add_hhinc_groups(input_df):
     """
     Add 5 income groups

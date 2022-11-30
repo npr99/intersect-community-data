@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-@staticmethod
+
 def fill_missingvalues(input_df):
     """
     vacancy type and gqytpe should be 0 for 
@@ -46,7 +46,6 @@ def fill_missingvalues(input_df):
 
 
 
-@staticmethod
 def drop_extra_columns(input_df):
     """
     Need to drop columns used to predict variables
