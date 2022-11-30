@@ -5,14 +5,14 @@ Block Level Data for the 2010 Census
 Each Dictionary represents data tables in the 2010 Census
 
 Base API URL parameters, found at https://api.census.gov/data.html
-List of all variables availble in SF1 
+List of all variables available in SF1 
 https://api.census.gov/data/2010/dec/sf1/variables.html
 """
 
 import numpy as np
 
 """
-Observartions with code -999 indcate that the value is not set, but can be set.
+Observations with code -999 indicate that the value is not set, but can be set.
 Setting -999 helps with merging. If set to np.nan the merge does not work.
 This is an issue that was found with trying to predict family households.
 """
@@ -34,7 +34,7 @@ dec10byracehispan_groups_varstems =  {
         }
 
 """
-Mutually Exclusive Race Hispanic Categeories
+Mutually Exclusive Race Hispanic Categories
 """
 subtract_function = "BaseInventory.subtract_df"
 dec10byracehispan_groups_varstems_mxpt1 =  { 
