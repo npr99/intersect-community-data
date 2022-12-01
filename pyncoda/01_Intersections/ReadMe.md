@@ -24,20 +24,20 @@ Examples
 ![Crenshaw 2017 Intersectionality Image](images/Crenshway_2017_intersectionalityT1018.JPG)
 Source: [Crenshaw 2017](https://www.youtube.com/watch?v=akOe5-UsQ2o)
 
-![Crenshaw 2017 Intersectionality Image](images\Crenshway_2017_intersectionalityT1121.JPG)
+![Crenshaw 2017 Intersectionality Image](images/Crenshway_2017_intersectionalityT1121.JPG)
 Source: [Crenshaw 2017](https://www.youtube.com/watch?v=akOe5-UsQ2o)
 
 The motivation for intersecting community data is to preserve the intersectionality of socioeconomic characteristics that identify race, sex, class, and ability.  
 
 # Famous Intersections
 
-![Arch de Triomphe GIF](images\arc-de-triomphe-arc-of-triumph.gif)
+![Arch de Triomphe GIF](images/arc-de-triomphe-arc-of-triumph.gif)
 Source: [Tenor 2018](https://tenor.com/view/arc-de-triomphe-arc-of-triumph-paris-france-gif-12234073)
 
 # Transportation Intersection/Interchange examples
 As a planner I love road intersections and interchanges.  
 
-![Shen 2013 Types of intersections](images\Shen_2013_figure1typesintersect.JPG)
+![Shen 2013 Types of intersections](images/Shen_2013_figure1typesintersect.JPG)
 Source: [Shen 2013](https://doi.org/10.1061/(ASCE)TE.1943-5436.0000485)
 
 "Sec. 541.303.  INTERSECTION.  (a)  In this subtitle, "intersection" means the common area at the junction of two highways, other than the junction of an alley and a highway." (State of Texas)
@@ -58,8 +58,8 @@ minimize conflicting left-turn movements. Interchanges are typically found on in
 sometimes high-volume roads, where traffic cannot be efficiently controlled by
 intersections at-grade." (Nebraska DOT, n.d.)
 
-![NBDOT Types of interchanges image 1](images\NBDOT_nd_interchange1.JPG)
-![NBDOT Types of interchanges image 1](images\NBDOT_nd_interchange2.JPG)
+![NBDOT Types of interchanges image 1](images/NBDOT_nd_interchange1.JPG)
+![NBDOT Types of interchanges image 1](images/NBDOT_nd_interchange2.JPG)
 Source: [NBDOT nd](https://dot.nebraska.gov/media/114536/ndot_piassist_factsheets_interchanges.pdf)
 
 # Intersection to interchange
