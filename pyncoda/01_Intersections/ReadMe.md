@@ -29,6 +29,11 @@ Source: [Crenshaw 2017](https://www.youtube.com/watch?v=akOe5-UsQ2o)
 
 The motivation for intersecting community data is to preserve the intersectionality of socioeconomic characteristics that identify race, sex, class, and ability.  
 
+# Famous Intersections
+
+![Arch de Triomphe GIF](images\arc-de-triomphe-arc-of-triumph.gif)
+Source: [Tenor 2018](https://tenor.com/view/arc-de-triomphe-arc-of-triumph-paris-france-gif-12234073)
+
 # Transportation Intersection/Interchange examples
 As a planner I love road intersections and interchanges.  
 
