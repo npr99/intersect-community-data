@@ -21,7 +21,7 @@ Examples
 
 "The intersectional experience is greater than the sum of racism and sexism, any analysis that does not take intersectionality into account cannot sufficiently address the particular manner in which Black women are subordinated." - [Dr. Kimberlé Crenshaw](https://www.youtube.com/watch?v=akOe5-UsQ2o)
 
-![Crenshaw 2017 Intersectionality Image](../images/Crenshway_2017_intersectionalityT1018.JPG)
+![Crenshaw 2017 Intersectionality Image](images/Crenshway_2017_intersectionalityT1018.JPG)
 Source: [Crenshaw 2017](https://www.youtube.com/watch?v=akOe5-UsQ2o)
 
 ![Crenshaw 2017 Intersectionality Image](images\Crenshway_2017_intersectionalityT1121.JPG)
