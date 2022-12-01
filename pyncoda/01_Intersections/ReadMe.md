@@ -37,7 +37,7 @@ Source: [Tenor 2018](https://tenor.com/view/arc-de-triomphe-arc-of-triumph-paris
 # Transportation Intersection/Interchange examples
 As a planner I love road intersections and interchanges.  
 
-![Shen 2013 Types of intersections](images/Shen_2013_figure1typesintersect.JPG)
+![Shen 2013 Types of intersections](images/Shen_2013_figure1typesintersect.jpg)
 Source: [Shen 2013](https://doi.org/10.1061/(ASCE)TE.1943-5436.0000485)
 
 "Sec. 541.303.  INTERSECTION.  (a)  In this subtitle, "intersection" means the common area at the junction of two highways, other than the junction of an alley and a highway." (State of Texas)
