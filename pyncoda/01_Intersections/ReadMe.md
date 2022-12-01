@@ -34,6 +34,9 @@ The motivation for intersecting community data is to preserve the intersectional
 ![Arch de Triomphe GIF](images/arc-de-triomphe-arc-of-triumph.gif)
 Source: [Tenor 2018](https://tenor.com/view/arc-de-triomphe-arc-of-triumph-paris-france-gif-12234073)
 
+![Shibuya Crossing Tokyo GIF](images/shibuya-japan.gif)
+Source: [Tenor 2022](https://tenor.com/view/shibuya-japan-people-crossing-street-gif-5376540)
+
 # Transportation Intersection/Interchange examples
 As a planner I love road intersections and interchanges.  
 
