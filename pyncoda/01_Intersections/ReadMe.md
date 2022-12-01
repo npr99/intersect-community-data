@@ -17,15 +17,15 @@ Examples
 
 # Discussion of Motivation
 
-"If we can't see a problem, we can't fix a problem." [Dr. Kimberlé Crenshaw](https://www.youtube.com/watch?v=akOe5-UsQ2o)
+"If we can't see a problem, we can't fix a problem." [Dr. Kimberlé Crenshaw](https://www.youtube.com/watch?v=akOe5-UsQ2o){:target="_blank"}
 
-"The intersectional experience is greater than the sum of racism and sexism, any analysis that does not take intersectionality into account cannot sufficiently address the particular manner in which Black women are subordinated." - [Dr. Kimberlé Crenshaw](https://www.youtube.com/watch?v=akOe5-UsQ2o)
+"The intersectional experience is greater than the sum of racism and sexism, any analysis that does not take intersectionality into account cannot sufficiently address the particular manner in which Black women are subordinated." - [Dr. Kimberlé Crenshaw](https://www.youtube.com/watch?v=akOe5-UsQ2o){:target="_blank"}
 
 ![Crenshaw 2017 Intersectionality Image](images/Crenshway_2017_intersectionalityT1018.JPG)
-Source: [Crenshaw 2017](https://www.youtube.com/watch?v=akOe5-UsQ2o)
+Source: [Crenshaw 2017](https://www.youtube.com/watch?v=akOe5-UsQ2o){:target="_blank"}
 
 ![Crenshaw 2017 Intersectionality Image](images/Crenshway_2017_intersectionalityT1121.JPG)
-Source: [Crenshaw 2017](https://www.youtube.com/watch?v=akOe5-UsQ2o)
+Source: [Crenshaw 2017](https://www.youtube.com/watch?v=akOe5-UsQ2o){:target="_blank"}
 
 The motivation for intersecting community data is to preserve the intersectionality of socioeconomic characteristics that identify race, sex, class, and ability.  
 
