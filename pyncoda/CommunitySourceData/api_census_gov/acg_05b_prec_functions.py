@@ -114,7 +114,7 @@ class prec_workflow_functions():
                                         mutually_exclusive_varstems_roots_dictionaries =
                                                             [sexbyage_P12_varstem_roots],
                                         outputfolders = self.outputfolders,
-                                        outputfile = "CorePRECI")
+                                        outputfile = "CorePREC")
 
         block_df["precihispan"] = BaseInventory.graft_on_new_char(base_inventory= block_df['preci'],
                                         state_county = self.state_county,
@@ -222,6 +222,7 @@ class prec_workflow_functions():
 
         return prec_df
 
+    # Function not currently used - might be in PRECHUI Workflow
     def hui_tidy_P43(self):
         """
         Obtain, Tidy, and transfer data with population

@@ -30,29 +30,19 @@ DesignSafe-CI. https://doi.org/10.17603/ds2-jwf6-s535
 import numpy as np
 import pandas as pd
 import os # For saving output to path
-import urllib
 import sys
 
-# Functions from IN-CORE
-from pyincore import IncoreClient, DataService
-
 # open, read, and execute python program with reusable commands
+from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda.CommunitySourceData.api_census_gov.acg_05b_prec_functions \
     import prec_workflow_functions
-from pyncoda.ncoda_00b_directory_design import directory_design
-from pyncoda.ncoda_04a_Figures import *
-from pyncoda.ncoda_06c_Codebook import *
-from pyncoda.ncoda_06d_INCOREDataService import *
-
-from pyncoda.CommunitySourceData.api_census_gov.acg_00g_prec_datastructure \
-    import prec_v300_DataStructure
 
 class generate_prec_functions():
     """
     Function runs full process for generating the person record files
     Process runs for multiple counties.
 
-    Outputs CSV files and Codebooks
+    Outputs CSV files
     """
 
     def __init__(self,
