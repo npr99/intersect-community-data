@@ -161,8 +161,7 @@ class prec_workflow_functions():
         tract_df["PCT12"] = add_P12age_groups(
                                     tract_df["PCT12"],
                                     varname = 'randagePCT12')
-
-                        
+                  
         print("\n***************************************")
         print("    Person Block by Age with Tract by Age data.")
         print("***************************************\n")
