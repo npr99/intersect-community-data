@@ -36,6 +36,11 @@ def obtain_join_block_place_puma_data(county_fips: str = '48167',
     Census TIGER ZIP Files include GIS Shapefiles.
 
     county_fips: 5 character string county FIPS code
+
+    state: All Caps name must match format on
+        https://www2.census.gov/geo/tiger/TIGER2020PL/STATE/
+        Most states are all caps with _ for spaces
+        example: NORTH_CAROLINA
     """
 
     # Find State FIPS Code from County FIPS Code
