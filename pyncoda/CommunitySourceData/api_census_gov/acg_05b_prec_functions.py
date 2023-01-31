@@ -33,6 +33,8 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_02a_add_categorical_char \
      import add_new_char_by_random_merge_2dfs
 from pyncoda.CommunitySourceData.api_census_gov.acg_02c_agefunctions \
      import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_02d_polishdf \
+     import *
 
 class prec_workflow_functions():
     """
@@ -112,7 +114,7 @@ class prec_workflow_functions():
                                         mutually_exclusive_varstems_roots_dictionaries =
                                                             [sexbyage_P12_varstem_roots],
                                         outputfolders = self.outputfolders,
-                                        outputfile = "CorePRECI")
+                                        outputfile = "CorePREC")
 
         block_df["precihispan"] = BaseInventory.graft_on_new_char(base_inventory= block_df['preci'],
                                         state_county = self.state_county,
@@ -159,8 +161,7 @@ class prec_workflow_functions():
         tract_df["PCT12"] = add_P12age_groups(
                                     tract_df["PCT12"],
                                     varname = 'randagePCT12')
-
-                        
+                  
         print("\n***************************************")
         print("    Person Block by Age with Tract by Age data.")
         print("***************************************\n")
@@ -204,7 +205,7 @@ class prec_workflow_functions():
         print("    Try to polish final hui data.")
         print("***************************************\n")
 
-        prec_df = self.final_prec_polish(prec_age_df['primary'])
+        prec_df = self.final_polish_prec(prec_age_df['primary'])
 
         print("\n***************************************")
         print("    Save cleaned data file.")
@@ -220,6 +221,7 @@ class prec_workflow_functions():
 
         return prec_df
 
+    # Function not currently used - might be in PRECHUI Workflow
     def hui_tidy_P43(self):
         """
         Obtain, Tidy, and transfer data with population
@@ -270,3 +272,24 @@ class prec_workflow_functions():
                                     varname = 'randageP43')
 
         return block_df["P43"]
+
+    def final_polish_prec(self, input_df):
+
+        print("\n***************************************")
+        print("    Try to polish final prec data.")
+        print("***************************************\n")
+
+        print("Drop extra columns.")                                                                  
+        prec_df = drop_extra_columns(input_df)
+
+        print("\n***************************************")
+        print("    Save cleaned data file.")
+        print("***************************************\n")
+
+        if self.savefiles == True:
+            csv_filepath = self.outputfolders['top']+"/"+self.output_filename+'.csv'
+            savefile = sys.path[0]+"/"+csv_filepath
+            prec_df.to_csv(savefile, index=False)
+            print("File saved:",savefile)
+        
+        return prec_df

@@ -6,12 +6,6 @@ This notebook obtains and cleans data required Person Record Files.
 The workflow extends the process by generating a 
 person record files with age, sex, race, and ethnicity. 
 
-For the original Alpha Release of the housing unit inventory 
-process and example applications see:
-
-Rosenheim, Nathanael (2021) “Detailed Household and Housing Unit Characteristics: 
-Alpha Release of Housing Unit Inventories.” DesignSafe-CI. https://doi.org/10.17603/ds2-jwf6-s535.
-
 The 2010 Census Data provides detailed household, housing unit, 
 and person level characteristics at the census block level. 
 
@@ -36,29 +30,19 @@ DesignSafe-CI. https://doi.org/10.17603/ds2-jwf6-s535
 import numpy as np
 import pandas as pd
 import os # For saving output to path
-import urllib
 import sys
 
-# Functions from IN-CORE
-from pyincore import IncoreClient, DataService
-
 # open, read, and execute python program with reusable commands
-from pyncoda.CommunitySourceData.api_census_gov.acg_05a_hui_functions \
-    import hui_workflow_functions
 from pyncoda.ncoda_00b_directory_design import directory_design
-from pyncoda.ncoda_04a_Figures import *
-from pyncoda.ncoda_06c_Codebook import *
-from pyncoda.ncoda_06d_INCOREDataService import *
-
-from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
-    import incore_v2_DataStructure
+from pyncoda.CommunitySourceData.api_census_gov.acg_05b_prec_functions \
+    import prec_workflow_functions
 
 class generate_prec_functions():
     """
     Function runs full process for generating the person record files
     Process runs for multiple counties.
 
-    Outputs CSV files and Codebooks
+    Outputs CSV files
     """
 
     def __init__(self,
@@ -88,4 +72,60 @@ class generate_prec_functions():
         if not os.path.exists(self.outputfolder):
             os.mkdir(self.outputfolder)
 
+    def generate_prec_v300(self):
+        """
+        Generate Person Record File data 
+        version 3.0.0
+        """
+
+        for community in self.communities.keys():
+            # Create empty container to store outputs by county
+            # Will use these to combine multiple counties
+            prec_county_df = {}
+            title = "Person Record File v3.0.0 data for "+self.communities[community]['community_name']
+            print("Generating",title)
+            output_filename = f'prec_{self.version_text}_{community}_{self.basevintage}_rs{self.seed}'
+            county_list = ''
     
+            # Workflow for generating prec data for IN-CORE
+            for county in self.communities[community]['counties'].keys():
+                state_county = self.communities[community]['counties'][county]['FIPS Code']
+                state_county_name  = self.communities[community]['counties'][county]['Name']
+                print(state_county_name,': county FIPS Code',state_county)
+                county_list = county_list + state_county_name+': county FIPS Code '+state_county
+
+                # create output folders for prec data generation
+                outputfolders = directory_design(state_county_name = state_county_name,
+                                                    outputfolder = self.outputfolder)
+                                                    
+                generate_df = prec_workflow_functions(
+                    state_county = state_county,
+                    state_county_name= state_county_name,
+                    seed = self.seed,
+                    version = self.version,
+                    version_text = self.version_text,
+                    basevintage = self.basevintage,
+                    outputfolder = self.outputfolder,
+                    outputfolders = outputfolders)
+
+                # Generate base housing unit inventory
+                prec_county_df[state_county] = generate_df.run_prec_workflow()
+
+
+            # combine multiple counties
+            prec_df = pd.concat(prec_county_df.values(), 
+                                            ignore_index=True, axis=0)
+
+            # Remove .0 from data - may not be an issue
+            prec_df_fixed = prec_df.applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+
+            #Save results for community name
+            csv_filepath = outputfolders['top']+"/"+output_filename+'.csv'
+            savefile = sys.path[0]+"/"+csv_filepath
+            prec_df_fixed.to_csv(savefile, index=False)
+
+            # Save second set of files in common directory
+            common_directory = outputfolders['top']+"/../"+output_filename
+            prec_df_fixed.to_csv(common_directory+'.csv', index=False)
+
+        return prec_df_fixed

@@ -12,10 +12,12 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
 def income_distribution(input_df,
                         variable: str = "randincome",
                         by_variable: str = "race",
+                        xlabel_string: str = "Household Income",
                         datastructure = incore_v2_DataStructure,
                         communities: dict = {},
                         community: str = "",
                         year: int = 2010,
+                        savefile: bool = True,
                         outputfolders = {},
                         notes = False):
 
@@ -59,14 +61,14 @@ def income_distribution(input_df,
     plot._legend.set_title(new_title)
 
     # Set label for x-axis
-    plt.xlabel( "Random Household Income" , size = 12 )
+    plt.xlabel( xlabel_string , size = 12 )
 
     # Set label for y-axis
     plt.ylabel( "Count" , size = 12 )
 
     # Add commas to the y and x-axis and $ sign to the x-axis
     for ax in plot.axes.flat:
-        ax.xaxis.set_major_formatter(ticker.StrMethodFormatter('${x:,.0f}'))
+        ax.xaxis.set_major_formatter(ticker.StrMethodFormatter('{x:,.0f}'))
         ax.yaxis.set_major_formatter(ticker.StrMethodFormatter('{x:,.0f}'))        
 
     # Figure Title
@@ -95,16 +97,19 @@ def income_distribution(input_df,
                         fontstyle='italic', size=6)
 
     # Save figure
-    countylist = county_list_for_filename(communities,community)
-    filename = variable+'_by_'+by_variable+countylist
-    filepath = outputfolders['Explore']+"/"+filename
+    if savefile == True:
+        countylist = county_list_for_filename(communities,community)
+        filename = variable+'_by_'+by_variable+countylist
+        filepath = outputfolders['Explore']+"/"+filename
 
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.85)     # Add space at top
-    plt.savefig(filepath+'.svg', bbox_inches="tight",format = 'svg', dpi=600)
-    plt.savefig(filepath+'.png', bbox_inches="tight",format = 'png', dpi=600)
+        plt.tight_layout()
+        plt.subplots_adjust(top=0.85)     # Add space at top
+        plt.savefig(filepath+'.svg', bbox_inches="tight",format = 'svg', dpi=600)
+        plt.savefig(filepath+'.png', bbox_inches="tight",format = 'png', dpi=600)
 
-    return filename
+        return filename
+    else:
+        return plot
 
 def county_list_for_datacensusgov(communities,community):
     """

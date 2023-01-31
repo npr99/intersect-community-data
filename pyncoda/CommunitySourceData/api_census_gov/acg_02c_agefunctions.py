@@ -51,7 +51,7 @@ def add_P12age_groups(input_df,varname):
     20: {'minageyrs': 70, 'maxageyrs': 74},
     21: {'minageyrs': 75, 'maxageyrs': 79},
     22: {'minageyrs': 80, 'maxageyrs': 84},
-    22: {'minageyrs': 85, 'maxageyrs': 110}}
+    23: {'minageyrs': 85, 'maxageyrs': 110}}
 
     for agegroup in agegroupP12_dict:
         randincome_greater_than = \

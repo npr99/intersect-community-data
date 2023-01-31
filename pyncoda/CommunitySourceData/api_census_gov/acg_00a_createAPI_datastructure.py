@@ -97,16 +97,16 @@ class createAPI_datastructure():
         first_letter_of_group = group[0:1]
         if dataset_name == "dec/sf1":
             if first_letter_of_group == 'P':
-                unit_of_anaylsis = 'person'
+                unit_of_analysis = 'person'
                 countvar = 'preccount'
             if first_letter_of_group == 'H':
-                unit_of_anaylsis = 'household'
+                unit_of_analysis = 'household'
                 countvar = 'hucount'       
         # If not decennial census assume acs and household level data
         else:
-            unit_of_anaylsis = 'household'
+            unit_of_analysis = 'household'
             countvar = 'hucount'  
-        datastructure_dict['metadata']['unit_of_anaylsis'] = unit_of_anaylsis
+        datastructure_dict['metadata']['unit_of_analysis'] = unit_of_analysis
         datastructure_dict['metadata']['countvar'] = countvar                  
         
         # Add notes to metadata
