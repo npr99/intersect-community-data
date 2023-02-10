@@ -256,6 +256,16 @@ administrators create attendance areas to help organize and plan district-wide s
 may adjust individual school boundaries to help balance the physical capacity of local schools with
 changes in the local school-age population." (Geverdt, 2018d p. 1)
 
+## Select NCES data for a single county
+The point data files all have a County FIPS code variable (`CNTY15` for the 2015-2016 school year). This variable can be used to select data for a single county. The School Attendance Boundary file does not have a county fips code variable. But it does have a unique id for each school `ncessch`. The variable `ncessch` is also in the public school list.
+
+>"SABS relies on standard CCD IDs to uniquely identify schools (NCESSCH) and school districts (LEAID). This
+allows the SABS data to be linked across a broad range of institutional data that include the CCD ID. In a
+few rare cases, districts provided boundaries for schools that did not contain a corresponding CCD
+school ID. These schools were assigned with a temporary ID by concatenating the LEAID with a fixed
+string of ‘9999’ and a final single digit that was automatically incremented if more than one instance
+occurred." (Geverdt, 2018d p. 7)
+
 ## Literature Review of Data Uses Examples 
 
 [Michell Stanley]
