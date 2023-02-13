@@ -6,24 +6,25 @@ import pandas as pd
 import os
 import sys
 
-from pyincore_data_addons.SourceData.nces_ed_gov.nces_01a_obtain \
-    import nces_obtain_ccd0910
-from pyincore_data_addons.SourceData.nces_ed_gov.nces_00a_datastructure \
+from pyncoda.CommunitySourceData.nces_ed_gov.nces_02c_SRECcleanCCD \
+    import nces_clean_student_ccd
+
+from pyncoda.CommunitySourceData.nces_ed_gov.nces_00a_datastructure \
     import *
 
-from pyincore_data_addons.ICD02b_tidy \
+from pyncoda.ncoda_00f_tidy \
     import icd_tidy as icdtidy 
 
-def tidy_nces(outputfolder, CONUM = '37155', year = '09'):
+def tidy_SREC_nces(outputfolder, CONUM = '37155', year = '09'):
     """
-    Function that converts NCES data from wide to long
+    Function that converts Student Record NCES data from wide to long
     Each observation is one student with variables 
     representing the student's school,
     gradelevel, race, ethnicity, and sex
 
     """
     # Check if final CSV file has aleady been generated
-    csv_filename = f'nces_tidy_ccd_{CONUM}_{year}'
+    csv_filename = f'nces_tidy_SCREC_ccd_{CONUM}_{year}'
     csv_filepath = outputfolder+"/"+csv_filename+'.csv'
 
     # Check if selected data already exists - if yes read in saved file
@@ -42,7 +43,7 @@ def tidy_nces(outputfolder, CONUM = '37155', year = '09'):
                     'sex' : int
                     })
         # If file already exists return csv as dataframe
-        print("File",csv_filepath,"Already exists - Skipping Tidy NCES.")
+        print("File",csv_filepath,"Already exists - Skipping Tidy SCREC NCES.")
         return output_df
 
     # Select county data from ccd_df

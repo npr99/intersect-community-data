@@ -37,6 +37,7 @@ The National Center for Education Statistics (NCES), U.S. Department of Educatio
 
 The EDGES program provides GIS shapefiles for school locations and School Attendance Boundaries for public, private, and post secondary schools. The CCD program provides basic information such as staff, membership (students), and lunch programs in public schools. 
 
+**NOTE** Staff data not available for all years.
 
 ### References for Data Documentation:
 
@@ -201,12 +202,7 @@ race, ethnicity, and gender
 
 When I clicked on the file layout download for the PSS survey data [https://nces.ed.gov/surveys/pss/pssdata.asp](https://nces.ed.gov/surveys/pss/pssdata.asp) the popup warning appeared to agree to the terms of use. 
 
-
-
-<p id="gdcalert1" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image1.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert2">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image1.png "image_tooltip")
+![alt_text](https://raw.githubusercontent.com/npr99/intersect-community-data/addprec/.github/images/NCES_DataUsageAgreement_2021-06.JPG)
 
 
 I am a little confused by the data use agreement - the private school survey data is reported by school and provides the school name and location for each observation. 

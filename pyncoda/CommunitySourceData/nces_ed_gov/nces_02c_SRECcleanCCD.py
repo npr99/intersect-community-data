@@ -14,11 +14,15 @@ need to use WGET to download the file and then unzip it and then read it in.
 import sys
 import pandas as pd
 
-def nces_obtain_ccd0910():
-    ccd_file_name = "sc092a.sas7bdat"
-    ccd_relative_path = '\\..\\SourceData\\nces.ed.gov\\ccd_data\\sc092a_sas'
-    ccd_folderpath = sys.path[0]+ccd_relative_path
+def nces_clean_student_ccd(
+    outputfolder,
+    input_directory = 'Outputdata\\00_SourceData\\nces_ed_gov',
+    ccd_file_name  = "sc092a.sas7bdat",
+    ccd_relative_path = 'sc092a_sas'):
+
+    ccd_folderpath = sys.path[0]+input_directory
     ccd_filepath = ccd_folderpath+'\\'+ccd_file_name
+
     ccd_df = pd.read_sas(ccd_filepath, format = 'sas7bdat')
 
     # Clean up all columns 
@@ -52,7 +56,7 @@ def nces_obtain_ccd0910():
                     ccd_df.loc[condition,col] = 0
                     print("    Missing values replaces with 0")
         except:
-            print(col,"not coverted to integer")
+            print(col,"not converted to integer")
 
     """ Explore data
     ccd_df.head()
