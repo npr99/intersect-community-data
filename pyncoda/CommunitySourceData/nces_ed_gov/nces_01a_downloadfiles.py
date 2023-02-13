@@ -81,6 +81,7 @@ def download_nces_files(downloadlistcsv):
     # Expected columns in downloadlistcsv
     Program
     Output
+    School Year
     File Description
     Documentation File Name
     Data File Name
@@ -129,12 +130,12 @@ def create_schoolist_community(downloadlistcsv,
                                 year
                                 ):
 
-    # Setup new file name
+    # Setup output file name
     root_filename = "EDGES_GEOCODED_SCHOOLDATA_"+year
     stem_filename = '_'+communityname+'.shp'
     output_filename = root_filename+stem_filename
     outputfilepath = outputfolder+"/"+output_filename
-    # Check if new file already exists
+    # Check if output file already exists
     if os.path.exists(outputfilepath):
         print("File",output_filename,"already exists.")
         print("File will not be overwritten.")
@@ -148,12 +149,13 @@ def create_schoolist_community(downloadlistcsv,
     # Setup directory
     output_directory, unzipped_output_directory = setup_directory()
 
+    # Create dictionary to hold geopandas dataframes
+    schooldata = {}
+    select_schooldata = {} 
+
     # Loop through file list and download the data file
     # and documentation for each file.
     for index, files in filelist_df.iterrows():
-        # Create dictionary to hold geopandas dataframes
-        schooldata = {}
-        select_schooldata = {} 
         # Convert shapefiles to geopandas dataframe
         #where is unzipped shapefile
         # Check if output type is for the school list
@@ -163,6 +165,10 @@ def create_schoolist_community(downloadlistcsv,
             # Set keys
             key1 = files['File Description']
             key2 = files['School Year']
+
+            # check keys
+            print("key1",key1)
+            print("key2",key2)
 
             schooldata[(key1,key2)] = gpd.read_file(filepath)
             # Set Coordinate Reference System to to WGS84
@@ -191,23 +197,67 @@ def create_schoolist_community(downloadlistcsv,
 
     return schoollist_community
 
-def create_sab_community(schoollist_community,
+
+def create_sab_community(downloadlistcsv,
+                        schoollist_community,
+                        communityname,
                         outputfolder,
                         year
                         ):
+    # Setup output file name
+    root_filename = "EDGES_SAB_"+year
+    stem_filename = '_'+communityname+'.shp'
+    output_filename = root_filename+stem_filename
+    outputfilepath = outputfolder+"/"+output_filename
+    # Check if output file already exists
+    if os.path.exists(outputfilepath):
+        print("File",output_filename,"already exists.")
+        print("File will not be overwritten.")
+        # Read output file into geopandas geodataframe
+        SAB_community = gpd.read_file(outputfilepath)
+
+        return SAB_community
+
+    # Check that all files are downloaded
+    filelist_df = download_nces_files(downloadlistcsv)
+    # Setup directory
+    output_directory, unzipped_output_directory = setup_directory()
+
+    # Loop through file list and download the data file
+    # and documentation for each file.
+    for index, files in filelist_df.iterrows():
+        # Convert shapefiles to geopandas dataframe
+        #where is unzipped shapefile
+        # Check if output type is for the school list
+        if files['Output'] == 'SAB':
+            shapefile = files['Unzipped Shapefile File Location']
+            filepath = unzipped_output_directory+"/"+shapefile
+            # Set keys
+            key1 = files['File Description']
+            key2 = files['School Year']
+
+            # check keys
+            print("key1",key1)
+            print("key2",key2)
+
+            SAB_file = gpd.read_file(filepath)
+            
     ## Select NCES SAB data for a single county
     # Create list of School identification numbers (NCESSCH)
     # `NCESSCH` values
-    NCESSCH_list = select_schooldata[
-            ('Public School File', year)].ncesid.tolist()
+    # The appended school list file renamed
+    # the `NCESSCH` variable to `ncesid`
+    NCESSCH_list = schoollist_community.ncesid.tolist()
     # Create list of `LEAID` values
     # Local education agency identification numbers (LEAID) 
-    LEAID_list = select_schooldata[
-        ('Public District File', year)].ncesid.tolist()
-    datafile = ('School Attendance Boundaries Single Shapefile', '2015-2016')
-    data = schooldata[datafile]
+    # The appended school list file renamed
+    # the `LEAID` variable to `ncesid`
+    LEAID_list = NCESSCH_list
 
     SAB_community = \
-        select_NCES_sabs(data,NCESSCH_list,LEAID_list)
+        select_NCES_sabs(SAB_file,NCESSCH_list,LEAID_list)
+
+    # save as shapefile
+    SAB_community.to_file(outputfilepath)
 
     return SAB_community

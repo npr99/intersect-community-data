@@ -78,6 +78,8 @@ def prepare_nces_data_for_append(gdf,
     append_gdf['lat'] = append_gdf['geometry'].y
     append_gdf['lon'] = append_gdf['geometry'].x
     append_gdf['schyr'] = years
+
+    print("School list data ready to append")
     
     return append_gdf
 
