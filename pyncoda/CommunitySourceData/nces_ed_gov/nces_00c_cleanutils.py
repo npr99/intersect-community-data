@@ -83,7 +83,7 @@ def prepare_nces_data_for_append(gdf,
     
     return append_gdf
 
-def split_SAB_gradelevel(df, outputfolder, year):
+def split_SAB_gradelevel(gdf, outputfolder, year):
     '''
     ### Split SABs by level and open enrollment
 
@@ -104,26 +104,32 @@ def split_SAB_gradelevel(df, outputfolder, year):
     '''
 
     sab_boundaries = {}
-    condition2 = (df['openEnroll']=='0')
+    condition2 = (gdf['openEnroll']=='0')
 
-    sab_boundaries[('Primary SAB', year)] = \
-        df[(df['level']=='1') & condition2].copy(deep=True)
-    sab_boundaries[('Middle SAB', year)] = \
-        df[(df['level']=='2') & condition2].copy(deep=True)
-    sab_boundaries[('High SAB', year)] = \
-        df[(df['level']=='3') & condition2].copy(deep=True)
-    sab_boundaries[('Other SAB', year)] = \
-        df[(df['level']=='4') & condition2].copy(deep=True)
-    sab_boundaries[('Open Enroll SAB', year)] = \
-        df[(df['openEnroll']=='1')].copy(deep=True)
+    sab_boundaries['PrimarySAB'] = \
+        gdf[(gdf['level']=='1') & condition2].copy(deep=True)
+    sab_boundaries['MiddleSAB'] = \
+        gdf[(gdf['level']=='2') & condition2].copy(deep=True)
+    sab_boundaries['HighSAB'] = \
+        gdf[(gdf['level']=='3') & condition2].copy(deep=True)
+    sab_boundaries['OtherSAB'] = \
+        gdf[(gdf['level']=='4') & condition2].copy(deep=True)
+    sab_boundaries['OpenEnrollSAB'] = \
+        gdf[(gdf['openEnroll']=='1')].copy(deep=True)
     
     for key in sab_boundaries:
         print(key)
+        # check if data frame is empty
+        if sab_boundaries[key].empty:
+            print("    No data for",key,". Skipping.")
+            continue
         # Set Coordinate Reference System to to WGS84    
         sab_boundaries[key] = \
             sab_boundaries[key].to_crs("epsg:4326") 
         # save as shapefile
-        # sab_boundaries[key].to_file(outputfolder+"/"+newfilename)
+        outputfilename = key + "_" + year + ".shp"
+        outputfilepath = outputfolder + "/" + outputfilename
+        sab_boundaries[key].to_file(outputfilepath)
 
     
     return sab_boundaries
