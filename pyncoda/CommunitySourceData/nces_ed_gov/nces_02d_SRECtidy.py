@@ -5,17 +5,19 @@
 import pandas as pd
 import os
 import sys
-
+from pyncoda.ncoda_00f_tidy \
+    import icd_tidy as icdtidy 
+from pyncoda.CommunitySourceData.nces_ed_gov.nces_00a_datastructure \
+    import *
+from pyncoda.CommunitySourceData.nces_ed_gov.nces_00c_cleanutils \
+    import *
 from pyncoda.CommunitySourceData.nces_ed_gov.nces_02c_SRECcleanCCD \
     import nces_clean_student_ccd
 
-from pyncoda.CommunitySourceData.nces_ed_gov.nces_00a_datastructure \
-    import *
-
-from pyncoda.ncoda_00f_tidy \
-    import icd_tidy as icdtidy 
-
-def tidy_SREC_nces(outputfolder, CONUM = '37155', year = '09'):
+def tidy_SREC_nces(outputfolder, 
+                    ccd_df,
+                    communityname = 'RobesonCounty_NC',
+                    year = '09'):
     """
     Function that converts Student Record NCES data from wide to long
     Each observation is one student with variables 
@@ -24,7 +26,7 @@ def tidy_SREC_nces(outputfolder, CONUM = '37155', year = '09'):
 
     """
     # Check if final CSV file has aleady been generated
-    csv_filename = f'nces_tidy_SCREC_ccd_{CONUM}_{year}'
+    csv_filename = f'nces_tidy_SCREC_ccd_{communityname}_{year}'
     csv_filepath = outputfolder+"/"+csv_filename+'.csv'
 
     # Check if selected data already exists - if yes read in saved file
@@ -46,39 +48,16 @@ def tidy_SREC_nces(outputfolder, CONUM = '37155', year = '09'):
         print("File",csv_filepath,"Already exists - Skipping Tidy SCREC NCES.")
         return output_df
 
-    # Select county data from ccd_df
-    ccd_df = nces_obtain_ccd0910()
-    ccd_df = ccd_df.loc[ccd_df['CONUM09'] == CONUM].copy()
-
-    ccd_v2a_datadict = ccd_v2a_datastructure()
-    wide_vars = ccd_v2a_widevars(ccd_v2a_datadict)
-
-    #ccd_df = nces_obtain_ccd0910()
-    """
-    ### Check if the sum of wide vars always equals total
-    NCES seems to suggest that students belonging to an 
-    unknown or non-CCD race category are not captured.  
-    """
-    ccd_df['TotalWideVar'] = 0
-    for var in wide_vars:
-        ccd_df['TotalWideVar'] = ccd_df['TotalWideVar'] + ccd_df[var]
-
-
-    ccd_df['Check_MEMBER09'] = ccd_df['MEMBER09'] - ccd_df['TotalWideVar'] 
-    ccd_df['Check_TOTETH09'] = ccd_df['TOTETH09'] - ccd_df['TotalWideVar'] 
-
-    """
-    ## Prepare data for reshape
-    Need to add a stem to each variable for the melt (wide to long to work)
-    """
-
     countvar = 'StudentCount'
     id_vars = ['NCESSCH','SCHNAM09','LEVEL09','CHARTR09','LATCOD09','LONCOD09'] 
-
     print("******************************")
     print(" Reshaping data from wide to long")
     print("******************************")
 
+    # What variables need to be reshaped wide to long
+    ccd_v2a_datadict = ccd_v2a_datastructure()
+    wide_vars = ccd_v2a_widevars(ccd_v2a_datadict)
+    # Reshape data from wide to long
     df_reshaped = pd.melt(ccd_df, 
                         id_vars = id_vars,
                         value_vars = wide_vars,
@@ -94,7 +73,6 @@ def tidy_SREC_nces(outputfolder, CONUM = '37155', year = '09'):
     print(" Add characteristic variables")
     print("******************************")
     # Create Variable List with mutually Exclusive values
-    year = '09'
     for race in ccd_v2a_datadict['RACECAT_5']:
         print("      Add race = ", \
             ccd_v2a_datadict['RACECAT_5'][race]['label'])
@@ -120,15 +98,14 @@ def tidy_SREC_nces(outputfolder, CONUM = '37155', year = '09'):
     # drop temporary 'variable' variable created by melt command
     df_reshaped = df_reshaped.drop(columns = ['variable'])
                 
-    df_reshaped
-
     print("******************************")
     print(" Expand Dataset")
     print("******************************")
     df_expand = icdtidy.expand_df(df_reshaped,'StudentCount')
 
     print("     Add Counter")
-    df_expand['srec_counter'] = df_expand.groupby(['NCESSCH']).cumcount() + 1
+    df_expand['srec_counter'] = \
+        df_expand.groupby(['NCESSCH']).cumcount() + 1
     print("     Generate unique ID")
     counter_var = 'srec_counter'
     primary_key = 'srecid'
@@ -155,17 +132,6 @@ def tidy_SREC_nces(outputfolder, CONUM = '37155', year = '09'):
     #               Southeast Academy - not open in 2009-2010
     for level in ['1','2','3','4']:
         srec_df.loc[srec_df['LEVEL09'] == level, 'ncessch_'+level] = srec_df['NCESSCH']
-
-    # Manually fix issue with L Gilbert Carroll Middle SAB
-    condition1 = (srec_df['NCESSCH'] == '370393002235')
-    conditions = condition1
-    srec_df.loc[conditions,'ncessch_5'] = '370393002235'
-
-    # Manually fix issue with CIS ACADEMY
-    # Located in Pembroke, North Carolina
-    condition1 = (srec_df['NCESSCH'] == '370004002349')
-    conditions = condition1
-    srec_df.loc[conditions,'ncessch_6'] = '370004002349'
 
     # Create gradelevel1 and gradelevel2 columns for merge with person records
     # these new columns are the same but need to be named and repeated for merge
@@ -195,7 +161,7 @@ def tidy_SREC_nces(outputfolder, CONUM = '37155', year = '09'):
 
     # Save results for one county the outputfolder
     savefile = sys.path[0]+"/"+csv_filepath
-    srec_df.to_csv(savefile, index=False)
+    #srec_df.to_csv(savefile, index=False)
 
     return srec_df
 
