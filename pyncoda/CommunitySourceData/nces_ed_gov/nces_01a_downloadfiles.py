@@ -194,6 +194,8 @@ def create_schoolist_community(downloadlistcsv,
                               ignore_index=True, sort=False)
     # save as shapefile
     schoollist_community.to_file(outputfilepath)
+    # save as csv
+    schoollist_community.to_csv(outputfilepath[:-4]+'.csv')
 
     return schoollist_community
 
