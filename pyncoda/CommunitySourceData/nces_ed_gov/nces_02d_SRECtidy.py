@@ -161,7 +161,7 @@ def tidy_SREC_nces(outputfolder,
 
     # Save results for one county the outputfolder
     savefile = sys.path[0]+"/"+csv_filepath
-    #srec_df.to_csv(savefile, index=False)
+    srec_df.to_csv(savefile, index=False)
 
     return srec_df
 
