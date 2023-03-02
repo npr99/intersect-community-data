@@ -1,4 +1,4 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/npr99/intersect-community-data/HEAD?labpath=ncoda_07cv3_run_HUA_workflow.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/npr99/intersect-community-data/HEAD?labpath=ncoda_07cv3_run_HUA_workflow.ipynb) **Binder Runs Very Slow and Has not Always Worked.**
 
 [![DOI](https://zenodo.org/badge/478737101.svg)](https://zenodo.org/badge/latestdoi/478737101)
 
