@@ -72,9 +72,13 @@ def return_dataservice_id(title, output_filename):
 
         return None
     else:
-        print("There are multiple datasets matching the title. Please select one.")
-        for i, dataset in enumerate(matched_datasets):
-            print(i,matched_datasets[i]['dataset']['id'])
-        dataset_id = matched_datasets[int(input("Enter dataset number: "))]['dataset']["id"]
-        print("Use dataset_id:",dataset_id)
-        return dataset_id
+        print("There are multiple datasets matching the title")
+        try:
+            print("Please select one.")
+            for i, dataset in enumerate(matched_datasets):
+                print(i,matched_datasets[i]['dataset']['id'])
+            dataset_id = matched_datasets[int(input("Enter dataset number: "))]['dataset']["id"]
+            print("Use dataset_id:",dataset_id)
+            return dataset_id
+        except:
+            return matched_datasets
