@@ -1,11 +1,16 @@
-name: pyncoda20220422
+name: pyncoda20230210
 channels:
   - conda-forge
   - defaults
 dependencies:
+  - python=3.10.9
   - pandas=1.3.5
+  - geopandas=0.12.2
   - requests=2.27.1
   - seaborn=0.11.2
   - scooby=0.5.12
+  - jupyter=1.0.0
+  - pip=23.0
   - pip:
     - fpdf2==2.5.2
+    - wget==3.2

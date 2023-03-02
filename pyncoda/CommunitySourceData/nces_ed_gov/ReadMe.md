@@ -28,7 +28,7 @@ Authors: Nathanael Rosenheim, [Michelle Stanley]
 
 ## Project Objective:
 
-A set of automated programs that will obtain, clean and explore school related data. The final data set will have the list of schools in a selected area (county or counties) with their school attendance boundaries. The file file can have the count of teachers (Full time equivalent) and counts of students by grade level and race+ethnicity+gender (where available). The teacher counts will allow the LODES data to be checked - statistically determine the correlation. The student data will provide a statistical basis for probabilistically connecting households allocated to residential structures to schools. The jupyter notebooks and sample data files will be archived on either DesignSafe or OpenICPSR. Code developed for this project will be maintained within pyincore-data utility functions on github ([https://github.com/IN-CORE/](https://github.com/IN-CORE/)). 
+A set of automated programs that will obtain, clean and explore school related data. The final data set will have the list of schools in a selected area (county or counties) with their school attendance boundaries. The file file can have the count of teachers (Full time equivalent) and counts of students by grade level and race+ethnicity+gender (where available). The teacher counts will allow the LODES data to be checked - statistically determine the correlation. The student data will provide a statistical basis for probabilistically connecting households allocated to residential structures to schools. The jupyter notebooks and sample data files will be archived on either DesignSafe or OpenICPSR. Code developed for this project will be maintained within [pyncoda](https://github.com/npr99/intersect-community-data) functions on github. 
 
 
 ## Overview of Data and Data Citations
@@ -37,6 +37,7 @@ The National Center for Education Statistics (NCES), U.S. Department of Educatio
 
 The EDGES program provides GIS shapefiles for school locations and School Attendance Boundaries for public, private, and post secondary schools. The CCD program provides basic information such as staff, membership (students), and lunch programs in public schools. 
 
+**NOTE** Staff data not available for all years.
 
 ### References for Data Documentation:
 
@@ -201,12 +202,7 @@ race, ethnicity, and gender
 
 When I clicked on the file layout download for the PSS survey data [https://nces.ed.gov/surveys/pss/pssdata.asp](https://nces.ed.gov/surveys/pss/pssdata.asp) the popup warning appeared to agree to the terms of use. 
 
-
-
-<p id="gdcalert1" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image1.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert2">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image1.png "image_tooltip")
+![alt_text](https://raw.githubusercontent.com/npr99/intersect-community-data/addprec/.github/images/NCES_DataUsageAgreement_2021-06.JPG)
 
 
 I am a little confused by the data use agreement - the private school survey data is reported by school and provides the school name and location for each observation. 
@@ -216,6 +212,55 @@ I am a little confused by the data use agreement - the private school survey dat
 
 G:\Shared drives\HRRC_IN-CORE\Tasks\P4.9 Testebeds\Lumberton_LaborMarketAllocation\SourceData\nces.ed.gov\WorkNPR\NCES_2av1_SelectCountySchools_2021-06-06\NCES_2av1_SelectCountySchools_2021-06-06.html 
 
+### Estimated School Building and Administrative Office Locations
+> Purpose of School Location Data: "The National Center for Education Statistics (NCES) Education Demographic and Geographic Estimates (EDGE) program develops data resources and information to help data users investigate the social and
+spatial context of education. School point locations (latitude/longitude values) are a key component of the NCES data collection." (Geverdt, 2018a p. 1) 
+
+School location data is collected for:
+* Public schools
+    - elementary
+    - public secondary
+    - location education agencies
+* Private schools
+    - elementary
+    - secondary
+* Postsecondary Schools that participates in the federal student financial aid programs
+    - college
+    - university
+    - technical and vocational institution 
+    
+Note a Location Education Agency is "A public board of education or other public authority within a state that maintains administrative control of public elementary or secondary schools in a city, county, township, school district, or other political subdivision of a state. School districts and county offices of education are both LEAs. Under the Local Control Funding Formula, charter schools are increasingly treated as LEAs. (Ed Source https://edsource.org/glossary/local-education-agency-lea)"
+
+The school location data can be linked to:
+* Public schools (Geverdt, 2018a p. 1) 
+    - Common Core of Data (CCD) school and agency universe
+    - enrollment, staffing, and program participation 
+* Private schools (Geverdt, 2018b p. 1) 
+    - Private School Survey (PSS) collection
+    - Biennial provides data about enrollment, staffing, type of program, and other basic administrative features
+* Postsecondary Schools (Geverdt, 2018c p. 1) 
+    - Integrated Postsecondary Education Data System (IPEDS) collection
+    - enrollments, program completions, graduation rates, faculty and staff, finances, institutional prices, and student financial aid
+
+### School Attendance Boundaries
+> "The School Attendance Boundaries Survey (SABS) was an experimental survey conducted by the U.S.
+Department of Education’s (ED) National Center for Education Statistics (NCES) with assistance from the
+U.S. Census Bureau to collect school attendance boundaries for regular schools in the 50 states and the
+District of Columbia. Attendance boundaries, sometimes known as school catchment areas, define the
+geographic extent served by a local school for the purpose of student assignments. School district
+administrators create attendance areas to help organize and plan district-wide services, and districts
+may adjust individual school boundaries to help balance the physical capacity of local schools with
+changes in the local school-age population." (Geverdt, 2018d p. 1)
+
+## Select NCES data for a single county
+The point data files all have a County FIPS code variable (`CNTY15` for the 2015-2016 school year). This variable can be used to select data for a single county. The School Attendance Boundary file does not have a county fips code variable. But it does have a unique id for each school `ncessch`. The variable `ncessch` is also in the public school list.
+
+>"SABS relies on standard CCD IDs to uniquely identify schools (NCESSCH) and school districts (LEAID). This
+allows the SABS data to be linked across a broad range of institutional data that include the CCD ID. In a
+few rare cases, districts provided boundaries for schools that did not contain a corresponding CCD
+school ID. These schools were assigned with a temporary ID by concatenating the LEAID with a fixed
+string of ‘9999’ and a final single digit that was automatically incremented if more than one instance
+occurred." (Geverdt, 2018d p. 7)
 
 ## Literature Review of Data Uses Examples 
 

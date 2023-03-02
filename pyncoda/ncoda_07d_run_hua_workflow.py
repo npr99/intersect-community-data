@@ -382,6 +382,14 @@ class hua_workflow_functions():
             "dataType": "incore:housingUnitAllocation",
             "format": "table"
             }
+        
+        # Check if file exists on IN-CORE
+        dataset_id = return_dataservice_id(title, output_filename)
+
+        # if dataset_id is not None, return id
+        if dataset_id is not None:
+            print("Dataset already exists on IN-CORE, use dataset_id:",dataset_id)
+            return dataset_id
 
         data_service_addpt = loginto_incore_dataservice()
         created_dataset = data_service_addpt.create_dataset(properties = dataset_metadata)
