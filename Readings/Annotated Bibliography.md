@@ -16,3 +16,103 @@ Examples:
 5. LEHD’s PostSecondary Employment Outcomes
 6. Census Frames Project https://www2.census.gov/about/partners/cac/sac/meetings/2021-03/presentation-frames-project.pdf
 7. National Emergency Number Association (NENA) Structure Address Point GIS Data for 9-1-1
+
+U.S. Census Bureau (n.d.) Harnessing the Power of Administrative Data: OnTheMap for Emergency Management. https://www.youtube.com/watch?v=Q5vFTFwSNMg
+
+Post disaster linked data benefits:
+- more powerful detailed picture of our
+communities and how they function
+- make smarter better informed and
+fact-based decisions
+
+## Disaggregation matters
+Beth Jarosz, Program Director at Population Reference Bureau
+"If the mantra in real estate is “location, location, location,” the mantra for public data users is—or should be: “disaggregation, disaggregation, disaggregation.”
+https://www.apdu.org/2022/03/17/apdu-board-member-building-up-by-breaking-down/
+
+
+## Household level Social Vulnerability intersect with Flood Models
+
+Preisser, M., Passalacqua, P., Bixler, R. P., & Hofmann, J. (2022). Intersecting near-real time fluvial and pluvial inundation estimates with sociodemographic vulnerability to quantify a household flood impact index. Hydrology and Earth System Sciences, 26(15), 3941-3964. https://doi.org/10.5194/hess-26-3941-2022 
+“While aggregated results can draw attention to broad regions of risk, household level data are required to properly classify who will be impacted. This
+is not the first study to incorporate tax parcel data to at­tempt to estimate a hazard at the household level (Nelson et al., 2015; Fahy et al., 2019); however, previous studies have relied on 100-year floodplain data that lack pluvial es­timates.” (Preisser et al., 2022, p. 3957)
+
+Code and data availability. All data used in this analysis are publicly obtained from their respective sources, including NOAA,
+USGS, TNRIS, and the U.S. Census Bureau. The GeoFlood and Fill–Spill–Merge codes can be found on their respective GitHub
+pages (https://github.com/r-barnes/Barnes2020-FillSpillMerge, Barnes, 2022; https://github.com/passaH2O/GeoFlood, , 2010).
+All data and the associated codes used can be retrieved from https://doi.org/10.5281/zenodo.6584401 (Preisser et al., 2022).
+
+#### Backwards citation search:
+Collins, T. W., Grineski, S. E., Chakraborty, J., Montgomery, M. C., and Hernandez, M.: Downscaling Environmental Justice Anal­ysis: Determinants of Household-Level Hazardous Air Pollu­tant Exposure in Greater Houston, Ann. Assoc. Am. Geogr., 105, 684–703, https://doi.org/10.1080/00045608.2015.1050754, 2015.
+
+Collins, T. W., Grineski, S. E., Chakraborty, J., and Flores, A. B.: Environmental injustice and Hurricane Harvey: A
+household-level study of socially disparate flood exposures in Greater Houston, Texas, USA, Environ. Res., 179, 108772,
+https://doi.org/10.1016/j.envres.2019.108772, 2019.
+
+Fahy, B., Brenneman, E., Chang, H., and Shandas, V.: Spatial analysis of urban flooding and extreme heat hazard potential in Portland, OR, Int. J. Disast. Risk Reduct., 39, 101117, https://doi.org/10.1016/j.ijdrr.2019.101117, 2019
+
+Nelson, K. S., Abkowitz, M. D., and Camp, J. V.: A method for creating high resolution maps of social vulnerability in the context of environmental hazards, Appl. Geogr., 63, 89–100, https://doi.org/10.1016/j.apgeog.2015.06.011, 2015.
+
+## Household Agent's with Demographic Data
+Costa, R., Wang, C., & Baker, J. W. (2022). Integrating Place Attachment into Housing Recovery Simulations to Estimate Population Losses. Natural Hazards Review, 23(4), 04022021.
+
+https://www.rcostaresearch.com/
+https://www.rcostaresearch.com/code
+
+## Building level population data
+Huang, X., Wang, C., Li, Z., & Ning, H. (2021). A 100 m population grid in the CONUS by disaggregating census data with open-source Microsoft building footprints. Big Earth Data, 5(1), 112-133.
+
+
+## Household level analysis of segregation
+
+Crowell, A., & Fossett, M. (2022). Metropolitan racial residential segregation in the United States. Demographic Research, 46, 217-260. https://doi.org/10.4054/DemRes.2022.46.8
+
+"group differences in rates of return on those resources" (Crowell and Fossett, 2022 p. 238)
+
+Measure could be a proxy for equity and or racism. 
+
+## Commercial Data Equity Tools
+
+Nesbit, C. "How the Data Equity Hub helps organizations use data in the fight for justice and equity", https://www.tableau.com/blog/how-data-equity-hub-helps-organizations-use-data-fight-justice-and-equity 
+
+https://www.tableau.com/foundation/data-equity
+
+At the intersection of data and equity
+
+"DATA IS A SUPERPOWER AGAINST INEQUALITY"
+
+## Examples of Data Leakage
+
+Siobhan Roberts (2022-06-06). How ‘Trustless’ Is Bitcoin, Really?. The New York Times https://www.nytimes.com/2022/06/06/science/bitcoin-nakamoto-blackburn-crypto.html
+“If you have a big enough data set, it starts to leak information in unexpected ways.” Even more so when data from different sources are connected, he said: “When you combine one data set with another to make a bigger data set, nonobvious linkages can arise.” Mark Gerstein, a professor of bioinformatics at Yale University
+This is the case for my work intersecting community data. When i combine decennial census, ACS, LODES, NCES, nontrivial linkages arise.
+
+Richard Pérez-Peña and Matthew Rosenberg (2018-01-29) "Strava Fitness App Can Reveal Military Sites, Analysts Say". New York Times.
+https://www.nytimes.com/2018/01/29/world/middleeast/strava-heat-map.html
+
+
+## Synthetic Populations
+
+Ma, L., & Srinivasan, S. (2016). An empirical assessment of factors affecting the accuracy of target-year synthetic populations. Transportation Research Part A: Policy and Practice, 85, 247-264.
+
+Ye, P., Hu, X., Yuan, Y., & Wang, F. Y. (2017). Population synthesis based on joint distribution inference without disaggregate samples. Journal of Artificial Societies and Social Simulation, 20(4).
+
+Ma, L., & Srinivasan, S. (2015). Synthetic population generation with multilevel controls: A fitness‐based synthesis approach and validations. Computer‐Aided Civil and Infrastructure Engineering, 30(2), 135-150.
+
+Harland, K., Heppenstall, A., Smith, D., & Birkin, M. H. (2012). Creating realistic synthetic populations at varying spatial scales: A comparative critique of population synthesis techniques. Journal of Artificial Societies and Social Simulation, 15(1).
+
+Mobility Analytics Research Group (MARG) Synthetic Population Generator PopGen https://www.mobilityanalytics.org/popgen.html
+
+## Longitudinal Population Data
+John R. Logan, Charles Zhang, Brian Stults, and Todd Gardner. 2021. "Improving Estimates of Neighborhood Change with Constant Tract Boundaries" Applied Geography (132). doi.org/10.1016/j.apgeog.2021.102476.
+
+## Relationship between households and governing regimes
+
+Ribot, Jesse. "Cause and response: vulnerability and climate in the Anthropocene." Journal of Peasant Studies 41.5 (2014): 667-705.
+
+Focus on the concepts of entitlements and relationships between households and influence over governing agents...
+To operationalize Ribot (2014)  concept a synthetic population could be built that connects the individual to a household location, a work location, schools, city, county, state and federal governments.
+For example, one could see that a household lives and works in the same city, county, and possibly the same congressional district.
+
+A hypothesis to explore would be if households that live, work and attend school in the same governing regimes have a greater sense of control or influence.
+Do wealthier racial majority households have fewer governing regimes to contend with because their activity space more closely aligns with jurisdictional boundaries.
