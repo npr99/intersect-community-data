@@ -1,4 +1,9 @@
+# Research Question
 
+# Problem Statement
+Draft ideas: Refining social vulnerability indicators to be consistent and parsimonious with household and individual level characteristics may have a stronger link to mitigation and recovery planning.
+
+Cumulative vulnerability exists when a household fits multiple vulnerability categories, for example an single parent household where the single parent is a woman age 70, with a disability, who doesn't speak English, doesn't own a car, and is responsible for 2 children under age 5
 
 US Census Bureau (n.d.) "What Are Synthetic Data?" https://www.census.gov/content/dam/Census/library/factsheets/2021/what-are-synthetic-data/what-are-synthetic-data.pdf.
 
@@ -30,6 +35,9 @@ Beth Jarosz, Program Director at Population Reference Bureau
 "If the mantra in real estate is “location, location, location,” the mantra for public data users is—or should be: “disaggregation, disaggregation, disaggregation.”
 https://www.apdu.org/2022/03/17/apdu-board-member-building-up-by-breaking-down/
 
+## Data integration matters
+Loos, S., Levitt, J., Tomozawa, K., Baker, J., & Lallemant, D. (2022). Efficacy of damage data integration: a comparative analysis of four major earthquakes. Natural Hazards Review, 23(4), 04022026.
+
 
 ## Household level Social Vulnerability intersect with Flood Models
 
@@ -58,6 +66,8 @@ Costa, R., Wang, C., & Baker, J. W. (2022). Integrating Place Attachment into Ho
 
 https://www.rcostaresearch.com/
 https://www.rcostaresearch.com/code
+
+Esmalian, A., Wang, W., & Mostafavi, A. (2022). Multi‐agent modeling of hazard–household–infrastructure nexus for equitable resilience assessment. Computer‐Aided Civil and Infrastructure Engineering, 37(12), 1491-1520. https://arxiv.org/ftp/arxiv/papers/2106/2106.03160.pdf
 
 ## Building level population data
 Huang, X., Wang, C., Li, Z., & Ning, H. (2021). A 100 m population grid in the CONUS by disaggregating census data with open-source Microsoft building footprints. Big Earth Data, 5(1), 112-133.
@@ -103,6 +113,8 @@ Harland, K., Heppenstall, A., Smith, D., & Birkin, M. H. (2012). Creating realis
 
 Mobility Analytics Research Group (MARG) Synthetic Population Generator PopGen https://www.mobilityanalytics.org/popgen.html
 
+Grefenstette, J. J., Brown, S. T., Rosenfeld, R., DePasse, J., Stone, N. T., Cooley, P. C., ... & Burke, D. S. (2013). FRED (A Framework for Reconstructing Epidemic Dynamics): an open-source software system for modeling infectious diseases and control strategies using census-based populations. BMC public health, 13(1), 1-14.
+
 ## Longitudinal Population Data
 John R. Logan, Charles Zhang, Brian Stults, and Todd Gardner. 2021. "Improving Estimates of Neighborhood Change with Constant Tract Boundaries" Applied Geography (132). doi.org/10.1016/j.apgeog.2021.102476.
 
@@ -116,3 +128,40 @@ For example, one could see that a household lives and works in the same city, co
 
 A hypothesis to explore would be if households that live, work and attend school in the same governing regimes have a greater sense of control or influence.
 Do wealthier racial majority households have fewer governing regimes to contend with because their activity space more closely aligns with jurisdictional boundaries.
+
+### Articles that may help improve address point creation
+Potential tools and methods to help improve the address point models I have designed.
+
+The street segment too in OSMnx may help to determine location of points.
+
+The lat lon precision question will help to set limits on number of decimal places needed to define address points
+
+The polygon inside another polygon option may help to determine the location of structures.
+
+Decimal Places Aprox. Distance Say What?
+1 10 kilometers 6.2 miles
+2 1 kilometer 0.62 miles
+3 100 meters About 328 feet
+4 10 meters About 33 feet
+5 1 meter About 3 feet
+6 10 centimeters About 4 inches
+7 1.0 centimeter About 1/2 an inch
+8 1.0 millimeter The width of paperclip wire.
+9 0.1 millimeter The width of a strand of hair.
+10 10 microns A speck of pollen.
+11 1.0 micron A piece of cigarette smoke.
+12 0.1 micron You're doing virus-level mapping at this point.
+13 10 nanometers Does it matter how big this is?
+14 1.0 nanometer Your fingernail grows about this far in one second.
+15 0.1 nanometer An atom. An atom! What are you mapping?
+https://gis.stackexchange.com/questions/8650/measuring-accuracy-of-latitude-and-longitude
+
+Boeing, G. (2017). OSMnx: New methods for acquiring, constructing, analyzing, and visualizing complex street networks. Computers, Environment and Urban Systems, 65, 126-139.
+
+Checking if polygon fits inside another polygon using ArcGIS Desktop?
+https://gis.stackexchange.com/questions/147790/checking-if-polygon-fits-inside-another-polygon-using-arcgis-desktop
+
+## Disclosure Avoidance
+https://www2.census.gov/library/publications/decennial/2020/2020-census-disclosure-avoidance-handbook.pdf
+
+Garfinkel, S., Abowd, J. M., & Martindale, C. (2019). Understanding database reconstruction attacks on public data. Communications of the ACM, 62(3), 46-53. https://dl.acm.org/doi/pdf/10.1145/3291276.3295691
