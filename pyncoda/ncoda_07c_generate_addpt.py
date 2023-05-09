@@ -58,15 +58,11 @@ import os # For managing directories and file paths if drive is mounted
 from shapely.wkt import loads
 
 
-# Functions from IN-CORE
-from pyincore import IncoreClient, Dataset, FragilityService, MappingSet, DataService
-
 # open, read, and execute python program with reusable commands
 from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda.ncoda_00e_geoutilities import *
 from pyncoda.ncoda_02b_cleanblockdata import *
 from pyncoda.ncoda_02d_addresspoint import *
-from pyncoda.ncoda_06d_INCOREDataService import *
 
 
 class generate_addpt_functions():
@@ -101,7 +97,8 @@ class generate_addpt_functions():
             version_text: str = 'v2-0-0',
             basevintage: str = 2010,
             outputfolder: str ="",
-            savefiles: bool = True):
+            savefiles: bool = True,
+            use_incore: bool = True):
 
         self.community = community
         self.communities = communities
@@ -119,6 +116,7 @@ class generate_addpt_functions():
         self.outputfolder = outputfolder
         self.savefiles = savefiles
         self.year = basevintage
+        self.use_incore = use_incore
 
 
     def obtain_census_block_place_puma_gdf(self, community, year):
@@ -276,6 +274,8 @@ class generate_addpt_functions():
         Metadata and upload to incore dataservice 
         for address point inventory
         '''
+        from pyncoda.ncoda_06d_INCOREDataService import loginto_incore_dataservice
+
         ## Upload Address Point Inventory to IN-CORE
         # Upload CSV file to IN-CORE and save dataset_id
         # note you have to put the correct dataType as well as format
@@ -339,13 +339,17 @@ class generate_addpt_functions():
         csv_filepath = self.outputfolder+"/"+output_filename+'.csv'
         savefile = sys.path[0]+"/"+csv_filepath
 
-        # Check if file exists on IN-CORE
-        dataset_id = return_dataservice_id(title, output_filename)
+        if self.use_incore:
+            # Functions from IN-CORE
+            from pyncoda.ncoda_06d_INCOREDataService import return_dataservice_id
 
-        # if dataset_id is not None, return id
-        if dataset_id is not None:
-            print("Dataset already exists on IN-CORE, use dataset_id:",dataset_id)
-            return dataset_id
+            # Check if file exists on IN-CORE
+            dataset_id = return_dataservice_id(title, output_filename)
+
+            # if dataset_id is not None, return id
+            if dataset_id is not None:
+                print("Dataset already exists on IN-CORE, use dataset_id:",dataset_id)
+                return dataset_id
 
         # Workflow for generating Address Point Inventory data for IN-CORE
         census_block_place_puma_gdf = \
@@ -367,24 +371,32 @@ class generate_addpt_functions():
 
             # Check if file exists on local drive
         if os.path.exists(savefile):
-            print("File already exists on local drive but "+
-                "not on incore dataservice: "
-                +savefile)
-            # upload file to INCORE dataservice
-            dataset_id_final = self.upload_addpt_file_to_incore(
-                title = title,
-                county_list = county_list,
-                csv_filepath = csv_filepath,
-                output_filename = output_filename)
-            
-            if dataset_id_final == "No Dataset ID":
-                print("Could not upload file to INCORE")
-                print("dataset_id is set to the dataframe")
+            # If using IN-CORE
+            if self.use_incore:
+                print("File already exists on local drive but "+
+                    "not on incore dataservice: "
+                    +savefile)
+                # upload file to INCORE dataservice
+                dataset_id_final = self.upload_addpt_file_to_incore(
+                    title = title,
+                    county_list = county_list,
+                    csv_filepath = csv_filepath,
+                    output_filename = output_filename)
+                
+                if dataset_id_final == "No Dataset ID":
+                    print("Could not upload file to INCORE")
+                    print("dataset_id is set to the dataframe")
+                    # Read in csv as dataframe
+                    address_point_df = pd.read_csv(csv_filepath, low_memory=False)
+                    return address_point_df
+                
+                return dataset_id_final
+            else:
+                print("File already exists on local drive: "+savefile)
                 # Read in csv as dataframe
                 address_point_df = pd.read_csv(csv_filepath, low_memory=False)
                 return address_point_df
-                
-            return dataset_id_final
+
         """
         Convert the Building inventory into a list of address points
 
@@ -751,17 +763,22 @@ class generate_addpt_functions():
         # Resave results for community name
         address_point_gdfv2.to_csv(savefile, index=False)
 
-        # upload file to INCORE dataservice
-        # try to upload file to INCORE dataservice
-        dataset_id_final = self.upload_addpt_file_to_incore(
-            title = title,
-            county_list = county_list,
-            csv_filepath = csv_filepath,
-            output_filename = output_filename)
+        # If using IN-CORE
+        if self.use_incore:
+            # upload file to INCORE dataservice
+            # try to upload file to INCORE dataservice
+            dataset_id_final = self.upload_addpt_file_to_incore(
+                title = title,
+                county_list = county_list,
+                csv_filepath = csv_filepath,
+                output_filename = output_filename)
 
-        if dataset_id_final == "No Dataset ID":
-            print("Could not upload file to INCORE")
-            print("dataset_id is the dataframe")
+            if dataset_id_final == "No Dataset ID":
+                print("Could not upload file to INCORE")
+                print("dataset_id is the dataframe")
+                return address_point_gdfv2
+        else:
+            print("Not using IN-CORE. Dataset_id is the dataframe")
             return address_point_gdfv2
 
         return dataset_id_final

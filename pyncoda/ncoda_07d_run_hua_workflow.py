@@ -21,7 +21,6 @@ from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda \
      import ncoda_00c_save_output_log as logfile
 from pyncoda.ncoda_00e_geoutilities import *
-from pyncoda.ncoda_06d_INCOREDataService import *
 
 # Load in data structure dictionaries
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
@@ -362,6 +361,10 @@ class hua_workflow_functions():
         Metadata and upload to incore dataservice 
         for housing unit allocation inventory
         '''
+        # Functions from IN-CORE
+        from pyncoda.ncoda_06d_INCOREDataService import return_dataservice_id
+        from pyncoda.ncoda_06d_INCOREDataService import loginto_incore_dataservice
+
         ## Upload Housing Unit Allocation Inventory to IN-CORE
         # Upload CSV file to IN-CORE and save dataset_id
         # note you have to put the correct dataType as well as format

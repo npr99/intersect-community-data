@@ -42,10 +42,7 @@ import numpy as np
 import pandas as pd
 import os # For saving output to path
 import urllib
-import sys
-
-# Functions from IN-CORE
-from pyincore import IncoreClient, DataService
+import sys 
 
 # open, read, and execute python program with reusable commands
 from pyncoda.CommunitySourceData.api_census_gov.acg_05a_hui_functions \
@@ -53,7 +50,6 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_05a_hui_functions \
 from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda.ncoda_04a_Figures import *
 from pyncoda.ncoda_06c_Codebook import *
-from pyncoda.ncoda_06d_INCOREDataService import *
 
 from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
     import incore_v2_DataStructure
@@ -74,7 +70,8 @@ class generate_hui_functions():
             basevintage: str = 2010,
             outputfolder: str ="",
             outputfolders = {},
-            savefiles: bool = True):
+            savefiles: bool = True,
+            use_incore: bool = True):
 
         self.communities = communities
         self.seed = seed
@@ -84,6 +81,7 @@ class generate_hui_functions():
         self.outputfolder = outputfolder
         self.outputfolders = outputfolders
         self.savefiles = savefiles
+        self.use_incore = use_incore
 
 
         # Save Outputfolder - due to long folder name paths output saved to folder with shorter name
@@ -106,15 +104,20 @@ class generate_hui_functions():
             title = "Housing Unit Inventory v2.0.0 data for "+self.communities[community]['community_name']
             print("Generating",title)
             output_filename = f'hui_{self.version_text}_{community}_{self.basevintage}_rs{self.seed}'
+
             county_list = ''
 
-            # Check if file exists on IN-CORE
-            dataset_id = return_dataservice_id(title, output_filename)
+            if self.use_incore:
+                from pyncoda.ncoda_06d_INCOREDataService import return_dataservice_id
+                from pyncoda.ncoda_06d_INCOREDataService import loginto_incore_dataservice
 
-            # if dataset_id is not None, return id
-            if dataset_id is not None:
-                print("Dataset already exists on IN-CORE, use dataset_id:",dataset_id)
-                return dataset_id
+                # Check if file exists on IN-CORE
+                dataset_id = return_dataservice_id(title, output_filename)
+
+                # if dataset_id is not None, return id
+                if dataset_id is not None:
+                    print("Dataset already exists on IN-CORE, use dataset_id:",dataset_id)
+                    return dataset_id
     
             # Workflow for generating HUI data for IN-CORE
             for county in self.communities[community]['counties'].keys():
@@ -126,6 +129,14 @@ class generate_hui_functions():
                 # create output folders for hui data generation
                 outputfolders = directory_design(state_county_name = state_county_name,
                                                     outputfolder = self.outputfolder)
+                
+                # Check if output file already exists
+                check_file = outputfolders['top']+"/../"+output_filename+'.csv'
+                if os.path.exists(check_file):
+                    print("File already exists, skipping:",check_file)
+                    # Read in HUI Data
+                    hui_incore_df_fixed = pd.read_csv(check_file, header="infer")
+                    return hui_incore_df_fixed
                                                     
                 generate_df = hui_workflow_functions(
                     state_county = state_county,
@@ -153,12 +164,12 @@ class generate_hui_functions():
             hui_incore_df_fixed = hui_incore_df.applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
 
             #Save results for community name
+            # Output files
             csv_filepath = outputfolders['top']+"/"+output_filename+'.csv'
+            common_directory = outputfolders['top']+"/../"+output_filename
             savefile = sys.path[0]+"/"+csv_filepath
             hui_incore_df_fixed.to_csv(savefile, index=False)
-
             # Save second set of files in common directory
-            common_directory = outputfolders['top']+"/../"+output_filename
             hui_incore_df_fixed.to_csv(common_directory+'.csv', index=False)
             
             # Generate figures for explore data
@@ -220,19 +231,25 @@ class generate_hui_functions():
                 "format": "table"
                 }
 
-            data_service_hui = loginto_incore_dataservice()
-            created_dataset = data_service_hui.create_dataset(properties = dataset_metadata)
-            dataset_id = created_dataset['id']
-            print('dataset is created with id ' + dataset_id)
+            # If using IN-CORE
+            if self.use_incore:
+                data_service_hui = loginto_incore_dataservice()
+                created_dataset = data_service_hui.create_dataset(properties = dataset_metadata)
+                dataset_id = created_dataset['id']
+                print('dataset is created with id ' + dataset_id)
 
-            ## Attach files to the dataset created
-            files = [csv_filepath]
-            full_dataset = data_service_hui.add_files_to_dataset(dataset_id, files)
+                ## Attach files to the dataset created
+                files = [csv_filepath]
+                full_dataset = data_service_hui.add_files_to_dataset(dataset_id, files)
 
-            print('The file(s): '+ output_filename +" have been uploaded to IN-CORE")
-            print("Dataset now on IN-CORE, use dataset_id:",dataset_id)
-            print("Dataset is only in personal account, contact IN-CORE to make public")
+                print('The file(s): '+ output_filename +" have been uploaded to IN-CORE")
+                print("Dataset now on IN-CORE, use dataset_id:",dataset_id)
+                print("Dataset is only in personal account, contact IN-CORE to make public")
 
-        return dataset_id
+                return dataset_id
+            
+            else:
+                print("Not Using IN-CORE. Returning Dataframe")
+                return hui_incore_df_fixed
 
 
