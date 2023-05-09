@@ -49,7 +49,8 @@ class hua_workflow_functions():
             basevintage: str = 2010,
             outputfolder: str ="",
             outputfolders = {},
-            savefiles: bool = True):
+            savefiles: bool = True,
+            use_incore: bool = True):
 
         self.community = community
         self.hui_df = hui_df
@@ -62,6 +63,7 @@ class hua_workflow_functions():
         self.outputfolder = outputfolder
         self.outputfolders = outputfolders
         self.savefiles = savefiles
+        self.use_incore = use_incore
 
 
     def save_environment_version_details(self):
