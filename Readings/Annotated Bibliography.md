@@ -1,3 +1,7 @@
+# Contributors
+- Nathanael Rosenheim
+- Mastura Safayet
+
 # Research Question
 
 # Problem Statement
