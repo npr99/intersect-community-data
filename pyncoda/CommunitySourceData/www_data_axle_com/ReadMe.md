@@ -5,6 +5,9 @@ https://platform.data-axle.com/places/attributes
 Possible Citation:
 Data Axel (2020) Technical Overview: Data Axel Reference Solutions – Historical Database. https://referencesolutions.data-axle.com/wp-content/uploads/2020/09/us-historical-business-1.pdf
 
+Point of Contact: Bob Kunes Senior Account Executive Data Axle
+
+
 ### Other universities with data access
 
 https://lib.msu.edu/about/data/referenceusahistorical/

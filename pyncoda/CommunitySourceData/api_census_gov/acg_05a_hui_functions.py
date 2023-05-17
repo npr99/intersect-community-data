@@ -91,6 +91,7 @@ class hui_workflow_functions():
         # Save output description as text
         output_filename = f'hui_{self.version_text}_{self.state_county}_{self.basevintage}_rs{self.seed}'
         self.output_filename = output_filename
+
         if savelog == True:
             log_filepath = self.outputfolders['logfiles']+"/"+output_filename+'.log'
             # start log file
