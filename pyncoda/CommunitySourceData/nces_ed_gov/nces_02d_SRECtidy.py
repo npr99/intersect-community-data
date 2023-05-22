@@ -5,7 +5,7 @@
 import pandas as pd
 import os
 import sys
-from pyncoda.ncoda_00f_tidy \
+from pyncoda.ncoda_00g_tidy \
     import icd_tidy as icdtidy 
 from pyncoda.CommunitySourceData.nces_ed_gov.nces_00a_datastructure \
     import *
