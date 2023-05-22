@@ -126,7 +126,7 @@ class codebook():
     def county_list_for_datacensusgov(communities,community):
         """
         data.census.gov can display multiple geographies
-        the FIPS Codes need to be seperated by a comma
+        the FIPS Codes need to be separated by a comma
         """
         counties_to_display = []
         for county in communities[community]['counties'].keys():
@@ -619,15 +619,19 @@ class codebook():
             ),
         )
         pdf.add_page()
-        if self.figures != '':
-            # Check if self.figures is a list
-            if isinstance(self.figures, list):
-                # Add first figure in list to coverpage
-                print('Adding first figure to cover page:',self.figures[0])
-                self.add_figure_filename(pdf,self.figures[0])
-            else:
-                self.add_figure_by_variable(pdf,variable = 'randincome',by_variable='race')
-        
+        # Try to add figures
+        try:
+            if self.figures != '':
+                # Check if self.figures is a list
+                if isinstance(self.figures, list):
+                    # Add first figure in list to cover page
+                    print('Adding first figure to cover page:',self.figures[0])
+                    self.add_figure_filename(pdf,self.figures[0])
+                else:
+                    self.add_figure_by_variable(pdf,variable = 'randincome',by_variable='race')
+        except:
+            print('Could not add figures')
+            
         # Add Table of Contents
         pdf.insert_toc_placeholder(self.render_toc,pages=1)
         pdf.add_page()
@@ -642,19 +646,23 @@ class codebook():
         # Add Variable Details and Notes
         self.add_var_summary(pdf)
 
-        if self.figures != '':
-            # Add figures
-            pdf.start_section("Explore Data - Figures")
-            if isinstance(self.figures, list):
-                for figure in self.figures:
-                    self.add_figure_filename(pdf,figure)
-            else:
-                self.add_figure_by_variable(pdf,variable = 'randincome',by_variable='race')        
-                # Add figure
-                self.add_figure_by_variable(pdf,variable = 'randincome',by_variable='hispan')        
-                # Add figure
-                pdf.add_page()
-                self.add_figure_by_variable(pdf,variable = 'randincome',by_variable='family')   
+        # Try to make figure and add to codebook
+        try:
+            if self.figures != '':
+                # Add figures
+                pdf.start_section("Explore Data - Figures")
+                if isinstance(self.figures, list):
+                    for figure in self.figures:
+                        self.add_figure_filename(pdf,figure)
+                else:
+                    self.add_figure_by_variable(pdf,variable = 'randincome',by_variable='race')        
+                    # Add figure
+                    self.add_figure_by_variable(pdf,variable = 'randincome',by_variable='hispan')        
+                    # Add figure
+                    pdf.add_page()
+                    self.add_figure_by_variable(pdf,variable = 'randincome',by_variable='family')   
+        except:
+            print('Could not add figure')
 
         # Add Key Terms and Definitions
         if self.keyterms != '':

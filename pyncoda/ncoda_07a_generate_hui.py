@@ -129,15 +129,6 @@ class generate_hui_functions():
                 # create output folders for hui data generation
                 outputfolders = directory_design(state_county_name = state_county_name,
                                                     outputfolder = self.outputfolder)
-                
-                # Check if output file already exists
-                check_file = outputfolders['top']+"/../"+output_filename+'.csv'
-                if os.path.exists(check_file):
-                    print("File already exists, skipping:",check_file)
-                    # Read in HUI Data
-                    hui_incore_df_fixed = pd.read_csv(check_file, header="infer")
-                    return hui_incore_df_fixed
-                                                    
                 generate_df = hui_workflow_functions(
                     state_county = state_county,
                     state_county_name= state_county_name,
@@ -147,6 +138,21 @@ class generate_hui_functions():
                     basevintage = self.basevintage,
                     outputfolder = self.outputfolder,
                     outputfolders = outputfolders)
+                
+                # Check if output file already exists
+                check_file = outputfolders['top']+"/../"+output_filename+'.csv'
+                if os.path.exists(check_file):
+                    print("File already exists, skipping:",check_file)
+                    # Read in HUI Data
+                    hui_df = pd.read_csv(check_file, header="infer")
+                    # Save version for IN-CORE in v2 format
+                    hui_incore_df = \
+                        generate_df.save_incore_version2(hui_df)
+                    # Remove .0 from data
+                    hui_incore_df_fixed = hui_incore_df.applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+
+                    return hui_incore_df_fixed
+                                                    
 
                 # Generate base housing unit inventory
                 base_hui_df = generate_df.run_hui_workflow()
