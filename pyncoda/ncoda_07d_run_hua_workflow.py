@@ -43,6 +43,8 @@ class hua_workflow_functions():
             hui_df,
             addpt_df,
             bldg_gdf,
+            bldg_uniqueid: str = 'guid',
+            archetype_var: str = 'archetype',
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
@@ -56,6 +58,8 @@ class hua_workflow_functions():
         self.hui_df = hui_df
         self.addpt_df = addpt_df
         self.bldg_gdf = bldg_gdf
+        self.bldg_uniqueid = bldg_uniqueid
+        self.archetype_var = archetype_var
         self.seed = seed
         self.version = version
         self.version_text = version_text
@@ -268,13 +272,13 @@ class hua_workflow_functions():
                         seed = self.seed,
                         common_group_vars = [huicounter, ownershp],
                         new_char = 'strctid',
-                        extra_vars = ['addrptid','guid','huestimate','huicounter_addpt','placeNAME10','x','y'],
+                        extra_vars = ['addrptid',self.bldg_uniqueid,'huestimate','huicounter_addpt','placeNAME10','x','y'],
                         geolevel = "Block",
                         geovintage = "2010",
                         by_groups = {'NA' : {'by_variables' : []}},
                         fillna_value= '-999',
                         state_county = self.community,
-                        outputfile = "hui_addpt_guidr1",
+                        outputfile = "hui_addpt_bldg_uniqueidr1",
                         outputfolder = self.outputfolders['RandomMerge'])
 
                 # Set up round options
@@ -322,13 +326,13 @@ class hua_workflow_functions():
                 seed = self.seed,
                 common_group_vars = ['ownershp1'],
                 new_char = 'strctid',
-                extra_vars = ['addrptid','guid','huestimate','huicounter_addpt','placeNAME10','x','y'],
+                extra_vars = ['addrptid',self.bldg_uniqueid,'huestimate','huicounter_addpt','placeNAME10','x','y'],
                 geolevel = "Block",
                 geovintage = "2010",
                 by_groups = {'NA' : {'by_variables' : []}},
                 fillna_value= '-999',
                 state_county = self.community,
-                outputfile = "hui_addpt_guidr2",
+                outputfile = "hui_addpt_bldg_uniqueidr2",
                 outputfolder = self.outputfolders['RandomMerge'])
         # Set up round options
         rounds = {'options': {
@@ -459,8 +463,8 @@ class hua_workflow_functions():
 
         # Merge building inventory with housing unit allocation results
         huav2_gdf = pd.merge(left = hua_incore_gdf, 
-                            right = self.bldg_gdf[['guid','archetype','geometry']], 
-                            on='guid', how='outer')
+                            right = self.bldg_gdf[[self.bldg_uniqueid,self.archetype_var,'geometry']], 
+                            on=self.bldg_uniqueid, how='outer')
 
         # If Geometry is null, use X,Y coordinates from Address Point
         # use geometry_y unless missing - then use geometry_x
@@ -478,3 +482,4 @@ class hua_workflow_functions():
         huav2_gdf.to_csv(savefile, index=False)
 
         return huav2_gdf
+    

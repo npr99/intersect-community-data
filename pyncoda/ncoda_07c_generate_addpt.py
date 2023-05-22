@@ -89,6 +89,7 @@ class generate_addpt_functions():
             bldg_inv_gdf,
             bldg_inv_id,
             residential_archetypes,
+            bldg_uniqueid: str = 'guid',
             archetype_var: str = 'arch_flood',
             building_area_var: str = 'sq_foot',
             building_area_cutoff: int = 300,
@@ -106,6 +107,7 @@ class generate_addpt_functions():
         self.bldg_inv_gdf = bldg_inv_gdf
         self.bldg_inv_id = bldg_inv_id
         self.residential_archetypes = residential_archetypes
+        self.bldg_uniqueid = bldg_uniqueid
         self.archetype_var = archetype_var
         self.building_area_var = building_area_var
         self.building_area_cutoff = building_area_cutoff
@@ -227,7 +229,7 @@ class generate_addpt_functions():
                         hui_df = self.hui_df,
                         hui_blockid = f'BLOCKID{yr}_str',
                         bldg_blockid = 'blockBLOCKID10_str',
-                        bldg_uniqueid = 'guid',
+                        bldg_uniqueid = self.bldg_uniqueid,
                         placename_var = 'blockplaceNAME10',
                         archetype_var = self.archetype_var,
                         residential_archetypes = self.residential_archetypes,
@@ -242,7 +244,7 @@ class generate_addpt_functions():
 
         # Add Single Family Dummy Variable
         condition1 = (huesimate_df["huestimate"] > 1)
-        condition2 = ~(huesimate_df["guid"].isna())
+        condition2 = ~(huesimate_df[self.bldg_uniqueid].isna())
         condition = condition1 & condition2
         huesimate_df.loc[condition,'d_sf'] = 0
         condition1 = (huesimate_df["huestimate"] == 1)
@@ -407,7 +409,7 @@ class generate_addpt_functions():
         census_blocks_df_cols = census_block_place_puma_gdf[select_cols].copy(deep=True)
 
         # Set up housing unit estimate file for merge
-        select_cols = ['guid','blockBLOCKID10_str','huestimate']
+        select_cols = [self.bldg_uniqueid,'blockBLOCKID10_str','huestimate']
         huesimate_df_cols = huesimate_df[select_cols].copy(deep=True)
 
         # Look at address point count by block
@@ -467,7 +469,7 @@ class generate_addpt_functions():
         #pd.crosstab(huesimate_df_cols['expandvar'].loc[huesimate_df_cols['expandvar']<=3],
         #            huesimate_df_cols['huestimate'], margins=True, margins_name="Total")
 
-        ## Expand GUID List
+        ## Expand building unique id List
         # Using the expand variable expand building inventory.
         # Clean up missing values for expand variable
         ### Expand var can not be negative
@@ -522,11 +524,11 @@ class generate_addpt_functions():
 
         '''
         # Check merge - examples were Building Id is missing
-        displaycols = ['guid','BLOCKID10']
-        condition = address_point_inventory['guid'].isna()
+        displaycols = [self.bldg_uniqueid,'BLOCKID10']
+        condition = address_point_inventory[self.bldg_uniqueid].isna()
         address_point_inventory[displaycols].loc[condition].head()
         # Check merge - examples were there is no census data
-        displaycols = ['guid','BLOCKID10']
+        displaycols = [self.bldg_uniqueid,'BLOCKID10']
         condition = address_point_inventory['tothupoints'].isnull()
         address_point_inventory[displaycols].loc[condition].head()
         '''
@@ -542,12 +544,12 @@ class generate_addpt_functions():
         building but in cases where the building id is missing 
         then the address point is based on the Census Block ID.
         '''
-        address_point_inventory.loc[(address_point_inventory['guid'].isna()),
+        address_point_inventory.loc[(address_point_inventory[self.bldg_uniqueid].isna()),
             'strctid'] = address_point_inventory.\
             apply(lambda x: "C"+ str(x['BLOCKID10_str']).zfill(36), axis=1)
-        address_point_inventory.loc[(address_point_inventory['guid'].notna()),
+        address_point_inventory.loc[(address_point_inventory[self.bldg_uniqueid].notna()),
             'strctid'] = address_point_inventory.\
-            apply(lambda x: "ST"+ str(x['guid']).zfill(36), axis=1)
+            apply(lambda x: "ST"+ str(x[self.bldg_uniqueid]).zfill(36), axis=1)
 
         # Sort Address Points by The first part of the address point 
         address_point_inventory.sort_values(by=['strctid'])
@@ -574,7 +576,7 @@ class generate_addpt_functions():
         # Create Address Poing Flag Variable
         address_point_inventory['flag_ap'] = 0
         address_point_inventory.loc[(address_point_inventory['tothupoints'].isnull()),'flag_ap'] = 1
-        address_point_inventory.loc[(address_point_inventory['guid'].isna()),'flag_ap'] = 2
+        address_point_inventory.loc[(address_point_inventory[self.bldg_uniqueid].isna()),'flag_ap'] = 2
         address_point_inventory.loc[(address_point_inventory['BLOCKID10_str'].isnull()),'flag_ap'] = 3
         # Check to make sure expand variable was generated correctly
         address_point_inventory.groupby(['flag_ap']).count()
@@ -601,11 +603,11 @@ class generate_addpt_functions():
         If there is a building representative point use the building representative point
         If there building data is missing use the representative point from the census block
         '''
-        # Merge guid and geometry from building inventory to address point inventory
+        # Merge self.bldg_uniqueid and geometry from building inventory to address point inventory
         address_point_inventory_geo = pd.merge(left = address_point_inventory,
-                                            right = self.bldg_inv_gdf[['guid','geometry']],
-                                            left_on=['guid'],
-                                            right_on=['guid'], 
+                                            right = self.bldg_inv_gdf[[self.bldg_uniqueid,'geometry']],
+                                            left_on=[self.bldg_uniqueid],
+                                            right_on=[self.bldg_uniqueid], 
                                             how='left')
         # Rename geometry column to block geometry
         address_point_inventory_geo.rename(columns={'geometry_x':'block10_geometry'}, inplace=True)
@@ -627,7 +629,7 @@ class generate_addpt_functions():
         '''
         address_point_inventory_geo['residential'] = 0
         # If the building id is missing then the address point is residential
-        address_point_inventory_geo.loc[(address_point_inventory_geo['guid'].isna()),'residential'] = 1
+        address_point_inventory_geo.loc[(address_point_inventory_geo[self.bldg_uniqueid].isna()),'residential'] = 1
         # The the variable residentialAP3v1 is greater than 0 then the address point is residential
         address_point_inventory_geo.loc[(address_point_inventory_geo['huestimate']>0),'residential'] = 1
         # Check new variable
@@ -640,7 +642,7 @@ class generate_addpt_functions():
         '''
         ## Create block id variable from substring of BLOCKID10_str
         address_point_inventory_geo['blockid'] = address_point_inventory_geo['BLOCKID10_str'].str[1:16]
-        select_cols = ['addrptid','strctid','guid','blockid','BLOCKID10_str',
+        select_cols = ['addrptid','strctid',self.bldg_uniqueid,'blockid','BLOCKID10_str',
             'building_geometry','block10_geometry','rppnt104269',
             'huestimate','residential','bldgobs','flag_ap']
         address_point_inventory_cols = address_point_inventory_geo[select_cols].copy(deep=True)
@@ -654,15 +656,15 @@ class generate_addpt_functions():
         The Census information will include city name and count information.
         '''
         # Keep columns for merge
-        merge_cols = ['guid',self.archetype_var]
+        merge_cols = [self.bldg_uniqueid,self.archetype_var]
         building_df_merge_cols = self.bldg_inv_gdf[merge_cols]
 
         # merge selected columns from building inventory to address point inventory
         address_point_inventory_cols_bldg = pd.merge(
                                         address_point_inventory_cols, 
                                         building_df_merge_cols,
-                                        left_on='guid', 
-                                        right_on='guid', 
+                                        left_on=self.bldg_uniqueid, 
+                                        right_on=self.bldg_uniqueid, 
                                         how='left')
 
         # For the merge only need a select number of columns
@@ -677,7 +679,7 @@ class generate_addpt_functions():
                                         right_on='BLOCKID10_str', 
                                         how='left')
 
-        # address_point_inventory_cols_bldg_block[['placeNAME10','guid']].groupby(['placeNAME10']).count()
+        # address_point_inventory_cols_bldg_block[['placeNAME10',self.bldg_uniqueid]].groupby(['placeNAME10']).count()
         ### Identify Unincorporated Areas with Place Name
         '''
         There are many address points that fall just outside of city limits in unincorporated places. 
@@ -697,7 +699,7 @@ class generate_addpt_functions():
         A CSV file with the Well Known Text (WKT) geometry provides flexibility for saving and working with files.
         '''
         # Move Foreign Key Columns Block ID State, County, Tract to first Columns
-        first_columns = ['addrptid','guid','strctid','blockid','placeGEOID10','placeNAME10','COUNTYFP10']
+        first_columns = ['addrptid',self.bldg_uniqueid,'strctid','blockid','placeGEOID10','placeNAME10','COUNTYFP10']
         cols = first_columns + [col for col in address_point_inventory_cols_bldg_block if col not in first_columns]
         address_point_inventory_cols_bldg_block = address_point_inventory_cols_bldg_block[cols]
 

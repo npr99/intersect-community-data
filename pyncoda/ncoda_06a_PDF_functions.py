@@ -27,7 +27,7 @@ class PDF(FPDF):
             footer_text: str = "Footer Text",
             image_path:  str = ""):
             
-        # Help with understading super().__init__()
+        # Help with understating super().__init__()
         # https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
         # Super is a function that calls the parent class
         # Need to set the page format here
