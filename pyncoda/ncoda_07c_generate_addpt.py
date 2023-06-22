@@ -208,6 +208,13 @@ class generate_addpt_functions():
                             f'placeGEOID{yr}',f'placeNAME{yr}']
         geolevel = 'block'
         
+        # Drop observations where geometry is null
+        # Count number of observations dropped
+        print("Dropping observations where geometry is null")
+        no_geometry = self.bldg_inv_gdf[self.bldg_inv_gdf.geometry.isnull()].shape[0]
+        print("Number of observations dropped: ",no_geometry)
+        self.bldg_inv_gdf = self.bldg_inv_gdf[self.bldg_inv_gdf.geometry.notnull()]
+
         # add representative point to buildings
         bldg_inv_gdf_point = add_representative_point(self.bldg_inv_gdf,year=year)
         building_to_block_gdf = spatial_join_points_to_poly(
@@ -229,9 +236,9 @@ class generate_addpt_functions():
                         building_to_block_gdf = building_to_block_gdf,
                         hui_df = self.hui_df,
                         hui_blockid = f'BLOCKID{yr}_str',
-                        bldg_blockid = 'blockBLOCKID{yr}_str',
+                        bldg_blockid = f'blockBLOCKID{yr}_str',
                         bldg_uniqueid = self.bldg_uniqueid,
-                        placename_var = 'blockplaceNAME{yr}',
+                        placename_var = f'blockplaceNAME{yr}',
                         archetype_var = self.archetype_var,
                         residential_archetypes = self.residential_archetypes,
                         building_area_var = self.building_area_var,
@@ -258,17 +265,17 @@ class generate_addpt_functions():
 
         # Check observations with no block data
          # Check if Block ID is missing with filled in values
-        condition2 = (huesimate_df['blockBLOCKID{yr}_str'].isna())
-        huesimate_df.loc[condition2,'blockplaceNAME{yr}'] = "No Block ID"
-        huesimate_df.loc[condition2,'blockBLOCKID{yr}_str'] = 'B999999999999999'
+        condition2 = (huesimate_df[f'blockBLOCKID{yr}_str'].isna())
+        huesimate_df.loc[condition2,f'blockplaceNAME{yr}'] = "No Block ID"
+        huesimate_df.loc[condition2,f'blockBLOCKID{yr}_str'] = 'B999999999999999'
 
         # Identify Unincorporated Areas with Place Name
         # There are many address points that fall just outside of city limits 
         # in Unincorporated places.
         # For these areas use the county information to label 
         # the place names as the County Name.
-        huesimate_df.loc[(huesimate_df['blockplaceNAME{yr}'].isna()),
-                    'blockplaceNAME{yr}'] = f"Unincorporated"
+        huesimate_df.loc[(huesimate_df[f'blockplaceNAME{yr}'].isna()),
+                    f'blockplaceNAME{yr}'] = f"Unincorporated"
 
         huesimate_df.to_csv(savefile, index=False)
 

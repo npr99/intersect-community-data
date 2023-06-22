@@ -280,7 +280,7 @@ class hua_workflow_functions():
                         by_groups = {'NA' : {'by_variables' : []}},
                         fillna_value= '-999',
                         state_county = self.community,
-                        outputfile = "hui_addpt_bldg_uniqueidr1",
+                        outputfile = f"hui_addpt_bldg_{self.bldg_inv_id}_uniqueidr1",
                         outputfolder = self.outputfolders['RandomMerge'])
 
                 # Set up round options
@@ -334,7 +334,7 @@ class hua_workflow_functions():
                 by_groups = {'NA' : {'by_variables' : []}},
                 fillna_value= '-999',
                 state_county = self.community,
-                outputfile = "hui_addpt_bldg_uniqueidr2",
+                outputfile = f"hui_addpt_bldg_{self.bldg_inv_id}_uniqueidr2",
                 outputfolder = self.outputfolders['RandomMerge'])
         # Set up round options
         rounds = {'options': {
@@ -479,6 +479,12 @@ class hua_workflow_functions():
         # fill in missing values
         huav2_gdf['Block2010'] = huav2_gdf['Block2010'].fillna(999999999999999)
         huav2_gdf['Block2010'] = huav2_gdf['Block2010'].apply(lambda x : str(int(x)).zfill(15))
+
+        # Drop if geometry is null
+        # Count how many obesrvations having missing geometry
+        print("Number of observations with missing geometry:",huav2_gdf['geometry'].isnull().sum())
+        print("Dropping observations with missing geometry")
+        huav2_gdf = huav2_gdf[huav2_gdf['geometry'].notna()]
 
         #Save results for community name
         huav2_gdf.to_csv(savefile, index=False)
