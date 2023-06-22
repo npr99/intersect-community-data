@@ -43,6 +43,7 @@ class hua_workflow_functions():
             hui_df,
             addpt_df,
             bldg_gdf,
+            bldg_inv_id,
             bldg_uniqueid: str = 'guid',
             archetype_var: str = 'archetype',
             seed: int = 9876,
@@ -58,6 +59,7 @@ class hua_workflow_functions():
         self.hui_df = hui_df
         self.addpt_df = addpt_df
         self.bldg_gdf = bldg_gdf
+        self.bldg_inv_id = bldg_inv_id
         self.bldg_uniqueid = bldg_uniqueid
         self.archetype_var = archetype_var
         self.seed = seed
@@ -230,7 +232,7 @@ class hua_workflow_functions():
         hua_df = {}
 
         # Save output description as text
-        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_rs{self.seed}'
+        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_{self.bldg_inv_id}_rs{self.seed}'
         self.output_filename = output_filename
         if savelog == True:
             log_filepath = self.outputfolders['logfiles']+"/"+output_filename+'.log'
@@ -278,7 +280,7 @@ class hua_workflow_functions():
                         by_groups = {'NA' : {'by_variables' : []}},
                         fillna_value= '-999',
                         state_county = self.community,
-                        outputfile = "hui_addpt_bldg_uniqueidr1",
+                        outputfile = f"hui_addpt_bldg_{self.bldg_inv_id}_uniqueidr1",
                         outputfolder = self.outputfolders['RandomMerge'])
 
                 # Set up round options
@@ -332,7 +334,7 @@ class hua_workflow_functions():
                 by_groups = {'NA' : {'by_variables' : []}},
                 fillna_value= '-999',
                 state_county = self.community,
-                outputfile = "hui_addpt_bldg_uniqueidr2",
+                outputfile = f"hui_addpt_bldg_{self.bldg_inv_id}_uniqueidr2",
                 outputfolder = self.outputfolders['RandomMerge'])
         # Set up round options
         rounds = {'options': {
@@ -435,11 +437,11 @@ class hua_workflow_functions():
         print("Running up Housing Unit Allocation for",self.community)
 
         # Set up output file and check if it exists
-        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_rs{self.seed}'
+        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_{self.bldg_inv_id}_rs{self.seed}'
         csv_filepath = self.outputfolders['top']+"/"+output_filename+'.csv'
         savefile = sys.path[0]+"/"+csv_filepath
         if os.path.exists(savefile):
-            print("The file already exists: "+savefile)
+            print("Housing Unit Allocation file already exists: "+savefile)
             huav2_df = pd.read_csv(csv_filepath, low_memory=False)
             # Convert df to gdf
             huav2_gdf = df2gdf_WKTgeometry(df = huav2_df, 
@@ -477,6 +479,12 @@ class hua_workflow_functions():
         # fill in missing values
         huav2_gdf['Block2010'] = huav2_gdf['Block2010'].fillna(999999999999999)
         huav2_gdf['Block2010'] = huav2_gdf['Block2010'].apply(lambda x : str(int(x)).zfill(15))
+
+        # Drop if geometry is null
+        # Count how many obesrvations having missing geometry
+        print("Number of observations with missing geometry:",huav2_gdf['geometry'].isnull().sum())
+        print("Dropping observations with missing geometry")
+        huav2_gdf = huav2_gdf[huav2_gdf['geometry'].notna()]
 
         #Save results for community name
         huav2_gdf.to_csv(savefile, index=False)

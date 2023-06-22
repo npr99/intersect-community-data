@@ -50,3 +50,7 @@ HAZUS_residential_archetypes = {
     "RES5" : {'Description' : "Institutional Dormitory", 'HU estimate' : 1},
     "RES6" : {'Description' : "Nursing Home", 'HU estimate' : 1}
     }
+
+basic_residential_archetypes = { 
+        1 : {'Description' : 'Residential', 'HU estimate' : 1}
+            }

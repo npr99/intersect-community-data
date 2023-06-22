@@ -197,7 +197,7 @@ class generate_addpt_functions():
         csv_filepath = check_folder+"/"+output_filename+'.csv'
         savefile = sys.path[0]+"/"+csv_filepath
         if os.path.exists(savefile):
-            print("File already exists"+savefile)
+            print("Housing Unit Estimate File already exists: "+savefile)
             huesimate_df = pd.read_csv(savefile)
             return huesimate_df
 
@@ -208,6 +208,13 @@ class generate_addpt_functions():
                             f'placeGEOID{yr}',f'placeNAME{yr}']
         geolevel = 'block'
         
+        # Drop observations where geometry is null
+        # Count number of observations dropped
+        print("Dropping observations where geometry is null")
+        no_geometry = self.bldg_inv_gdf[self.bldg_inv_gdf.geometry.isnull()].shape[0]
+        print("Number of observations dropped: ",no_geometry)
+        self.bldg_inv_gdf = self.bldg_inv_gdf[self.bldg_inv_gdf.geometry.notnull()]
+
         # add representative point to buildings
         bldg_inv_gdf_point = add_representative_point(self.bldg_inv_gdf,year=year)
         building_to_block_gdf = spatial_join_points_to_poly(
@@ -217,6 +224,7 @@ class generate_addpt_functions():
                     poly_var = f'blk{yr}4326',
                     geolevel = geolevel,
                     join_column_list = join_column_list)
+        
 
         # Housing unit inventory needs the block string variable
         self.hui_df[f'BLOCKID{yr}_str'] = \
@@ -228,9 +236,9 @@ class generate_addpt_functions():
                         building_to_block_gdf = building_to_block_gdf,
                         hui_df = self.hui_df,
                         hui_blockid = f'BLOCKID{yr}_str',
-                        bldg_blockid = 'blockBLOCKID10_str',
+                        bldg_blockid = f'blockBLOCKID{yr}_str',
                         bldg_uniqueid = self.bldg_uniqueid,
-                        placename_var = 'blockplaceNAME10',
+                        placename_var = f'blockplaceNAME{yr}',
                         archetype_var = self.archetype_var,
                         residential_archetypes = self.residential_archetypes,
                         building_area_var = self.building_area_var,
@@ -255,13 +263,19 @@ class generate_addpt_functions():
         #    margins=True, 
         #    margins_name="Total")
 
+        # Check observations with no block data
+         # Check if Block ID is missing with filled in values
+        condition2 = (huesimate_df[f'blockBLOCKID{yr}_str'].isna())
+        huesimate_df.loc[condition2,f'blockplaceNAME{yr}'] = "No Block ID"
+        huesimate_df.loc[condition2,f'blockBLOCKID{yr}_str'] = 'B999999999999999'
+
         # Identify Unincorporated Areas with Place Name
         # There are many address points that fall just outside of city limits 
         # in Unincorporated places.
         # For these areas use the county information to label 
         # the place names as the County Name.
-        huesimate_df.loc[(huesimate_df['blockplaceNAME10'].isna()),
-                    'blockplaceNAME10'] = f"Unincorporated"
+        huesimate_df.loc[(huesimate_df[f'blockplaceNAME{yr}'].isna()),
+                    f'blockplaceNAME{yr}'] = f"Unincorporated"
 
         huesimate_df.to_csv(savefile, index=False)
 
@@ -729,12 +743,13 @@ class generate_addpt_functions():
 
         # Convert Data Frame to Geodataframe
         address_point_gdf = gpd.GeoDataFrame(address_point_df)
+
         address_point_gdf['geometry'] = address_point_gdf['geometry'].apply(lambda x: loads(x))
 
         # Add X and Y variables
         address_point_gdf['x'] = address_point_gdf['geometry'].x
         address_point_gdf['y'] = address_point_gdf['geometry'].y
-
+        
         ### ISSUE - There are buildings on the edge of the county
         '''
         These observations do not geocode inside the county boundary.
@@ -745,6 +760,8 @@ class generate_addpt_functions():
         in the inventory. If a building is missing then the housing unit 
         allocation method will not work.
         '''
+        
+
         # Set observations outside of the county to with filled in values
         condition1 = (address_point_gdf['COUNTYFP10'].isna())
         address_point_gdf.loc[condition1,'COUNTYFP10'] = 999
@@ -755,9 +772,24 @@ class generate_addpt_functions():
         condition1 = (address_point_gdf['placeGEOID10'].isna())
         address_point_gdf.loc[condition1,'placeGEOID10'] = 9999999
 
+        # Check if Block ID is missing with filled in values
+        condition2 = (address_point_gdf['blockid'].isna())
+        address_point_gdf.loc[condition2,'COUNTYFP10'] = 999
+        address_point_gdf.loc[condition2,'placeNAME10'] = "No Block ID"
+        address_point_gdf.loc[condition2,'blockid'] = 999999999999999
+        address_point_gdf.loc[condition2,'BLOCKID10_str'] = 'B999999999999999'
+
+
         # Remove .0 from data
         address_point_gdfv2 = address_point_gdf.\
             applymap(lambda cell: int(cell) if str(cell).endswith('.0') else cell)
+        
+        # Check if blockid is 15 characters long and a string
+        varid_max = max(address_point_gdf.blockid)      
+        print("Longest Block ID:",varid_max)
+        varid_min = min(address_point_gdf.blockid)      
+        print("Shortest Block ID:",varid_max)
+
         # drop columns not needed for analysis
         address_point_gdfv2.drop(['geometry','building_geometry','block10_geometry','rppnt104269'], \
             axis=1, inplace=True)
@@ -785,6 +817,5 @@ class generate_addpt_functions():
 
         return dataset_id_final
 
-    
 
 
