@@ -197,7 +197,7 @@ class generate_addpt_functions():
         csv_filepath = check_folder+"/"+output_filename+'.csv'
         savefile = sys.path[0]+"/"+csv_filepath
         if os.path.exists(savefile):
-            print("File already exists"+savefile)
+            print("Housing Unit Estimate File already exists: "+savefile)
             huesimate_df = pd.read_csv(savefile)
             return huesimate_df
 
@@ -729,12 +729,17 @@ class generate_addpt_functions():
 
         # Convert Data Frame to Geodataframe
         address_point_gdf = gpd.GeoDataFrame(address_point_df)
+
+        # break to check code
+        return address_point_gdf
+    
+        '''
         address_point_gdf['geometry'] = address_point_gdf['geometry'].apply(lambda x: loads(x))
 
         # Add X and Y variables
         address_point_gdf['x'] = address_point_gdf['geometry'].x
         address_point_gdf['y'] = address_point_gdf['geometry'].y
-
+        '''
         ### ISSUE - There are buildings on the edge of the county
         '''
         These observations do not geocode inside the county boundary.
@@ -744,6 +749,7 @@ class generate_addpt_functions():
         The address point inventory needs to have all buildings
         in the inventory. If a building is missing then the housing unit 
         allocation method will not work.
+        '''
         '''
         # Set observations outside of the county to with filled in values
         condition1 = (address_point_gdf['COUNTYFP10'].isna())
@@ -785,6 +791,6 @@ class generate_addpt_functions():
 
         return dataset_id_final
 
-    
+        '''
 
 

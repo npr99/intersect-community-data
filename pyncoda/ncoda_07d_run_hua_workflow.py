@@ -43,6 +43,7 @@ class hua_workflow_functions():
             hui_df,
             addpt_df,
             bldg_gdf,
+            bldg_inv_id,
             bldg_uniqueid: str = 'guid',
             archetype_var: str = 'archetype',
             seed: int = 9876,
@@ -58,6 +59,7 @@ class hua_workflow_functions():
         self.hui_df = hui_df
         self.addpt_df = addpt_df
         self.bldg_gdf = bldg_gdf
+        self.bldg_inv_id = bldg_inv_id
         self.bldg_uniqueid = bldg_uniqueid
         self.archetype_var = archetype_var
         self.seed = seed
@@ -230,7 +232,7 @@ class hua_workflow_functions():
         hua_df = {}
 
         # Save output description as text
-        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_rs{self.seed}'
+        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_{self.bldg_inv_id}_rs{self.seed}'
         self.output_filename = output_filename
         if savelog == True:
             log_filepath = self.outputfolders['logfiles']+"/"+output_filename+'.log'
@@ -435,11 +437,11 @@ class hua_workflow_functions():
         print("Running up Housing Unit Allocation for",self.community)
 
         # Set up output file and check if it exists
-        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_rs{self.seed}'
+        output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_{self.bldg_inv_id}_rs{self.seed}'
         csv_filepath = self.outputfolders['top']+"/"+output_filename+'.csv'
         savefile = sys.path[0]+"/"+csv_filepath
         if os.path.exists(savefile):
-            print("The file already exists: "+savefile)
+            print("Housing Unit Allocation file already exists: "+savefile)
             huav2_df = pd.read_csv(csv_filepath, low_memory=False)
             # Convert df to gdf
             huav2_gdf = df2gdf_WKTgeometry(df = huav2_df, 
