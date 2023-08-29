@@ -49,6 +49,9 @@ This product uses the Census Bureau Data API but is not endorsed or certified by
 4. not use the identity of any person or establishment discovered inadvertently and advise the Director of the Census Bureau of any such discovery by calling the U.S. Census Bureau’s Policy Coordination Office at 301-763-6440."
 
 ## Setup Environment 
+1. Install Anaconda (https://www.anaconda.com/products/individual)
+2. Install VS Code
+3. 
 see `environment.yml` file for dependencies
 
 ## Data File Naming Convention
