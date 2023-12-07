@@ -1,6 +1,7 @@
 # Contributors
 - Nathanael Rosenheim
 - Mastura Safayet
+- Abigail Beck, University of Illinois Urbana-Champaign
 
 # Research Question
 
