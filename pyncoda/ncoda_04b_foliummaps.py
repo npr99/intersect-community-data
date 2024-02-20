@@ -26,6 +26,8 @@ def folium_marker_layer_map(gdf,
         gdf = gpd.GeoDataFrame(
             gdf, geometry=gpd.points_from_xy(gdf.x, gdf.y), crs="EPSG:4326")
     # Check projection is epsg:4326
+    if gdf.crs != "EPSG:4326":
+        gdf = gdf.to_crs("EPSG:4326")
     
     # Find the bounds of the Census Block File
     minx = gdf.bounds.minx.min()
