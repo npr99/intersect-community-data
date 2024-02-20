@@ -1,6 +1,7 @@
 # Contributors
 - Nathanael Rosenheim
 - Mastura Safayet
+- Abigail Beck, University of Illinois Urbana-Champaign
 
 # Research Question
 
@@ -41,6 +42,19 @@ https://www.apdu.org/2022/03/17/apdu-board-member-building-up-by-breaking-down/
 
 ## Data integration matters
 Loos, S., Levitt, J., Tomozawa, K., Baker, J., & Lallemant, D. (2022). Efficacy of damage data integration: a comparative analysis of four major earthquakes. Natural Hazards Review, 23(4), 04022026.
+
+## Intersectionality matters
+
+Crenshaw, K. (1989). "Demarginalizing the Intersection of Race and Sex: A Black Feminist Critique of Antidiscrimination Doctrine, Feminist Theory and Antiracist Politics," University of Chicago Legal Forum: Vol. 1989: Iss. 1, Article 8.
+Available at: http://chicagounbound.uchicago.edu/uclf/vol1989/iss1/8
+
+Crenshaw, K. W. (1991). Mapping the margins: Intersectionality, identity politics, and violence against women of color. In The public nature of private violence (pp. 93-118). Routledge. https://www.berkeleycitycollege.edu/slo/files/2021/05/Crenshaw-Mapping-the-Margins-Intersectionality-and-Vioence-against-WOC.pdf
+
+Carbado, D. W., Crenshaw, K. W., Mays, V. M., & Tomlinson, B. (2013). INTERSECTIONALITY: Mapping the Movements of a Theory1. Du Bois review: social science research on race, 10(2), 303-312. https://doi.org/10.1017/S1742058X13000349 
+
+Jacobs, F. (2019). Black feminism and radical planning: New directions for disaster planning research. Planning Theory, 18(1), 24-39. https://doi.org/10.1177/14730952187632 
+
+
 
 
 ## Household level Social Vulnerability intersect with Flood Models
