@@ -1,5 +1,3 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/npr99/intersect-community-data/HEAD?labpath=ncoda_07cv3_run_HUA_workflow.ipynb) **Binder Runs Very Slow and Has not Always Worked.**
-
 [![DOI](https://zenodo.org/badge/478737101.svg)](https://zenodo.org/badge/latestdoi/478737101)
 
 ![IN-CORE HRRC Banner](https://github.com/npr99/intersect-community-data/blob/main/IN-CORE_HRRC_Banner.png?raw=true)
@@ -117,3 +115,6 @@ The folder `OutputData_LogFiles` is included in the DesignSafe archive but ignor
 ## Acknowledgements
 [Work on acknowledgments]
 Mastura Safayet - PhD Student Texas A&M University [has fork of repository running in VS Code on local machine]
+
+### Old Binder Link - does not work well - try to use GitHub Codesapce
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/npr99/intersect-community-data/HEAD?labpath=ncoda_07cv3_run_HUA_workflow.ipynb) **Binder Runs Very Slow and Has not Always Worked.**
