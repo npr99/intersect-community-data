@@ -183,6 +183,25 @@ communities_dictionary = {
                     'building_area_var' : 'sqft',
                     'building_area_cutoff' : 300
                     }
+                },
+    'Corvallis_OR_NSI' : {
+                'community_name' : 'Benton County, OR',
+                'focalplace_name' : 'Corvallis',
+                'STATE' : 'OREGON',
+                'years' : ['2010'],
+                'counties' : { 
+                    1 : {'FIPS Code' : '41003', 'Name' : 'Benton County, OR'}
+                    },
+                'building_inventory' : {
+                    'use_incore' : False, 
+                    'id' : 'NSI',
+                    'note' : 'NSI Building inventory for Benton County, OR',
+                    'archetype_var' : 'occtype',
+                    'bldg_uniqueid' : 'fd_id_bid',
+                    'residential_archetypes' : HAZUS_residential_archetypes,
+                    'building_area_var' : 'sqft',
+                    'building_area_cutoff' : 300
+                    }
                 }
     }
 
