@@ -4,51 +4,33 @@
 # terms of the Mozilla Public License v2.0 which accompanies this distribution,
 # and is available at https://www.mozilla.org/en-US/MPL/2.0/
 
-import numpy as np
 import pandas as pd
-import os # For saving output to path
-import sys
-
-# For printing conda list in log file
-from IPython import get_ipython
-ipython = get_ipython()
-# looks like log overlaps in the output of conda list
-# try pausing for a second
-import time
-
-# Save output as a log file function
-from pyncoda.ncoda_00b_directory_design import directory_design
-from pyncoda \
-     import ncoda_00c_save_output_log as logfile
-from pyncoda.ncoda_00e_geoutilities import *
-from pyncoda.ncoda_07a_generate_hui import generate_hui_functions
-from pyncoda.ncoda_07c_generate_addpt import generate_addpt_functions
-
-# Load in data structure dictionaries
-from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
-from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
-    import incore_v2_DataStructure
-from pyncoda.CommunitySourceData.nsi_sec_usace_army_mil.nsi_01a_downloadfiles import download_nsi_files
+import geopandas as gpd # For reading in shapefiles
+import numpy as np
+import sys # For displaying package versions
+import os # For managing directories and file paths if drive is mounted
+import scooby # Reports Python environment
 
 # open, read, and execute python program with reusable commands
-from pyncoda.CommunitySourceData.api_census_gov.acg_02a_add_categorical_char \
-     import add_new_char_by_random_merge_2dfs
+from pyncoda.ncoda_00b_directory_design import directory_design
+from pyncoda.ncoda_00e_geoutilities import spatial_join_points_to_poly
+from pyncoda.ncoda_00h_bldg_archetype_structure import *
+from pyncoda.ncoda_07a_generate_hui import generate_hui_functions
+from pyncoda.ncoda_07c_generate_addpt import generate_addpt_functions
+from pyncoda.ncoda_07d_run_hua_workflow import hua_workflow_functions
+from pyncoda.CommunitySourceData.nsi_sec_usace_army_mil.nsi_01a_downloadfiles import download_nsi_files
 
 
-class hua_workflow_functions():
+class process_community_functions():
     """
-    Function runs full process for generating the housing unit inventories
-    Process runs for 1 county.
+    The following code will produce the following outputs:
+    1. Housing Unit Inventory
+    2. Address Point Inventory
+    3. Housing Unit Allocation
     """
 
     def __init__(self,
-            community,
-            hui_df,
-            addpt_df,
-            bldg_gdf,
-            bldg_inv_id,
-            bldg_uniqueid: str = 'guid',
-            archetype_var: str = 'archetype',
+            communities,
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
@@ -58,13 +40,7 @@ class hua_workflow_functions():
             savefiles: bool = True,
             use_incore: bool = True):
 
-        self.community = community
-        self.hui_df = hui_df
-        self.addpt_df = addpt_df
-        self.bldg_gdf = bldg_gdf
-        self.bldg_inv_id = bldg_inv_id
-        self.bldg_uniqueid = bldg_uniqueid
-        self.archetype_var = archetype_var
+        self.communities = communities
         self.seed = seed
         self.version = version
         self.version_text = version_text
@@ -74,20 +50,6 @@ class hua_workflow_functions():
         self.savefiles = savefiles
         self.use_incore = use_incore
 
-
-    def save_environment_version_details(self):
-        print("\n***************************************")
-        print("    Version control - list of installed packages")
-        print("***************************************\n")       
-
-        try:
-            # print a list of all installed packages and version information
-            ipython.magic("conda list")
-            # Give ipython a second to output results
-            # this step fixes issue with conda list being split by next command
-            time.sleep(1)
-        except:
-            print("Unable to print version information")
 
     def generate_hui(self, communities):
         ## Read in Housing Unit Inventory or create a new one
