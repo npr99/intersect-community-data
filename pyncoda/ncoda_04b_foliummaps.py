@@ -10,6 +10,10 @@ import folium as fm
 from folium import plugins # Add minimap and search plugin functions to maps
 from folium.map import *
 import contextily as cx
+import os
+import matplotlib.pyplot as plt
+import contextily as cx
+import matplotlib.colors as mcolors
 
 def folium_marker_layer_map(gdf,
                              gdfvar,
@@ -26,6 +30,8 @@ def folium_marker_layer_map(gdf,
         gdf = gpd.GeoDataFrame(
             gdf, geometry=gpd.points_from_xy(gdf.x, gdf.y), crs="EPSG:4326")
     # Check projection is epsg:4326
+    if gdf.crs != "EPSG:4326":
+        gdf = gdf.to_crs("EPSG:4326")
     
     # Find the bounds of the Census Block File
     minx = gdf.bounds.minx.min()
@@ -154,4 +160,89 @@ def racedot_map(gdf, column, category):
     cx.add_basemap(ax, source=cx.providers.Stamen.TonerLite)
     cx.add_basemap(ax, source=cx.providers.Stamen.TonerLabels)
 
+    return ax
+
+def plot_dotmap_map(gdf, 
+                    map_var, 
+                    mapname,
+                    outputfolder, 
+                    bldg_inv_id,
+                    community,
+                    place,
+                    condition_id,
+                    basemap_source = cx.providers.OpenStreetMap.HOT,
+                    xlim=None,
+                    ylim=None,
+                    focal_gdf=None):
+    """
+    Mapped plotting of GeoDataFrame rows that met the given location and selection conditions,
+    using matplotlib for the sub-plotting and contextily for basemap tiling.
+    
+    :param gdf: Input GeoDataFrame with all necessary data and values.
+    :param map_var: String, the name of the map column with the dataset.
+    :param outputfolder: String, the main directory path for results' saving.
+    :param place: String, a particular label in the dataset for the plot's title.
+    :param bldg_inv_id: The label representing the current boundary or point of interest's focus.
+    :param community: The short key or label, likely as a parameter or factored from a switch.
+    """
+
+    if focal_gdf is not None:
+        marker_size = calculate_marker_size(focal_gdf)  
+    else:
+        marker_size = calculate_marker_size(gdf)
+
+    output_folder = os.path.join(outputfolder, f"{community}/06_Explore")
+    output_filename = f'{mapname}_{community}_{condition_id}_{bldg_inv_id}'
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder, exist_ok=True) 
+    filepath = os.path.join(output_folder, output_filename)
+    
+    ax = plot_data_with_contextily(gdf, 
+                                   map_var,
+                                   marker_size, 
+                                   place,
+                                   basemap_source,
+                                   xlim, ylim)  
+    # handle contextily plotting manually or refactor into the called logic.
+
+    for extension in ['svg', 'png']:
+        ax.figure.savefig(
+            f"{filepath}.{extension}", 
+            bbox_inches="tight", format=extension, dpi=600)
+    
+    return filepath
+        
+def calculate_marker_size(hua_data):
+    # Define the way you want to compute the marker size.
+    x_range = hua_data.bounds.maxx.max() - hua_data.bounds.minx.min()
+    return .01 / x_range
+    
+def plot_data_with_contextily(gdf, 
+                              map_var, 
+                              marker_size, 
+                              place,
+                              basemap_source=cx.providers.OpenStreetMap.HOT,
+                              xlim=None, ylim=None):
+    
+    if map_var == 'Household Income Group':
+        # Define a custom colormap from red to green
+        cmap = mcolors.LinearSegmentedColormap.from_list("income_cmap", ["red", "green"])
+    
+
+        ax = gdf.plot(column=map_var, 
+                    categorical=True, 
+                    legend=True, 
+                    markersize=marker_size,
+                    cmap=cmap)
+    else:
+        ax = gdf.plot(column=map_var, 
+                    legend=True, 
+                    markersize=marker_size)
+
+    if xlim is not None and ylim is not None:
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+    cx.add_basemap(ax, crs=gdf.crs, 
+                   source=basemap_source)
+    plt.title(f"{map_var} for {place}", size=18)
     return ax

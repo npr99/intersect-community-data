@@ -60,10 +60,13 @@ class process_community_workflow():
         hui_dataset_id = generate_hui_df.generate_hui_v2_for_incore()
 
         # If using IN-CORE
-        if self.use_incore:
+        if use_incore:
             from pyincore import Dataset
             # Housing Unit inventory
             housing_unit_inv_id = hui_dataset_id
+            from pyncoda.ncoda_06d_INCOREDataService import loginto_incore_dataservice
+            # set IN-CORE data service
+            data_service = loginto_incore_dataservice()
             # load housing unit inventory as pandas dataframe
             housing_unit_inv = Dataset.from_data_service(housing_unit_inv_id, data_service)
             filename = housing_unit_inv.get_file_path('csv')
@@ -152,18 +155,20 @@ class process_community_workflow():
         building_area_var = community_dict['building_inventory']['building_area_var']
         building_area_cutoff = community_dict['building_inventory']['building_area_cutoff']
         residential_archetypes = community_dict['building_inventory']['residential_archetypes']
+        bldg_inv_id = community_dict['building_inventory']['id']
+        bldg_uniqueid = community_dict['building_inventory']['bldg_uniqueid']
         use_incore = community_dict['building_inventory']['use_incore']
 
         print("Generate Address point inventory for: "+community)
-        print("Based on building inventory: "+self.bldg_inv_id)
+        print("Based on building inventory: "+bldg_inv_id)
         generate_addpt_df = generate_addpt_functions(
                             community =   community,
                             communities = communities_dict,
                             hui_df = housing_unit_inv_df,
                             bldg_inv_gdf = bldg_inv_gdf,
-                            bldg_inv_id = self.bldg_inv_id,
+                            bldg_inv_id = bldg_inv_id,
                             residential_archetypes = residential_archetypes,
-                            bldg_uniqueid = self.bldg_uniqueid,
+                            bldg_uniqueid = bldg_uniqueid,
                             archetype_var = archetype_var,
                             building_area_var = building_area_var,
                             building_area_cutoff = building_area_cutoff,
@@ -257,8 +262,8 @@ class process_community_workflow():
                             how='left')
 
         # Replace missing bldg_uniqueid 
-        hua_hui_df[self.bldg_uniqueid] = \
-             hua_hui_df[self.bldg_uniqueid].fillna('missing building id')
+        hua_hui_df[bldg_uniqueid] = \
+             hua_hui_df[bldg_uniqueid].fillna('missing building id')
 
         # Keep if huid is not missing
         hua_hui_df = hua_hui_df[hua_hui_df['huid'].notna()]

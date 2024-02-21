@@ -166,7 +166,7 @@ communities_dictionary = {
                     }
                 },
     'Eugene_OR_NSI' : {
-                'community_name' : 'Eugene, OR',
+                'community_name' : 'Lane County, OR',
                 'focalplace_name' : 'Eugene',
                 'STATE' : 'OREGON',
                 'years' : ['2010'],
@@ -213,12 +213,14 @@ def get_community_id_by_name(community_option):
         if community_option == community_option_check:
             print(f"Selected community ID: {id}")
             print(f"{community_name} is in {communities_dictionary[id]['STATE']}")
+            focalplace = communities_dictionary[id]['focalplace_name']
+            print(f"Focal place: {focalplace}")
             for county in communities_dictionary[id]['counties']:
-                county_name = communities_dictionary[id]['counties'][county]['Name']
-                county_fips = communities_dictionary[id]['counties'][county]['FIPS Code']
-                print(f"{community_name} is in {county_name} with FIPS code {county_fips}")
+                countyname = communities_dictionary[id]['counties'][county]['Name']
+                countyfips = communities_dictionary[id]['counties'][county]['FIPS Code']
+                print(f"{community_name} is in {countyname} with FIPS code {countyfips}")
             use_incore = communities_dictionary[id]['building_inventory']['use_incore']
             print(f"Use IN-CORE: {use_incore}")
-            return id
+            return id, focalplace, countyname, countyfips
     print(f"Community {community_name} not found")
     return "ID not found"
