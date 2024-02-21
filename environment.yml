@@ -15,3 +15,18 @@ dependencies:
   - pip:
     - fpdf2==2.5.2
     - wget==3.2
+
+
+'''
+Notes to run with in-core
+first setup the in-core environment following 
+NCSA instructions:
+https://incore.ncsa.illinois.edu/doc/incore/getting_started.html
+
+then install the following packages
+conda install scooby
+conda install seaborn
+pip install fpdf2
+pip install wget
+
+'''
