@@ -1,0 +1,26 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+// Follow example: https://github.com/github/codespaces-jupyter/blob/main/.devcontainer/devcontainer.json
+{
+	"name": "pyncoda20240228",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/universal:2",
+	"hostRequirements": {
+	  "cpus": 4
+	},
+	"waitFor": "onCreateCommand",
+	"updateContentCommand": "python3 -m pip install -r requirements.txt",
+	"postCreateCommand": "",
+	"customizations": {
+	"codespaces": {
+		"openFiles": []
+	},
+	"vscode": {
+		"extensions": [
+		"streetsidesoftware.code-spell-checker",
+		"ms-toolsai.jupyter",
+		"ms-python.python"
+	]
+  }
+}
+}

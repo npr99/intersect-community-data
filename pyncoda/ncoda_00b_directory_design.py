@@ -18,6 +18,11 @@ def directory_design(state_county_name,
 
     Process centers around individual counties.
     """
+
+    # Make directory to save output
+    if not os.path.exists(outputfolder):
+        os.mkdir(outputfolder)
+
     # Create primary folder to save output
     folder_name = state_county_name.replace(' ','')
     folder_name = folder_name.replace(',','_')
