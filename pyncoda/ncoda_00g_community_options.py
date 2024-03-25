@@ -202,7 +202,30 @@ communities_dictionary = {
                     'building_area_var' : 'sqft',
                     'building_area_cutoff' : 300
                     }
+                },
+    'SETXUIFL_TX_NSI' : {
+                'community_name' : 'Southeast Texas Urban Integrated Field Lab',
+                'focalplace_name' : 'Beaumont',
+                'STATE' : 'TEXAS',
+                'years' : ['2010'],
+                'counties' : { 
+                    1 : {'FIPS Code' : '48245', 'Name' : 'Jefferson, TX'},
+                    2 : {'FIPS Code' : '48361', 'Name' : 'Orange, TX'},
+                    3 : {'FIPS Code' : '48199', 'Name' : 'Hardin, TX'},
+                    4 : {'FIPS Code' : '48241', 'Name' : 'Jasper, TX'},
+                    5 : {'FIPS Code' : '48351', 'Name' : 'Newton, TX'},
+                    },
+                'building_inventory' : { 
+                    'use_incore' : False,
+                    'id' : 'NSI',
+                    'note' : 'NSI Building inventory for Southeast Texas',
+                    'archetype_var' : 'occtype',
+                    'bldg_uniqueid' : 'fd_id_bid',
+                    'residential_archetypes' : HAZUS_residential_archetypes,
+                    'building_area_var' : 'sqft',
+                    'building_area_cutoff' : 300
                 }
+            },
     }
 
 def create_community_dropdown(dict_communities):

@@ -1,0 +1,10 @@
+WorkLogNPR
+
+2024-03-25 - found code for intersecting PREC and HUI
+I do not think this code is anywhere else in pynocda
+
+Code was in the folder:
+G:\Shared drives\HRRC_IN-CORE\Tasks\M5.2-01 Pop inventory\github_com\npr99\Population_Inventory\pyincore_data_addons\SourceData\api_census_gov
+
+And also on GitHub private repo
+https://github.com/npr99/Population_Inventory/tree/main/pyincore_data_addons/SourceData/api_census_gov
