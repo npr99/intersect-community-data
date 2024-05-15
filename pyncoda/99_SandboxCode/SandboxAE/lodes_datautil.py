@@ -2049,10 +2049,9 @@ def combine_wac_rac_joblist(df, od, seed_value=None):
 
     df_append_wide[od].reset_index(inplace=True)
     for seg in ['SA', 'SE', 'SI']:
-        if seg in df_append[od].keys():
+        if seg in df_append_wide[od]:
             df_append_wide[od][seg] = pd.to_numeric(df_append_wide[od][seg], errors='coerce').fillna(0).astype(int)
-    # df_append_wide[od]['SE'] = pd.to_numeric(df_append_wide[od]['SE'], errors='coerce').fillna(0).astype(int)
-    # df_append_wide[od]['SI'] = pd.to_numeric(df_append_wide[od]['SI'], errors='coerce').fillna(0).astype(int)
+   
     values_list = []
     for seg in ['SA', 'SE', 'SI']:
         if seg in df_append_wide[od]:
@@ -2060,11 +2059,12 @@ def combine_wac_rac_joblist(df, od, seed_value=None):
     if values_list:
         prob_value = pd.concat(values_list, axis=1).mean(axis=1)
         df_append_wide[od]['prob'] = prob_value
-    # df_append_wide[od]['prob'] = df_append_wide[od].apply(lambda row: (row['SA']+row['SE']+ row['SA'])/ 3, axis = 1)
-    
+
     ## Keep if the observation exists in all three segements
     df_append_wide[od] = df_append_wide[od].sort_values(by=['prob'])
+    # print("df_append_wide[od]", df_append_wide[od])
     df_append_wide_keep[od] = df_append_wide[od].loc[(df_append_wide[od]['prob'] == 1)]
+    # print("df_append_wide_keep[od]", df_append_wide_keep[od])
     print(f"{len(df_append_wide_keep[od])} of possible jobs exist in all three segments")
 
     number_of_required_samples = int(len(df[od,'SA']) - len(df_append_wide_keep[od]))
@@ -2086,3 +2086,8 @@ def combine_wac_rac_joblist(df, od, seed_value=None):
         od,"files to",len(df_append_wide_keep[od]),"Jobs")
 
     return df_append_wide_keep
+
+def ensure_directory(path):
+    """Ensure that the directory exists; if not, create it."""
+    if not os.path.exists(path):
+        os.makedirs(path)
