@@ -23,6 +23,7 @@ from lodes_datautil import remove_duplicate_block_error
 from lodes_datautil import add_total_count_byvar
 from lodes_datautil import add_jobidod_pair
 from lodes_datautil import combine_wac_rac_joblist
+from lodes_datautil import ensure_directory
 
 # Use LODES Data Structure set of dictionaires to setup loops
 from _lodes_data_structure import all_ods, all_segparts, all_jobtypes, all_segstems, all_mxjobtypes
@@ -117,7 +118,10 @@ def obtain_lodes_county_loop(countylist,
                     seg_stem = segstems[newvar]
                     # Check if block level list has already been made
                     filename = f'{state}_{countyfips}_{od}_{year}_{seg_stem}'
-                    savefile_path = sys.path[0]+"/"+outputfoldername+"/"+filename+".csv"
+                    # base_output_path = sys.path[0] + "/" + outputfoldername
+                    base_output_path = os.path.expanduser(f'~/{outputfoldername}')
+                    ensure_directory(base_output_path)
+                    savefile_path = f"{base_output_path}/{filename}.csv"
 
                     # Check if selected data already exists - if yes break out of function
                     if os.path.exists(savefile_path):
@@ -544,18 +548,6 @@ def wac_rac_block_to_joblist(stacked_df,
 
         for seg in segstems:
             df[od,seg] = stacked_df[stabbr,countyfips,od,year,seg].copy(deep = True)
-            # if od == "rac":
-            # # obtain out of state rac blocks for single block
-            # ### Append out of state block data to RAC file
-            # ### If no out of state blocks the df will be empty
-            #     out_of_state_rac_blocks_df = out_of_state_rac_blocks(work_block = block_fips,
-            #                                                     years = [year], 
-            #                                                     outputfoldername = outputfoldername,
-            #                                                     stacked_df = stacked_df)
-            #     if len(out_of_state_rac_blocks_df) == 3:
-            #         df[od, seg] = pd.concat([df[od, seg], out_of_state_rac_blocks_df[year, seg]], ignore_index=True)
-           
-            # check duplicate blocks
             df[od,seg] = remove_duplicate_block_error(df[od,seg])
 
         dfselect = {}
@@ -571,7 +563,7 @@ def wac_rac_block_to_joblist(stacked_df,
             if not dfselect[od,seg].empty:
                 reshaped = reshapecascade_revised(dfselect[od,seg],reshape_vars, seed_value)
                 expanded = expand_df(reshaped,'jobcount')
-                reshapecascade_df[od,seg] = add_jobids(expanded)       
+                reshapecascade_df[od,seg] = add_jobids(expanded)
 
         print(f"Combing {od} joblists.......")
         # Combine WAC / RAC Joblists
