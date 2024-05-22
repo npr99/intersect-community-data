@@ -12,7 +12,8 @@ added automatically.
 """
 
 from pyncoda.ncoda_00h_bldg_archetype_structure import *
-import ipywidgets as widgets
+# issues with generalizability of using ipwidgets
+#import ipywidgets as widgets
 
 # Define the communities
 communities_dictionary = {
@@ -27,7 +28,7 @@ communities_dictionary = {
                     'building_inventory' : { 
                         'use_incore' : True,
                         'id' : '62ab7dcbf328861e25ffea9e',
-                        'note' : 'Building inventory for Robeson County, NC',
+                        'note' : 'IN-CORE Building inventory for Robeson County, NC',
                         'archetype_var' : 'archetype',
                         'residential_archetypes' : Nofal_residential_archetypesv2,
                         'building_area_var' : 'sq_foot'
@@ -44,12 +45,31 @@ communities_dictionary = {
                     'building_inventory' : { 
                         'use_incore' : True,
                         'id' : '63053ddaf5438e1f8c517fed',
-                        'note' : 'Building inventory for Galveston County, TX',
+                        'note' : 'IN-CORE Building inventory for Galveston County, TX',
                         'archetype_var' : 'arch_flood',
                         'residential_archetypes' : Nofal_residential_archetypesv2,
                         'building_area_var' : 'sq_foot'
                         }
                     },
+    'Galveston_County_TX_NSI' : {
+                'community_name' : 'Galveston, TX',
+                'focalplace_name' : 'Galveston',
+                'STATE' : 'TEXAS',
+                'years' : ['2010'],
+                'counties' : { 
+                    1 : {'FIPS Code' : '48167', 'Name' : 'Galveston County, TX'}
+                    },
+                'building_inventory' : {
+                    'use_incore' : False,
+                    'id' : 'NSI',
+                    'note' : 'NSI Building inventory for Galveston County, TX',
+                    'archetype_var' : 'occtype',
+                    'bldg_uniqueid' : 'fd_id_bid',
+                    'residential_archetypes' : HAZUS_residential_archetypes,
+                    'building_area_var' : 'sqft',
+                    'building_area_cutoff' : 300
+                    }
+                },
     'Galveston_Island_TX' : {
                     'community_name' : 'Galveston, TX',
                     'focalplace_name' : 'Galveston',
@@ -61,7 +81,7 @@ communities_dictionary = {
                     'building_inventory' : { 
                         'use_incore' : True,
                         'id' : '63ff6b135c35c0353d5ed3ac',
-                        'note' : 'Building inventory for Galveston Island, TX',
+                        'note' : 'IN-CORE Building inventory for Galveston Island, TX',
                         'archetype_var' : 'arch_flood',
                         'residential_archetypes' : Nofal_residential_archetypesv2,
                         'building_area_var' : 'sq_foot',
@@ -228,6 +248,8 @@ communities_dictionary = {
             },
     }
 
+# ipywidgets dropdown does no work in github CodeSpace
+'''
 def create_community_dropdown(dict_communities):
     community_names = [details['community_name'] for key, details in communities_dictionary.items()]
     # add note from building inventory
@@ -241,6 +263,15 @@ def create_community_dropdown(dict_communities):
         disabled=False,
     )
     return dropdown
+'''
+
+def list_community_options(dict_communities):
+    community_names = [details['community_name'] for key, details in communities_dictionary.items()]
+    # add note from building inventory
+    bldg_inventory_notes = [details['building_inventory']['note'] for key, details in communities_dictionary.items()]
+    # combine the two lists
+    community_options = [f"{community_names[i]}: {bldg_inventory_notes[i]}" for i in range(len(community_names))]
+    return community_options
 
 # Create a reverse mapping from community names to IDs
 name_to_id = {details['community_name']: id for id, details in communities_dictionary.items()}
