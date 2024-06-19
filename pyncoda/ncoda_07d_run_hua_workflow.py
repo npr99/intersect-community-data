@@ -146,6 +146,9 @@ class hua_workflow_functions():
         to the structure.
         """
 
+        # Convert 'ownershp' to a numeric type if it is categorical
+        if pd.api.types.is_categorical_dtype(hua_df['ownershp']):
+            hua_df['ownershp'] = hua_df['ownershp'].astype(float)
 
         # Check the average value of tenure status by structure
         updated_ownership_df = hua_df[['ownershp','strctid']].\
