@@ -197,7 +197,7 @@ class hua_workflow_functions():
             if ownershpvar not in hui_df.columns:
 
                 # Copy ownership variable to new column
-                hui_df[ownershpvar] = hui_df['ownershp'] 
+                hui_df[ownershpvar] = hui_df['ownershp'].astype(float)
 
                 # Fill in missing values with 0
                 # this should apply to vacant structures
