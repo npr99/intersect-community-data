@@ -23,7 +23,7 @@ programname = "IN_CORE_1cv2_Galveston_CleanBuildingInventory_2021-10-20"
 
 ## Read in Building Inventory
 The building inventory provide basic understanding of where address points can be located.
-sys.path[0]
+current_dir = os.getcwd()
 
 # Galveston Building inventory
 filename = 'Nofal_Galveston_Buildings_2021-10-20\\Galveston_Bldgs_Points_Damage.shp'
@@ -167,7 +167,7 @@ bldg_inv_gdf_map.save(output_folder + '/' + 'buildings_noblocks.html')
 # Check Columns
 cols = [col for col in bldg_inv_gdf]
 # Save Work at this point as CSV
-savefile = sys.path[0]+"/"+output_folder+"/"+programname+"_EPSG4326.csv"
+savefile = os.path.join(os.getcwd(), output_folder, f"{programname}_EPSG4326.csv" )
 bldg_inv_gdf.to_csv(savefile)
 
 '''

@@ -173,7 +173,7 @@ class generate_hui_functions():
             # Output files
             csv_filepath = outputfolders['top']+"/"+output_filename+'.csv'
             common_directory = outputfolders['top']+"/../"+output_filename
-            savefile = sys.path[0]+"/"+csv_filepath
+            savefile = os.path.join(current_dir, csv_filepath)
             hui_incore_df_fixed.to_csv(savefile, index=False)
             # Save second set of files in common directory
             hui_incore_df_fixed.to_csv(common_directory+'.csv', index=False)
