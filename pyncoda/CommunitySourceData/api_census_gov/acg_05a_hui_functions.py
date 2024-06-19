@@ -248,7 +248,7 @@ class hui_workflow_functions():
 
         if self.savefiles == True:
             csv_filepath = self.outputfolders['top']+"/"+self.output_filename+'.csv'
-            savefile = sys.path[0]+"/"+csv_filepath
+            savefile = os.path.join(os.getcwd(), csv_filepath)
             hui_df.to_csv(savefile, index=False)
             print("File saved:",savefile)
         
@@ -331,7 +331,7 @@ class hui_workflow_functions():
         print("***************************************\n")
 
         csv_filepath = self.outputfolders['top']+"/"+output_filename+'.csv'
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
         output_df.to_csv(savefile, index=False)
         print("File saved:",savefile)       
         return output_df    

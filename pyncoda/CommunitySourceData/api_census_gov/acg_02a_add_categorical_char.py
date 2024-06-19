@@ -969,9 +969,9 @@ class add_new_char_by_random_merge_2dfs():
 
                         if self.savefiles == True:
                             print("Save primary and secondary files with all columns")
-                            savefile = sys.path[0]+"/"+csv_filepath_primary
+                            savefile = os.path.join(os.getcwd(), csv_filepath_primary)
                             output_df['primary'].to_csv(savefile, index=False)
-                            savefile = sys.path[0]+"/"+csv_filepath_secondary
+                            savefile = os.path.join(os.getcwd(), csv_filepath_secondary)
                             output_df['secondary'].to_csv(savefile, index=False)
 
                         return output_df
@@ -1008,10 +1008,10 @@ class add_new_char_by_random_merge_2dfs():
         print("Check primary and secondary files to understand why merge is not complete")
         if self.savefiles == True:
             csv_filepath_primary_almost = self.outputfolder+"/"+csv_filename_primary+'_almost.csv'
-            savefile = sys.path[0]+"/"+csv_filepath_primary_almost
+            savefile = os.path.join(os.getcwd(), csv_filepath_primary_almost)
             output_df['primary'].to_csv(savefile, index=False)
             csv_filepath_secondary_almost = self.outputfolder+"/"+csv_filename_secondary+'_almost.csv'
-            savefile = sys.path[0]+"/"+csv_filepath_secondary_almost
+            savefile = os.path.join(os.getcwd(), csv_filepath_secondary_almost)
             output_df['secondary'].to_csv(savefile, index=False)
         return output_df
 
