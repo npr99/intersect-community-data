@@ -121,7 +121,8 @@ class generate_prec_functions():
 
             #Save results for community name
             csv_filepath = outputfolders['top']+"/"+output_filename+'.csv'
-            savefile = sys.path[0]+"/"+csv_filepath
+
+            savefile = os.path.join(os.getcwd(), csv_filepath)
             prec_df_fixed.to_csv(savefile, index=False)
 
             # Save second set of files in common directory
