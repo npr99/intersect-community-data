@@ -171,7 +171,7 @@ class hua_workflow_functions():
         condition3 = (addptv2_df['ownershp1']==1)
 
         addptv2_df.loc[condition1 & condition2 & condition3,'ownershp1'] \
-            = addptv2_df['predictownershp']
+            = addptv2_df['predictownershp'].astype(float)
 
         # Check ownership is 1 or 2
         addptv2_df.loc[addptv2_df['ownershp1'] >2, 'ownershp1'] = 2

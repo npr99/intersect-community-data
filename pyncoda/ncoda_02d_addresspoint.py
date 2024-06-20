@@ -167,7 +167,7 @@ def predict_residential_addresspoints(building_to_block_gdf,
     # Calculate sum of Residential Area By Block
     bldg_df_round2['Res_Area'] = 0
     condition = (bldg_df_round2['residentialAP1'] == 1)
-    bldg_df_round2.loc[condition, 'Res_Area'] = bldg_df_round2[building_area_var]
+    bldg_df_round2.loc[condition, 'Res_Area'] = bldg_df_round2[building_area_var].astype('int64')
     bldg_df_round2_area = bldg_df_round2[[bldg_blockid,'Res_Area']].copy(deep=True)
     bldg_df_round2_area_sum = bldg_df_round2_area.groupby([bldg_blockid]).sum()
     bldg_df_round2_area_sum = bldg_df_round2_area_sum.\
