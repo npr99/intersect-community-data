@@ -95,7 +95,7 @@ class generate_prec_functions():
                 county_list = county_list + state_county_name+': county FIPS Code '+state_county
 
                 # create output folders for prec data generation
-                outputfolders = directory_design(state_county_name = state_county_name,
+                outputfolders = directory_design(state_county_name = community,
                                                     outputfolder = self.outputfolder)
                                                     
                 generate_df = prec_workflow_functions(

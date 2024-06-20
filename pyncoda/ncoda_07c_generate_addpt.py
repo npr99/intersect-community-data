@@ -159,7 +159,7 @@ class generate_addpt_functions():
             print(state_county_name,': county FIPS Code',state_county)
 
             # create output folders for hui data generation
-            outputfolders = directory_design(state_county_name = state_county_name,
+            outputfolders = directory_design(state_county_name = community,
                                                 outputfolder = self.outputfolder)
 
             output_folder = outputfolders['CommunitySourceData']

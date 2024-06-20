@@ -127,7 +127,7 @@ class generate_hui_functions():
                 county_list = county_list + state_county_name+': county FIPS Code '+state_county
 
                 # create output folders for hui data generation
-                outputfolders = directory_design(state_county_name = state_county_name,
+                outputfolders = directory_design(state_county_name = community,
                                                     outputfolder = self.outputfolder)
                 generate_df = hui_workflow_functions(
                     state_county = state_county,

@@ -13,27 +13,25 @@ import sys  # saving CSV files
 
 
 def setup_nsi_directory():
+    # Define output directories
+    output_folder = 'OutputData'
+    output_sourcedata = os.path.join(output_folder, '00_SourceData')
+    output_directory = os.path.join(output_sourcedata, 'nsi_sec_usace_army_mil')
+
     # Create output directory if it does not exist
-    output_folder = 'Outputdata'
-    output_sourcedata = 'Outputdata\\00_SourceData'
-    output_directory = 'Outputdata\\00_SourceData\\nsi_sec_usace_army_mil'
-    # Make directory to save output
-    if not os.path.exists(output_folder):
-        print("Making new directory to save output: ",
-            output_folder)
-        os.mkdir(output_folder)
-    if not os.path.exists(output_sourcedata):
-        print("Making new directory to save output: ",
-            output_sourcedata)
-        os.mkdir(output_sourcedata)
-    if not os.path.exists(output_directory):
-        print("Making new directory to save output: ",
-            output_directory)
-        os.mkdir(output_directory)
-    else:
-        print("Directory",output_directory,"Already exists.")
+    def create_directory(path):
+        if not os.path.exists(path):
+            print(f"Making new directory to save output: {path}")
+            os.makedirs(path)
+        else:
+            print(f"Directory {path} already exists.")
+
+    create_directory(output_folder)
+    create_directory(output_sourcedata)
+    create_directory(output_directory)
 
     return output_directory
+
 
 def download_nsi_files(county_fips,
                        unique_id = 'fd_id_bid',
