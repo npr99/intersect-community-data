@@ -168,10 +168,9 @@ class add_new_char_by_random_merge_2dfs():
         column_list = list(add_geovarid_df.columns)
 
         # Check if blockid in column list
-        if ('blockid' in column_list) & \
-            ('block' not in column_list):
+        if ('blockid' in column_list) and ('block' not in column_list):
             print("Adding Block2010 to column list")
-            # create  column in input df
+            # create column in input df
             # Version 2.0 of HUI renames Block2010 to blockid
             add_geovarid_df['Block2010'] = add_geovarid_df['blockid']
 
@@ -180,119 +179,99 @@ class add_new_char_by_random_merge_2dfs():
 
         # Set geoid FIPS code by concatenating state, county, census geography ids
         # Check if geocodes are strings
-        geo_levels = {'State':  {'length' : 2, 'total_len' : 2,  'required' : ['state'] },
-                      'County': {'length' : 3, 'total_len' : 5,  'required' : ['state','county']},
-                      'Tract':  {'length' : 6, 'total_len' : 11, 'required' : ['state','county','tract']},
-                      'BlockGroup' : {'length' : 1, 'total_len' : 12, 'required' : ['state','county','tract','blockgroup'],
-                                      'notes' :'Block Group code is first digit of block id'},
-                      'Block':  {'length' : 4, 'total_len' : 15, 'required' : ['state','county','tract','block']}
-                      }
+        geo_levels = {
+            'State': {'length': 2, 'total_len': 2, 'required': ['state']},
+            'County': {'length': 3, 'total_len': 5, 'required': ['state', 'county']},
+            'Tract': {'length': 6, 'total_len': 11, 'required': ['state', 'county', 'tract']},
+            'BlockGroup': {'length': 1, 'total_len': 12, 'required': ['state', 'county', 'tract', 'blockgroup'],
+                        'notes': 'Block Group code is first digit of block id'},
+            'Block': {'length': 4, 'total_len': 15, 'required': ['state', 'county', 'tract', 'block']}
+        }
 
         # Name of Geovar to add
-        geovarid = self.geolevel+self.geovintage
+        geovarid = self.geolevel + self.geovintage
 
         # Check to see what geolevels are available 
         geolevels_available = []
         # Check to see what geovarids are available
         geovarids_available = []
-        # Make sure all input variable are correctly zero padded and saved as strings
+        
+        # Make sure all input variables are correctly zero-padded and saved as strings
         for geo_level in geo_levels:
             # Geo level needs to be all lower case to match api variables
             geo_level_lower = geo_level.lower()
             if geo_level_lower in column_list:
                 # Each geolevel is a zero padded string
                 length = geo_levels[geo_level]['length']
-                print("Check length of",geo_level_lower,"expected length",length)
+                print("Check length of", geo_level_lower, "expected length", length)
                 check_length = self.check_var_length(
-                    input_df = add_geovarid_df,
-                    var = geo_level_lower,
-                    expected_length = length)
+                    input_df=add_geovarid_df,
+                    var=geo_level_lower,
+                    expected_length=length)
+                
                 if (check_length == "Match") or \
-                    (check_length == "Possible match with zero pad"):
+                (check_length == "Possible match with zero pad"):
                     # Check variable type
-                    # Issue with typ converting to int or float
                     geo_level_type = add_geovarid_df[geo_level_lower].dtypes
-                    print(geo_level_lower,"is type",geo_level_type)
-                    add_geovarid_df.loc[:,geo_level_lower] =  \
-                        add_geovarid_df[geo_level_lower].\
-                            apply(lambda x: str(x).zfill(length))
+                    print(geo_level_lower, "is type", geo_level_type)
+                    add_geovarid_df[geo_level_lower] = add_geovarid_df[geo_level_lower].astype(str).str.zfill(length)
                     geolevels_available.append(geo_level_lower)
                     geo_level_type = add_geovarid_df[geo_level_lower].dtypes
-                    print("after update",geo_level_lower,"is type",geo_level_type)
+                    print("after update", geo_level_lower, "is type", geo_level_type)
+            
             # Check to see what geovarids are available
-            geovarid_test = geo_level+self.geovintage
+            geovarid_test = geo_level + self.geovintage
             if geovarid_test in column_list:
                 total_length_of_geovar = geo_levels[geo_level]['total_len']
                 check_length = self.check_var_length(
-                    add_geovarid_df,geovarid_test,total_length_of_geovar)
+                    add_geovarid_df, geovarid_test, total_length_of_geovar)
                 if (check_length == "Match") or \
-                   (check_length == "Possible match with zero pad"):
-                    add_geovarid_df.loc[:,geovarid_test] =  \
-                        add_geovarid_df[geovarid_test].apply(lambda x: str(x).\
-                            zfill(total_length_of_geovar))
+                (check_length == "Possible match with zero pad"):
+                    add_geovarid_df[geovarid_test] = add_geovarid_df[geovarid_test].astype(str).str.zfill(total_length_of_geovar)
                     geovarids_available.append(geovarid_test)
                 elif (check_length == "Possible convert to float"):
                     print("Possible convert to float")
-                    add_geovarid_df.loc[:,geovarid_test] =  \
-                        add_geovarid_df[geovarid_test].apply(lambda x: str(x)[:-2].\
-                            zfill(total_length_of_geovar))
+                    add_geovarid_df[geovarid_test] = add_geovarid_df[geovarid_test].astype(str).apply(lambda x: str(x)[:-2].zfill(total_length_of_geovar))
                     geovarids_available.append(geovarid_test)
-        print('Geolevels available',geolevels_available)
-        print('Geolvarids available',geovarids_available)
+        
+        print('Geolevels available', geolevels_available)
+        print('Geolvarids available', geovarids_available)
+        
         # Generate Geovarid based on available columns
-        # What is the total length expected for the geolevel 
         total_length_of_geovar = geo_levels[self.geolevel]['total_len']
-        # What are the required input variables
         required_vars = geo_levels[self.geolevel]['required']
 
-        print('Adding',geovarid,'expected length',total_length_of_geovar)
-        # Check to make sure that all columns needed are in list
+        print('Adding', geovarid, 'expected length', total_length_of_geovar)
+        
         if all(cols in column_list for cols in geolevels_available) and \
-            all(cols in column_list for cols in required_vars) and \
-            (geolevels_available == required_vars) and \
-            (geolevels_available != []):
-            print('Dataframe has required geo levels',geolevels_available)
-            # Set geovarid to empty
-            add_geovarid_df.loc[:,geovarid] = ''
+        all(cols in column_list for cols in required_vars) and \
+        (geolevels_available == required_vars) and \
+        (geolevels_available != []):
+            print('Dataframe has required geo levels', geolevels_available)
+            add_geovarid_df[geovarid] = ''
             for geo_level in required_vars:
                 geo_level_type = add_geovarid_df[geo_level.lower()].dtypes
-                print(geo_level.lower(),"is type",geo_level_type)
-                # Add geo level to geovarid
-                add_geovarid_df.loc[:,geovarid] = add_geovarid_df[geovarid] + \
-                    add_geovarid_df[geo_level.lower()]
-        # If geolevel columns are not in list check if block id is in list
-        elif 'Block'+self.geovintage in geovarids_available:
-            print('Dataframe has Block',self.geovintage,'for new geovar',geovarid)
-            # Check that the block id is a zero padded 15 digit string
-            # The geovarid is the first x characters
-            add_geovarid_df.loc[:,geovarid] = add_geovarid_df['Block'+self.geovintage].\
-                apply(lambda x : str(int(x)).zfill(15)[0:total_length_of_geovar])
-        elif 'Tract'+self.geovintage in geovarids_available:
-            print('Dataframe has Tract',self.geovintage,'for new geovar',geovarid)
-            # Check that the tract id is a zero padded 11 digit string
-            # The geovarid is the first x characters
-            #print('Before update confirm',geovarid,'has expected length.')
-            #self.check_var_length(add_geovarid_df,geovarid,total_length_of_geovar)
-            add_geovarid_df.loc[:,geovarid] = add_geovarid_df['Tract'+self.geovintage].\
-                apply(lambda x : str(int(x)).zfill(11)[0:total_length_of_geovar])
-            #print('After update confirm',geovarid,'has expected length.')
-            #self.check_var_length(add_geovarid_df,geovarid,total_length_of_geovar)
+                print(geo_level.lower(), "is type", geo_level_type)
+                add_geovarid_df[geovarid] += add_geovarid_df[geo_level.lower()]
+        elif 'Block' + self.geovintage in geovarids_available:
+            print('Dataframe has Block', self.geovintage, 'for new geovar', geovarid)
+            add_geovarid_df[geovarid] = add_geovarid_df['Block' + self.geovintage].astype(str).str.zfill(15).str[:total_length_of_geovar]
+        elif 'Tract' + self.geovintage in geovarids_available:
+            print('Dataframe has Tract', self.geovintage, 'for new geovar', geovarid)
+            add_geovarid_df[geovarid] = add_geovarid_df['Tract' + self.geovintage].astype(str).str.zfill(11).str[:total_length_of_geovar]
         elif 'GEO_ID' in column_list:
-            # GEO_ID has the FIPS code data using the substring
-            print('Dataframe has GEO_ID for new geovar',geovarid)
-            add_geovarid_df.loc[:,geovarid] = add_geovarid_df['GEO_ID'].\
-                apply(lambda x : str(x).zfill(11)[x.find("US")+2:\
-                    total_length_of_geovar+x.find("US")+2])        
+            print('Dataframe has GEO_ID for new geovar', geovarid)
+            add_geovarid_df[geovarid] = add_geovarid_df['GEO_ID'].astype(str).apply(lambda x: x.zfill(11)[x.find("US") + 2:total_length_of_geovar + x.find("US") + 2])
         else:
-            print('Warning: Column list does not have required columns to make',geovarid)
+            print('Warning: Column list does not have required columns to make', geovarid)
 
         # Update column list to move geovarid to front
         columnlist = [col for col in add_geovarid_df if col != geovarid]
-        new_columnlist = [geovarid]+ columnlist
-        # Confirm geovarid is set correctly
-        print('Confirming',geovarid,'has expected length.')
+        new_columnlist = [geovarid] + columnlist
+
+        print('Confirming', geovarid, 'has expected length.')
         check_length = self.check_var_length(
-            add_geovarid_df,geovarid,total_length_of_geovar)
+            add_geovarid_df, geovarid, total_length_of_geovar)
         return add_geovarid_df[new_columnlist]
     
 
