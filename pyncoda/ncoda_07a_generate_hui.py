@@ -182,16 +182,19 @@ class generate_hui_functions():
             # Generate figures for explore data
             figures_list = []
             for by_var in ["race","hispan","family"]:
-                income_by_var_figure = income_distribution(input_df = hui_incore_df,
-                                variable = "randincome",
-                                by_variable = by_var,
-                                datastructure = incore_v2_DataStructure,
-                                communities= self.communities,
-                                community = community,
-                                year = self.basevintage,
-                                outputfolders = outputfolders)
-                filename = income_by_var_figure+".png"
-                figures_list.append(filename)
+                try:
+                    income_by_var_figure = income_distribution(input_df = hui_incore_df,
+                                    variable = "randincome",
+                                    by_variable = by_var,
+                                    datastructure = incore_v2_DataStructure,
+                                    communities= self.communities,
+                                    community = community,
+                                    year = self.basevintage,
+                                    outputfolders = outputfolders)
+                    filename = income_by_var_figure+".png"
+                    figures_list.append(filename)
+                except Exception as e:
+                    print(f'Error making figure for {by_var}: {e}')
 
             # Paths for codebook text
             CommunitySourceData_filepath = os.path.join('pyncoda', 'CommunitySourceData', 'api_census_gov')
