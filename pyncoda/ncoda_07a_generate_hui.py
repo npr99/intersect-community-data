@@ -194,9 +194,8 @@ class generate_hui_functions():
                 figures_list.append(filename)
 
             # Paths for codebook text
-            CommunitySourceData_filepath = "pyncoda\\CommunitySourceData\\api_census_gov"
-            keyterms_filepath = CommunitySourceData_filepath+ \
-                    '\\'+"acg_00a_keyterms.md"
+            CommunitySourceData_filepath = os.path.join('pyncoda', 'CommunitySourceData', 'api_census_gov')
+            keyterms_filepath = os.path.join(CommunitySourceData_filepath, 'acg_00a_keyterms.md')
 
             projectoverview_filepath = os.path.join('pyncoda', 'ncoda_00a_projectoverview.md')
 

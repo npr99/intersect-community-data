@@ -7,6 +7,7 @@
 import pandas as pd
 import geopandas as gpd # For reading in shapefiles
 import numpy as np
+import os
 import sys # For displaying package versions
 
 # open, read, and execute python program with reusable commands
