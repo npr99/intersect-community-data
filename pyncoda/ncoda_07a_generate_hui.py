@@ -173,7 +173,8 @@ class generate_hui_functions():
             # Output files
             csv_filepath = outputfolders['top']+"/"+output_filename+'.csv'
             common_directory = outputfolders['top']+"/../"+output_filename
-            savefile = os.path.join(current_dir, csv_filepath)
+
+            savefile = os.path.join(os.getcwd(), csv_filepath)
             hui_incore_df_fixed.to_csv(savefile, index=False)
             # Save second set of files in common directory
             hui_incore_df_fixed.to_csv(common_directory+'.csv', index=False)
@@ -197,7 +198,7 @@ class generate_hui_functions():
             keyterms_filepath = CommunitySourceData_filepath+ \
                     '\\'+"acg_00a_keyterms.md"
 
-            projectoverview_filepath = 'pyncoda\\'+ "ncoda_00a_projectoverview.md"
+            projectoverview_filepath = os.path.join('pyncoda', 'ncoda_00a_projectoverview.md')
 
             # Create PDF Codebook
             pdfcodebook = codebook(input_df = hui_incore_df_fixed,

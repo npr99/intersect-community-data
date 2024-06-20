@@ -274,7 +274,7 @@ class process_community_workflow():
         output_filename = \
             f'hua_{self.version_text}_{community}_{self.basevintage}_rs{self.seed}_{bldg_inv_id}'
         csv_filepath = check_folder+"/"+output_filename+'.csv'
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
         # Resave results for community name
         hua_hui_df.to_csv(savefile, index=False)
 
