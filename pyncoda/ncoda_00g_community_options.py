@@ -246,6 +246,25 @@ communities_dictionary = {
                     'building_area_cutoff' : 300
                 }
             },
+    'Brazos_TX_NSI' : {
+        'community_name' : 'Brazos County, TX',
+        'focalplace_name' : 'Bryan',
+        'STATE' : 'TEXAS',
+        'years' : ['2010'],
+        'counties' : { 
+            1 : {'FIPS Code' : '48041', 'Name' : 'Brazos County, TX'}
+            },
+        'building_inventory' : {
+            'use_incore' : False, 
+            'id' : 'NSI',
+            'note' : 'NSI Building inventory for Brazos County, TX',
+            'archetype_var' : 'occtype',
+            'bldg_uniqueid' : 'fd_id_bid',
+            'residential_archetypes' : HAZUS_residential_archetypes,
+            'building_area_var' : 'sqft',
+            'building_area_cutoff' : 300
+            }
+        }
     }
 
 # ipywidgets dropdown does no work in github CodeSpace

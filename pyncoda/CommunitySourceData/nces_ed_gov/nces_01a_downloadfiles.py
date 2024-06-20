@@ -8,30 +8,22 @@ from pyncoda.CommunitySourceData.nces_ed_gov.nces_00c_cleanutils \
     import *
 
 def setup_directory():
-    # Create output directory if it does not exist
-    output_sourcedata = 'Outputdata\\00_SourceData'
-    output_directory = 'Outputdata\\00_SourceData\\nces_ed_gov'
-    # Make directory to save output
-    if not os.path.exists(output_sourcedata):
-        print("Making new directory to save output: ",
-            output_sourcedata)
-        os.mkdir(output_sourcedata)
-    if not os.path.exists(output_directory):
-        print("Making new directory to save output: ",
-            output_directory)
-        os.mkdir(output_directory)
-    else:
-        print("Directory",output_directory,"Already exists.")
+    # Define output directories
+    output_sourcedata = os.path.join('OutputData', '00_SourceData')
+    output_directory = os.path.join(output_sourcedata, 'nces_ed_gov')
+    unzipped_output_directory = os.path.join(output_directory, 'unzipped')
 
-    unzipped_output_directory = output_directory+'\\unzipped'
-    # Make directory to save output
-    if not os.path.exists(unzipped_output_directory):
-        print("Making unzipped_output_directory directory"+
-            " to save output: ",unzipped_output_directory)
-        os.mkdir(unzipped_output_directory)
-    else:
-        print("Directory",unzipped_output_directory,
-            "Already exists.")
+    # Create output directory if it does not exist
+    def create_directory(path):
+        if not os.path.exists(path):
+            print(f"Making new directory to save output: {path}")
+            os.makedirs(path)
+        else:
+            print(f"Directory {path} already exists.")
+    
+    create_directory(output_sourcedata)
+    create_directory(output_directory)
+    create_directory(unzipped_output_directory)
 
     return output_directory, unzipped_output_directory
 

@@ -87,6 +87,11 @@ class PopResultsTable:
             object: Pandas DataFrame object.
         """
 
+        # Ensure 'race' and 'hispan' columns are numeric for comparison
+        df['race'] = pd.to_numeric(df['race'], errors='coerce')
+        df['hispan'] = pd.to_numeric(df['hispan'], errors='coerce')
+        df['gqtype'] = pd.to_numeric(df['hispan'], errors='coerce')
+
         df['Race Ethnicity'] = "0 Vacant HU No Race Ethnicity Data"
         df['Race Ethnicity'].notes = "Identify Race and Ethnicity Housing Unit Characteristics."
 
@@ -367,7 +372,7 @@ class PopResultsTable:
             num_format = "{:,.0f}"
         elif who == "Total Population by Households":
             variable = 'numprec'
-            function = np.sum
+            function = 'sum'
             renamecol = {'Total': who, 'sum': ''}
             num_format = "{:,.0f}"
         elif who == "Total Population by Persons":
@@ -382,7 +387,7 @@ class PopResultsTable:
             num_format = "{:,.0f}"
         elif who == "Median Household Income":
             variable = 'randincome'
-            function = np.median
+            function = 'median'
             renamecol = {'Total': who}
             num_format = "${:,.0f}"
         else:

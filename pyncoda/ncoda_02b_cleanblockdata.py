@@ -126,7 +126,7 @@ def obtain_join_block_place_puma_data(county_fips: str = '48167',
     gdf['block'] = gdf['block'][cols]
 
     # Save Work at this point as CSV
-    savefile = sys.path[0]+"/"+output_folder+"/"+filename
+    savefile = os.path.join(os.getcwd(), output_folder, filename)
     gdf['block'].to_csv(savefile)
 
     return gdf['block']

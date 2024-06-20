@@ -203,7 +203,7 @@ class BaseInventory():
         df_return = df_return.drop(columns=['precode'])
 
         # Save File as CSV
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
         df_return.to_csv(savefile, index=False)
         
         return df_return
@@ -318,7 +318,7 @@ class BaseInventory():
             col_list = primary_key_list + foreign_keys + char_vars
             df = df[col_list]
 
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
         df.to_csv(savefile, index=False)
 
         return df
@@ -941,7 +941,7 @@ class BaseInventory():
                 new_char+" set 1 by greater than counter "+newchar_var
             expanded_hui_recombine.loc[conditions, new_char+'_flagset'] = 1
         
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
         expanded_hui_recombine.to_csv(savefile, index=False)
 
         return expanded_hui_recombine

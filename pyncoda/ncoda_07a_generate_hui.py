@@ -127,7 +127,7 @@ class generate_hui_functions():
                 county_list = county_list + state_county_name+': county FIPS Code '+state_county
 
                 # create output folders for hui data generation
-                outputfolders = directory_design(state_county_name = state_county_name,
+                outputfolders = directory_design(state_county_name = community,
                                                     outputfolder = self.outputfolder)
                 generate_df = hui_workflow_functions(
                     state_county = state_county,
@@ -173,7 +173,8 @@ class generate_hui_functions():
             # Output files
             csv_filepath = outputfolders['top']+"/"+output_filename+'.csv'
             common_directory = outputfolders['top']+"/../"+output_filename
-            savefile = sys.path[0]+"/"+csv_filepath
+
+            savefile = os.path.join(os.getcwd(), csv_filepath)
             hui_incore_df_fixed.to_csv(savefile, index=False)
             # Save second set of files in common directory
             hui_incore_df_fixed.to_csv(common_directory+'.csv', index=False)
@@ -181,23 +182,25 @@ class generate_hui_functions():
             # Generate figures for explore data
             figures_list = []
             for by_var in ["race","hispan","family"]:
-                income_by_var_figure = income_distribution(input_df = hui_incore_df,
-                                variable = "randincome",
-                                by_variable = by_var,
-                                datastructure = incore_v2_DataStructure,
-                                communities= self.communities,
-                                community = community,
-                                year = self.basevintage,
-                                outputfolders = outputfolders)
-                filename = income_by_var_figure+".png"
-                figures_list.append(filename)
+                try:
+                    income_by_var_figure = income_distribution(input_df = hui_incore_df,
+                                    variable = "randincome",
+                                    by_variable = by_var,
+                                    datastructure = incore_v2_DataStructure,
+                                    communities= self.communities,
+                                    community = community,
+                                    year = self.basevintage,
+                                    outputfolders = outputfolders)
+                    filename = income_by_var_figure+".png"
+                    figures_list.append(filename)
+                except Exception as e:
+                    print(f'Error making figure for {by_var}: {e}')
 
             # Paths for codebook text
-            CommunitySourceData_filepath = "pyncoda\\CommunitySourceData\\api_census_gov"
-            keyterms_filepath = CommunitySourceData_filepath+ \
-                    '\\'+"acg_00a_keyterms.md"
+            CommunitySourceData_filepath = os.path.join('pyncoda', 'CommunitySourceData', 'api_census_gov')
+            keyterms_filepath = os.path.join(CommunitySourceData_filepath, 'acg_00a_keyterms.md')
 
-            projectoverview_filepath = 'pyncoda\\'+ "ncoda_00a_projectoverview.md"
+            projectoverview_filepath = os.path.join('pyncoda', 'ncoda_00a_projectoverview.md')
 
             # Create PDF Codebook
             pdfcodebook = codebook(input_df = hui_incore_df_fixed,

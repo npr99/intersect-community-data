@@ -171,7 +171,7 @@ class hua_workflow_functions():
         condition3 = (addptv2_df['ownershp1']==1)
 
         addptv2_df.loc[condition1 & condition2 & condition3,'ownershp1'] \
-            = addptv2_df['predictownershp']
+            = addptv2_df['predictownershp'].astype(float)
 
         # Check ownership is 1 or 2
         addptv2_df.loc[addptv2_df['ownershp1'] >2, 'ownershp1'] = 2
@@ -442,7 +442,7 @@ class hua_workflow_functions():
         # Set up output file and check if it exists
         output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_{self.bldg_inv_id}_rs{self.seed}'
         csv_filepath = self.outputfolders['top']+"/"+output_filename+'.csv'
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
         if os.path.exists(savefile):
             print("Housing Unit Allocation file already exists: "+savefile)
             huav2_df = pd.read_csv(csv_filepath, low_memory=False)
