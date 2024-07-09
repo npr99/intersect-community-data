@@ -146,6 +146,9 @@ class hua_workflow_functions():
         to the structure.
         """
 
+        # Convert 'ownershp' to a numeric type if it is categorical
+        if pd.api.types.is_categorical_dtype(hua_df['ownershp']):
+            hua_df['ownershp'] = hua_df['ownershp'].astype(float)
 
         # Check the average value of tenure status by structure
         updated_ownership_df = hua_df[['ownershp','strctid']].\
@@ -168,7 +171,7 @@ class hua_workflow_functions():
         condition3 = (addptv2_df['ownershp1']==1)
 
         addptv2_df.loc[condition1 & condition2 & condition3,'ownershp1'] \
-            = addptv2_df['predictownershp']
+            = addptv2_df['predictownershp'].astype(float)
 
         # Check ownership is 1 or 2
         addptv2_df.loc[addptv2_df['ownershp1'] >2, 'ownershp1'] = 2
@@ -194,7 +197,7 @@ class hua_workflow_functions():
             if ownershpvar not in hui_df.columns:
 
                 # Copy ownership variable to new column
-                hui_df[ownershpvar] = hui_df['ownershp'] 
+                hui_df[ownershpvar] = hui_df['ownershp'].astype(float)
 
                 # Fill in missing values with 0
                 # this should apply to vacant structures
@@ -439,7 +442,7 @@ class hua_workflow_functions():
         # Set up output file and check if it exists
         output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_{self.bldg_inv_id}_rs{self.seed}'
         csv_filepath = self.outputfolders['top']+"/"+output_filename+'.csv'
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
         if os.path.exists(savefile):
             print("Housing Unit Allocation file already exists: "+savefile)
             huav2_df = pd.read_csv(csv_filepath, low_memory=False)

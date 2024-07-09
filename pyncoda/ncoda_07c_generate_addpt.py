@@ -134,7 +134,7 @@ class generate_addpt_functions():
         check_folder = self.outputfolder
         output_filename = f'tl_{year}_{community}_tabblockplacepuma{yr}EPSG4269'
         csv_filepath = check_folder+"/"+output_filename+'.csv'
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
 
         # Check if file exists
         if os.path.exists(savefile):
@@ -159,7 +159,7 @@ class generate_addpt_functions():
             print(state_county_name,': county FIPS Code',state_county)
 
             # create output folders for hui data generation
-            outputfolders = directory_design(state_county_name = state_county_name,
+            outputfolders = directory_design(state_county_name = community,
                                                 outputfolder = self.outputfolder)
 
             output_folder = outputfolders['CommunitySourceData']
@@ -177,7 +177,7 @@ class generate_addpt_functions():
                                     ignore_index=True, axis=0)
         
         #Save results for community name
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
         census_block_place_puma_gdf.to_csv(savefile, index=False)
 
         return census_block_place_puma_gdf
@@ -195,7 +195,7 @@ class generate_addpt_functions():
         check_folder = self.outputfolder
         output_filename = f'huest_{self.version_text}_{community}_{year}_{self.bldg_inv_id}'
         csv_filepath = check_folder+"/"+output_filename+'.csv'
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
         if os.path.exists(savefile):
             print("Housing Unit Estimate File already exists: "+savefile)
             huesimate_df = pd.read_csv(savefile)
@@ -353,7 +353,7 @@ class generate_addpt_functions():
         print("Generating",title)
         output_filename = f'addpt_{self.version_text}_{community}_{year}_{self.bldg_inv_id}'
         csv_filepath = self.outputfolder+"/"+output_filename+'.csv'
-        savefile = sys.path[0]+"/"+csv_filepath
+        savefile = os.path.join(os.getcwd(), csv_filepath)
 
         if self.use_incore:
             # Functions from IN-CORE
