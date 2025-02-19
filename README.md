@@ -22,8 +22,10 @@ People are the most important part of community resilience planning. However, mo
 For more details on the following refer to the [Admin Folder](https://github.com/npr99/intersect-community-data/tree/main/Admin)
 - [Acknowledgements](https://github.com/npr99/intersect-community-data/blob/main/Admin/ncoda_Acknowledgements.md)
 - [Census Data Terms of Use](https://github.com/npr99/intersect-community-data/blob/main/Admin/ncoda_CensusDataTermsofUse.md)
-- [Directory Design](https://github.com/npr99/intersect-community-data/blob/hui-2020/Admin/ncoda_DirectoryDesign.md)
-- [Directory Design](https://github.com/npr99/intersect-community-data/blob/hui-2020/Admin/ncoda_DirectoryDesign.md)
+- [Directory Design](https://github.com/npr99/intersect-community-data/blob/main/Admin/ncoda_DirectoryDesign.md)
+- [File Name Plan](https://github.com/npr99/intersect-community-data/blob/main/Admin/ncoda_FileNamePlan.md)
+- [Funding Sources](https://github.com/npr99/intersect-community-data/blob/main/Admin/ncoda_Funding.md)
+- [Related Works](https://github.com/npr99/intersect-community-data/blob/main/Admin/ncoda_Funding.md)
 
 
 
