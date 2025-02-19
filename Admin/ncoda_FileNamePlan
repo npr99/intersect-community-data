@@ -1,5 +1,14 @@
 
 ## Data File Naming Convention
+
+## Important Acronyms
+- acg = api.census.gov - primary data source
+- HRRC = Hazard Reduction and Recovery Center
+- hui = housing unit inventory
+- ncoda = Intersect Community Data
+- IN-CORE = Interdependent Networked Community Resilience Modeling Environment
+
+
 The housing unit inventory file names include the following convention:
 - Acronym   = hui - for housing unit inventory
 - version   = v2-0-0 - version of the file
