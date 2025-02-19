@@ -18,5 +18,12 @@ People are the most important part of community resilience planning. However, mo
 4. See `environment.yml` file for dependencies
 5. Run the primary Jupyter Notebook in the main folder
 
+## More Details
+For more details on the following refer to the [Admin Folder](https://github.com/npr99/intersect-community-data/tree/main/Admin)
+- [Acknowledgements](https://github.com/npr99/intersect-community-data/blob/main/Admin/ncoda_Acknowledgements.md)
+- [Census Data Terms of Use](https://github.com/npr99/intersect-community-data/blob/main/Admin/ncoda_CensusDataTermsofUse.md)
+- [Directory Design](https://github.com/npr99/intersect-community-data/blob/hui-2020/Admin/ncoda_DirectoryDesign.md)
+- [Directory Design](https://github.com/npr99/intersect-community-data/blob/hui-2020/Admin/ncoda_DirectoryDesign.md)
+
 
 
