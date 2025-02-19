@@ -1,0 +1,32 @@
+cff-version: 1.0.0
+message: "If you use pyncoda, please cite the preferred-citation below."
+title: "pyncoda"
+abstract: "pyncoda is a Python package to transform aggregated community data (e.g. Census) into household, person, and business level data that can be allocated to buildings."
+authors:
+  - family-names: Rosenheim
+    given-names: Nathanael
+  - family-names: Guidotti
+    given-names: Roberto
+  - family-names: Gardoni
+    given-names: Paolo
+  - family-names: Peacock
+    given-names: Walter Gillis
+title: "Integration of detailed household and housing unit characteristic data with critical infrastructure for post-hazard resilience modeling"
+doi: 10.1080/23789689.2019.1681821
+date-released: 2021-01-01
+url: https://doi.org/10.1080/23789689.2019.1681821
+type: article
+volume: 6
+issue: 6
+pages: 385-401
+
+preferred-citation:
+  authors:
+    - family-names: Rosenheim
+      given-names: Nathanael
+  title: "Detailed Household and Housing Unit Characteristics: Data and Replication Code"
+  version: 2
+  doi: 10.17603/ds2-jwf6-s535
+  date-released: 2022-01-01
+  url: https://doi.org/10.17603/ds2-jwf6-s535
+  type: dataset
