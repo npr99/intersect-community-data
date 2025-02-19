@@ -2,7 +2,7 @@
 
 ![IN-CORE HRRC Banner](https://github.com/npr99/intersect-community-data/blob/main/IN-CORE_HRRC_Banner.png?raw=true)
 
-# Repository Title: Intersect Community Data (pynocda)
+# Repository Title: Intersect Community Data (pyncoda)
 
 ### Point of Contact: Nathanael Rosenheim: nrosenheim@arch.tamu.edu
 
