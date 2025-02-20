@@ -5,8 +5,8 @@ Block Level Data for the 2020 Census
 Each Dictionary represents data tables in the 2020 Census
 
 Base API URL parameters, found at https://www.census.gov/data/developers/data-sets/decennial-census.html
-List of all variables available in SF1 
-https://api.census.gov/data/2020/dec/sf1/variables.html
+List of all variables available in DHC 
+https://api.census.gov/data/2020/dec/dhc/variables.html
 """
 
 import numpy as np
@@ -140,7 +140,7 @@ group_quarters_P18_2020_varstem_roots = {'metadata' : {
                         'char_vars' : ['hucount','gqtype','ageP18','sex'],
                         'group' : 'P18',
                         'vintage' : '2020', 
-                        'dataset_name' : 'dec/sf1',
+                        'dataset_name' : 'dec/dhc',
                         'for_geography' : 'block:*',
                         'unit_of_analysis' : 'numprec',
                         'mutually_exclusive' : True,
