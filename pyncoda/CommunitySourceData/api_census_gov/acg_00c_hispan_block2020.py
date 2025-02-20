@@ -79,11 +79,11 @@ tenure_byhispan_H11_2020_varstem_roots = {'metadata' : {
                         'notes' : {''}
                         },
                         'H11' : {
-                        '004' : {
+                        '_004N' : {
                         'label' : "Owner occupied!!Hispanic or Latino householder",
                         'hispanbyH11' : 1,
                         'ownershp' : 1},
-                        '007' : {
+                        '_007N' : {
                         'label' : "Renter occupied!!Hispanic or Latino householder",
                         'hispanbyH11' : 1,
                         'ownershp' : 2}
