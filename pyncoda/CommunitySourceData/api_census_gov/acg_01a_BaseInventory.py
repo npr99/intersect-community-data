@@ -70,7 +70,7 @@ class BaseInventory():
                 # Continue exits current for loop and moves to next varstem
                 continue    # skip metadata description
 
-            varoortlist = varstems_roots_dictionary[varstem]
+            varrootlist = varstems_roots_dictionary[varstem]
 
             # Check if characteristic variables includes race
             print(char_vars)
@@ -113,7 +113,7 @@ class BaseInventory():
 
                 #print(varstem_race)
                 # Loop through each var root to make variable name to call in api
-                for varroot_str in varoortlist:
+                for varroot_str in varrootlist:
                     #print(varroot)
                     # Variable parameters
                     get_vars = get_vars + ','+varstem_race+varroot_str
@@ -132,7 +132,7 @@ class BaseInventory():
 
                 # Rename columns and change to integer type
                 # Loop through each var root to change type and name
-                for varroot_str in varoortlist:
+                for varroot_str in varrootlist:
                     int_var = varstem_race+varroot_str
                     df[racehispangroup][int_var] = df[racehispangroup][int_var].astype('int')
                     # also need to rename column for subtraction
@@ -188,7 +188,7 @@ class BaseInventory():
                 # Note the variable root may have multiple characteristics 
                 for char_var in char_vars:
                     if char_var not in  ['byracehispan']:
-                        df_reshape[char_var] = df_reshape['precode'].apply(lambda x : varoortlist[x][char_var])
+                        df_reshape[char_var] = df_reshape['precode'].apply(lambda x : varrootlist[x][char_var])
                     if char_var == 'byracehispan':
                         df_reshape['race'] = racehispn_groups_dictionary[key]['race']
                         df_reshape['hispan'] = racehispn_groups_dictionary[key]['hispan']
@@ -1012,7 +1012,7 @@ class BaseInventory():
             print("   Fix by vars :",by_vars)
 
         total_sum_df = pd.pivot_table(df, values=values_to_sum, index=by_vars,
-                                aggfunc=np.sum)
+                                aggfunc='sum')
         total_sum_df.reset_index(inplace = True)
         total_sum_df = total_sum_df.rename(columns = {values_to_sum : values_to_sum_col_rename})
 
