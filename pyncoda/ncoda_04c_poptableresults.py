@@ -11,7 +11,7 @@ gqtype_valuelabels = {'categorical_variable': {'variable' : 'gqtype',
                             'notes' : ''},
                 'value_list' : {
                     0 : {'value': 0, 'value_label' : '0. NA (non-group quarters)'},
-                    1 : {'value': 1, 'value_label': "1 Correctional facilities for adults"},
+                    1 : {'value': 1, 'value_label': "1. Correctional facilities for adults"},
                     2 : {'value': 2, 'value_label': "2. Juvenile facilities"},
                     3 : {'value': 3, 'value_label': "3. Nursing facilities/Skilled-nursing facilities"},
                     4 : {'value': 4, 'value_label': "4. Other institutional facilities"},
