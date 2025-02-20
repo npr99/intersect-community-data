@@ -8,7 +8,7 @@ from pyncoda.ncoda_00d_cleanvarsutils import *
 '''
 gqtype_valuelabels = {'categorical_variable': {'variable' : 'gqtype',
                             'variable_label' : 'Group Quarters Type',
-                            'notes' : '5 Household Income Groups based on random income.'},
+                            'notes' : ''},
                 'value_list' : {
                     0 : {'value': 0, 'value_label' : '0. NA (non-group quarters)'},
                     1 : {'value': 1, 'value_label': "1 Correctional facilities for adults"},
