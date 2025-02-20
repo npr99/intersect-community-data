@@ -30,31 +30,31 @@ hispan_byrace_H7_2020_varstem_roots = {'metadata' : {
                         'H7' : {
                         '_011N' : {
                         'label' : "Hispanic or Latino householder!!Householder who is White alone",
-                        'hispanbyH007' : 1,
+                        'hispanbyH7' : 1,
                         'race' : 1},
                         '_012N' : {
                         'label' : "Hispanic or Latino householder!!Householder who is Black or African American alone",
-                        'hispanbyH007' : 1,
+                        'hispanbyH7' : 1,
                         'race' : 2},
                         '_013N' : {
                         'label' : "Hispanic or Latino householder!!Householder who is American Indian and Alaska Native alone",
-                        'hispanbyH007' : 1,
+                        'hispanbyH7' : 1,
                         'race' : 3},
                         '_014N' : {
                         'label' : "Hispanic or Latino householder!!Householder who is Asian alone",
-                        'hispanbyH007' : 1,
+                        'hispanbyH7' : 1,
                         'race' : 4},
                         '_015N' : {
                         'label' : "Hispanic or Latino householder!!Householder who is Native Hawaiian and Other Pacific Islander alone",
-                        'hispanbyH007' : 1,
+                        'hispanbyH7' : 1,
                         'race' : 5},
                         '_016N' : {
                         'label' : "Hispanic or Latino householder!!Householder who is Some Other Race alone",
-                        'hispanbyH007' : 1,
+                        'hispanbyH7' : 1,
                         'race' : 6},
                         '_017N' : {
                         'label' : "Hispanic or Latino householder!!Householder who is Two or More Races",
-                        'hispanbyH007' : 1,
+                        'hispanbyH7' : 1,
                         'race' : 7}
                         }
                     }  
