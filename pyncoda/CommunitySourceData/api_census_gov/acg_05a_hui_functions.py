@@ -25,6 +25,13 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures i
 from pyncoda.CommunitySourceData.api_census_gov.acg_00b_hui_block2010 import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00c_hispan_block2010 import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00d_hhinc_ACS5yr2012 import *
+
+
+# Load in data structure dictionaries updated for 2020
+from pyncoda.CommunitySourceData.api_census_gov.acg_00b_hui_block2020 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00c_hispan_block2020 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00d_hhinc_ACS5yr2022 import *
+
 from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
     import incore_v2_DataStructure
 
@@ -99,49 +106,84 @@ class hui_workflow_functions():
             self.save_environment_version_details()
 
         print("\n***************************************")
+        print(f"    Setup tables for year = {self.basevintage}")
+        print("***************************************\n")
+        mutually_exclusive_varstems_roots_dictionary_lists = {}
+        new_char_dictionaries = {}
+        new_char_dictionaries['family'] = {}
+        new_char_dictionaries['Hispanic'] = {}
+        new_char_dictionaries['hhinc'] = {}
+        new_char_dictionaries['hhinc_family'] = {}
+
+        mutually_exclusive_varstems_roots_dictionary_lists[2010] = [tenure_size_H16_varstem_roots,
+                                                            vacancy_status_H5_varstem_roots,
+                                                            group_quarters_P42_varstem_roots]
+
+        new_char_dictionaries['family'][2010] = [family_byrace_P18_varstem_roots]
+        new_char_dictionaries['Hispanic'][2010] = [tenure_size_H16HAI_varstem_roots,
+                                                hispan_byrace_H7_varstem_roots,
+                                                tenure_byhispan_H15_varstem_roots]
+        new_char_dictionaries['hhinc'][2010] = [hhinc_varstem_roots]
+        new_char_dictionaries['hhinc_family'][2010] = [family_varstem_roots]
+
+        mutually_exclusive_varstems_roots_dictionary_lists[2020] = [tenure_size_H12_2020_varstem_roots,
+                                                    vacancy_status_H5_2020_varstem_roots,
+                                                    group_quarters_P18_2020_varstem_roots]
+
+        new_char_dictionaries['family'][2020] = [family_byrace_P16_2020_varstem_roots]
+        new_char_dictionaries['Hispanic'][2020] = [tenure_size_H12HAI_2020_varstem_roots,
+                                                hispan_byrace_H7_2020_varstem_roots,
+                                                tenure_byhispan_H11_2020_varstem_roots]
+        new_char_dictionaries['hhinc'][2020] = [hhinc_B19001_varstem_roots_2022]
+        new_char_dictionaries['hhinc_family'][2020] = [hhincfamily_B19101_varstem_roots_2022]
+
+        print("\n***************************************")
         print("    Obtain and clean core housing unit characteristics for",self.state_county_name)
         print("***************************************\n")
 
         print(self.outputfolders)
-        block_df['core'] = BaseInventory.get_apidata(state_county = self.state_county,
-                                            outputfolders = self.outputfolders,
-                                            outputfile = "CoreHUI")
+        block_df['core'] = BaseInventory.get_apidata(state_county = self.state_county, 
+                                                    geo_level = 'Block',
+                                                    vintage = str(self.basevintage),
+                                                    mutually_exclusive_varstems_roots_dictionaries =
+                                                                        mutually_exclusive_varstems_roots_dictionary_lists[self.basevintage],
+                                                    outputfolders = self.outputfolders,
+                                                    outputfile = "CoreHUI")
         
         block_df['family'] = BaseInventory.graft_on_new_char(base_inventory= block_df['core'],
-                                state_county = self.state_county,
-                                new_char = 'family',
-                                new_char_dictionaries = [family_byrace_P18_varstem_roots],
-                                outputfile = "hui",
-                                outputfolders = self.outputfolders)
+                                                            state_county = self.state_county,
+                                                            new_char = 'family',
+                                                            new_char_dictionaries = new_char_dictionaries['family'][self.basevintage],
+                                                            basevintage = str(self.basevintage), 
+                                                            basegeolevel = 'Block',
+                                                            outputfile = "hui",
+                                                            outputfolders = self.outputfolders)
 
+       
         block_df['hispan'] = BaseInventory.graft_on_new_char(base_inventory= block_df['family'],
-                                        state_county = self.state_county,
-                                        new_char = 'hispan',
-                                        new_char_dictionaries = 
-                                        [tenure_size_H16HAI_varstem_roots,
-                                            hispan_byrace_H7_varstem_roots,
-                                            tenure_byhispan_H15_varstem_roots
-                                            ],
-                                        basevintage = "2010", 
-                                        basegeolevel = 'Block',
-                                        outputfile = "hui",
-                                        outputfolders = self.outputfolders)
+                                                        state_county = self.state_county,
+                                                        new_char = 'hispan',
+                                                        new_char_dictionaries = new_char_dictionaries['Hispanic'][self.basevintage],
+                                                        basevintage = str(self.basevintage), 
+                                                        basegeolevel = 'Block',
+                                                        outputfile = "hui",
+                                                        outputfolders = self.outputfolders)
 
         # Generate Household Income Inventory - By Race
         tract_df["B19001"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'tract',
-                                        vintage = "2012", 
+                                        vintage = str(self.basevintage+2), 
                                         mutually_exclusive_varstems_roots_dictionaries =
-                                                            [hhinc_varstem_roots],
+                                                            new_char_dictionaries['hhinc'][self.basevintage],
                                         outputfolders = self.outputfolders,
                                         outputfile = "B19001")
 
         # Generate Family Income Inventory - By Race 
         tract_df["B19101"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'tract',
-                                        vintage = "2012", 
+                                        vintage = str(self.basevintage+2), 
                                         mutually_exclusive_varstems_roots_dictionaries =
-                                                            [family_varstem_roots],
+                                                            new_char_dictionaries['hhinc_family'][self.basevintage] ,
                                         outputfolders = self.outputfolders,
                                         outputfile = "B19101")
                     
@@ -153,18 +195,18 @@ class hui_workflow_functions():
         dfs = {'primary'  : {'data': tract_df['B19001'], 
                         'primarykey' : 'uniqueidB19001',
                         'geolevel' : 'Tract',
-                        'geovintage' :'2010',
+                        'geovintage' : str(self.basevintage),
                         'notes' : 'Household level data with income.'},
             'secondary' : {'data': tract_df['B19101'], 
                         'primarykey' : 'uniqueidB19101',
                         'geolevel' : 'Tract',
-                        'geovintage' :'2010',
+                        'geovintage' :str(self.basevintage),
                         'notes' : 'Family level data with income.'}},
         seed = self.seed,
         common_group_vars = ['incomegroup'],
         new_char = 'family',
         geolevel = "Tract",
-        geovintage = "2010",
+        geovintage = str(self.basevintage),
         by_groups = {'All' : {'by_variables' : ['race','hispan']}},
         fillna_value = 0,
         state_county = self.state_county,
@@ -185,18 +227,18 @@ class hui_workflow_functions():
         dfs = {'primary'  : {'data': block_df['hispan'], 
                         'primarykey' : 'huid',
                         'geolevel' : 'Block',
-                        'geovintage' :'2010',
+                        'geovintage' : str(self.basevintage),
                         'notes' : 'Household level data without income.'},
             'secondary' : {'data': tract_income_match['primary'], 
                         'primarykey' : 'uniqueidB19001',
                         'geolevel' : 'Tract',
-                        'geovintage' :'2010',
+                        'geovintage' : str(self.basevintage),
                         'notes' : 'Household and Family level data with income.'}},
         seed = self.seed,
         common_group_vars = ['family'],
         new_char = 'incomegroup',
         geolevel = "Tract",
-        geovintage = "2010",
+        geovintage = str(self.basevintage),
         by_groups = {'Hispanic'     : {'by_variables' : ['hispan']},
                     'not Hispanic' : {'by_variables' : ['race']}},
         fillna_value= -999,

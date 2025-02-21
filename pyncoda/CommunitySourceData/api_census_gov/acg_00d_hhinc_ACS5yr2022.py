@@ -74,7 +74,7 @@ income less than $10,000 and a householder who is White Alone
 The dictionary includes the concept, and characteristic categorical codes for numprec and ownershp variables
 """
 
-hhinc_varstem_roots = {'metadata' : {
+hhinc_B19001_varstem_roots_2022 = {'metadata' : {
                         'concept' : 'HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2022 INFLATION-ADJUSTED DOLLARS)',
                         'byracehispan' : acsbyracehispan_groups_varstems,
                         'graft_chars' : ['race'],
@@ -110,7 +110,7 @@ hhinc_varstem_roots = {'metadata' : {
                     }
                 }
 
-family_varstem_roots = {'metadata' : {
+hhincfamily_B19101_varstem_roots_2022 = {'metadata' : {
                         'concept' : 'FAMILY INCOME IN THE PAST 12 MONTHS (IN 2022 INFLATION-ADJUSTED DOLLARS)',
                         'byracehispan' : acsbyracehispan_groups_varstems,
                         'graft_chars' : ['race'],
@@ -152,7 +152,7 @@ Household income by tenure could be used as a check on setting household income 
 if household income by tenure does not match the values could be "shuffled"
 to better match table B25118
 """
-hhinc_B25118_varstem_roots = {'metadata' : {
+hhinc_B25118_varstem_roots_2022 = {'metadata' : {
                         'concept' : 'TENURE BY HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2022 INFLATION-ADJUSTED DOLLARS)',
                         'graft_chars' : ['ownershp'],
                         'new_char': ['minincome','maxincome'],
@@ -193,7 +193,7 @@ hhinc_B25118_varstem_roots = {'metadata' : {
                     }
                 }
 
-hhinc_B19013_varstem_roots = {'metadata' : {
+hhinc_B19013_varstem_roots_2022 = {'metadata' : {
                         'concept' : 'MEDIAN HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2022 INFLATION-ADJUSTED DOLLARS)',
                         'byrace' : acsbyrace_groups_varstems,
                         'graft_chars' : ['race','hispan'],
