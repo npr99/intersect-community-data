@@ -16,7 +16,7 @@ Rosenheim, Nathanael (2021) “Detailed Household and Housing Unit Characteristi
 Data and Replication Code.” DesignSafe-CI. 
 https://doi.org/10.17603/ds2-jwf6-s535.
 
-The 2010 Census Data provides detailed household and housing unit, 
+The 2010 or 2020 Census Data provides detailed household and housing unit, 
 level characteristics at the census block level. 
 
 The 2012 5-year American Community Survey provides detailed 
@@ -155,7 +155,14 @@ class generate_hui_functions():
                                                     
 
                 # Generate base housing unit inventory
-                base_hui_df = generate_df.run_hui_workflow()
+                base_hui_df = generate_df.run_hui_workflow(
+                                            state_county = state_county,
+                                            state_county_name = state_county_name,
+                                            seed = self.seed,
+                                            version = self.version,
+                                            version_text = self.version_text,
+                                            basevintage = self.basevintage
+                                                    )
                 hui_df = generate_df.final_polish_hui(base_hui_df['primary'])
 
                 # Save version for IN-CORE in v2 format
@@ -219,7 +226,7 @@ class generate_hui_functions():
 
             # Upload CSV file to IN-CORE and save dataset_id
             # note you have to put the correct dataType as well as format
-            hui_description =  '\n'.join(["2010 Housing Unit Inventory v2.0.0 with required IN-CORE columns. " 
+            hui_description =  '\n'.join([f"{self.basevintage} Housing Unit Inventory v2.0.0 with required IN-CORE columns. " 
                    "Compatible with pyincore v1.4. " 
                    "Unit of observation is housing unit. " 
                    "Detailed characteristics include number of persons, race, ethnicity, "
