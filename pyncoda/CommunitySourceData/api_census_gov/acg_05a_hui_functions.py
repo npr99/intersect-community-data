@@ -32,8 +32,7 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_00b_hui_block2020 import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00c_hispan_block2020 import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00d_hhinc_ACS5yr2022 import *
 
-from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
-    import incore_v2_DataStructure
+from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 import *
 
 # open, read, and execute python program with reusable commands
 from pyncoda.CommunitySourceData.api_census_gov.acg_01a_BaseInventory import BaseInventory
@@ -306,6 +305,7 @@ class hui_workflow_functions():
 
         output_df = input_df.copy()
         # create list of all required ergo:buildingInventoryVer6 columns
+        incore_v2_DataStructure = adjust_incore_datastructure_baseyear(self.basevintage)
         incore_columns = incore_v2_DataStructure
         
         current_column_names = list(output_df.columns)

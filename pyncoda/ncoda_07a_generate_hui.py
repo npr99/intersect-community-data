@@ -155,14 +155,7 @@ class generate_hui_functions():
                                                     
 
                 # Generate base housing unit inventory
-                base_hui_df = generate_df.run_hui_workflow(
-                                            state_county = state_county,
-                                            state_county_name = state_county_name,
-                                            seed = self.seed,
-                                            version = self.version,
-                                            version_text = self.version_text,
-                                            basevintage = self.basevintage
-                                                    )
+                base_hui_df = generate_df.run_hui_workflow()
                 hui_df = generate_df.final_polish_hui(base_hui_df['primary'])
 
                 # Save version for IN-CORE in v2 format
