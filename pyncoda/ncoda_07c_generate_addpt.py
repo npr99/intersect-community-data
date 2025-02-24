@@ -145,7 +145,7 @@ class generate_addpt_functions():
             census_block_place_puma_gdf = df2gdf_WKTgeometry(df = census_block_place_puma_df, 
                         projection = "epsg:4269", 
                         reproject ="epsg:4269",
-                        geometryvar = 'blk104269')
+                        geometryvar = f'blk{yr}4269')
             return census_block_place_puma_gdf
             
         # Create empty container to store outputs for in-core
@@ -295,7 +295,7 @@ class generate_addpt_functions():
         ## Upload Address Point Inventory to IN-CORE
         # Upload CSV file to IN-CORE and save dataset_id
         # note you have to put the correct dataType as well as format
-        addpt_description =  '\n'.join(["2010 Address Point Inventory v2.0.0 with required IN-CORE columns. " 
+        addpt_description =  '\n'.join([f"{self.basevintage} Address Point Inventory v2.0.0 with required IN-CORE columns. " 
                 "Compatible with pyincore v1.4. " 
                 "Unit of observation is address point. " 
                 "Each address point is associated with a building in the building inventory. "
@@ -512,7 +512,7 @@ class generate_addpt_functions():
         ## Merge Two Address Point Files
         '''
         Combing the address points based on building inventory and 
-        the address points based on the 2010 Census will create one file 
+        the address points based on the 2010 or 2020 Census will create one file 
         that has address points for the entire county.
 
         The combined file will show where the building inventory may 
@@ -548,8 +548,8 @@ class generate_addpt_functions():
         address_point_inventory[displaycols].loc[condition].head()
         '''
 
-        # Fix issue with missing blockid vs BLOCKID10
-        address_point_inventory.loc[address_point_inventory.BLOCKID10_str.isna(),
+        # Fix issue with missing blockid vs BLOCKID{yr}
+        address_point_inventory.loc[address_point_inventory[f'BLOCKID{yr}_str'].isna(),
             f'BLOCKID{yr}_str'] = address_point_inventory[f'blockBLOCKID{yr}_str']
 
         cols = [col for col in address_point_inventory]
@@ -625,7 +625,7 @@ class generate_addpt_functions():
                                             right_on=[self.bldg_uniqueid], 
                                             how='left')
         # Rename geometry column to block geometry
-        address_point_inventory_geo.rename(columns={'geometry_x':f'block{10}_geometry'}, inplace=True)
+        address_point_inventory_geo.rename(columns={'geometry_x':f'block{yr}_geometry'}, inplace=True)
 
         # Rename geometry column to building geometry
         address_point_inventory_geo.rename(columns={'geometry_y':'building_geometry'}, inplace=True)
@@ -655,10 +655,10 @@ class generate_addpt_functions():
         The address point county file has many columns but only a few are needed to 
         generate the address point inventory.
         '''
-        ## Create block id variable from substring of BLOCKID10_str
+        ## Create block id variable from substring of BLOCKID{yr}_str
         address_point_inventory_geo['blockid'] = address_point_inventory_geo[f'BLOCKID{yr}_str'].str[1:16]
         select_cols = ['addrptid','strctid',self.bldg_uniqueid,'blockid',f'BLOCKID{yr}_str',
-            'building_geometry',f'block{10}_geometry',f'rppnt{yr}4269',
+            'building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269',
             'huestimate','residential','bldgobs','flag_ap']
         address_point_inventory_cols = address_point_inventory_geo[select_cols].copy(deep=True)
 
@@ -769,7 +769,7 @@ class generate_addpt_functions():
         address_point_gdf.loc[condition1,f'placeNAME{yr}'] = "Outside County"
         address_point_gdf.loc[condition1,'blockid'] = 999999999999999
         address_point_gdf.loc[condition1,f'BLOCKID{yr}_str'] = 'B999999999999999'
-        # Check if placeGEOID10 is missing
+        # Check if placeGEOID{yr} is missing
         condition1 = (address_point_gdf[f'placeGEOID{yr}'].isna())
         address_point_gdf.loc[condition1,f'placeGEOID{yr}'] = 9999999
 
@@ -792,7 +792,7 @@ class generate_addpt_functions():
         print("Shortest Block ID:",varid_max)
 
         # drop columns not needed for analysis
-        address_point_gdfv2.drop(['geometry','building_geometry',f'block{10}_geometry',f'rppnt{yr}4269'], \
+        address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
             axis=1, inplace=True)
         
         # Resave results for community name
