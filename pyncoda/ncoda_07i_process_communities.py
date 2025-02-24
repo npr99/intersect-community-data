@@ -31,7 +31,7 @@ class process_community_workflow():
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
-            basevintage: str = 2010,
+            basevintage: str = '2010',
             outputfolder: str ="OutputData",
             outputfolders = {},
             savefiles: bool = True):
@@ -226,6 +226,8 @@ class process_community_workflow():
         '''
         ### Run Housing Unit Allocation
         '''
+        # year is the last two digits of the basevintage
+        yr = str(self.basevintage)[2:4]
 
         archetype_var = community_dict['building_inventory']['archetype_var']
         use_incore = community_dict['building_inventory']['use_incore']
@@ -256,7 +258,9 @@ class process_community_workflow():
         ## Merge Housing Unit Allocation with Housing Unit Inventory
         # Merge HUA with HUI
         hua_cols = ['huid', bldg_uniqueid,
-                    'placeNAME10','huestimate','x','y']
+                    f'placeNAME{yr}','huestimate','x','y']
+        # check HUA Cols
+        print(hua_cols)
         hua_hui_df = pd.merge(left = housing_unit_inv_df,
                             right = hua_gdf[hua_cols],
                             on='huid',

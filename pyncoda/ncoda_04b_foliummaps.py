@@ -92,25 +92,26 @@ def folium_marker_layer_map(gdf,
 def count_gdfvar_by_building(hua_df, 
                             blocknum = '',
                             groupby_vars = ['x','y'],
-                            gdvar: str = 'huid'):
+                            gdvar: str = 'huid',
+                            year: str = '2010'):
     """
     Select housing units in a block
     """
 
-    # Check if Block2010 is missing
-    if 'Block2010' not in hua_df.columns:
+    # Check if Block{year} is missing
+    if f'Block{year}' not in hua_df.columns:
         # Add block id 2010 as string
         # zero pad block id to 15 digits
-        print("Adding Block2010")
-        hua_df['Block2010'] = hua_df['blockid'].apply(lambda x : str(int(x)).zfill(15))
-    # Check if Block2010 is a string
-    if hua_df['Block2010'].dtype != 'object':
-        print("Converting Block2010 to string")
-        hua_df['Block2010'] = hua_df['Block2010'].apply(lambda x : str(int(x)).zfill(15))
+        print(f"Adding Block{year}")
+        hua_df[f'Block{year}'] = hua_df['blockid'].apply(lambda x : str(int(x)).zfill(15))
+    # Check if Block{year} is a string
+    if hua_df[f'Block{year}'].dtype != 'object':
+        print("Converting Block{year} to string")
+        hua_df[f'Block{year}'] = hua_df[f'Block{year}'].apply(lambda x : str(int(x)).zfill(15))
 
     # check if block number is set
     if blocknum != '':
-        condition1 = (hua_df['Block2010'] == blocknum)
+        condition1 = (hua_df[f'Block{year}'] == blocknum)
         block_df = hua_df.loc[condition1].copy()
     else:
         block_df = hua_df.copy()
@@ -125,10 +126,11 @@ def count_gdfvar_by_building(hua_df,
 def map_selected_block(df, 
                         blocknum, 
                         gdfvar: str = "huid",
-                        laryername: str = "HUID count"):
+                        laryername: str = "HUID count",
+                        year: str = "2010"):
 
     # count gdfvar by building
-    gdfvar_count_df = count_gdfvar_by_building(df, blocknum, gdvar=gdfvar)
+    gdfvar_count_df = count_gdfvar_by_building(df, blocknum, gdvar=gdfvar, year=year)
 
     # convert points to gdf
     gdfvar_count_gdf = gpd.GeoDataFrame(
@@ -169,6 +171,7 @@ def plot_dotmap_map(gdf,
                     bldg_inv_id,
                     community,
                     place,
+                    year,
                     condition_id,
                     basemap_source = cx.providers.OpenStreetMap.HOT,
                     xlim=None,
@@ -201,6 +204,7 @@ def plot_dotmap_map(gdf,
                                    map_var,
                                    marker_size, 
                                    place,
+                                   year,
                                    basemap_source,
                                    xlim, ylim)  
     # handle contextily plotting manually or refactor into the called logic.
@@ -221,6 +225,7 @@ def plot_data_with_contextily(gdf,
                               map_var, 
                               marker_size, 
                               place,
+                              year,
                               basemap_source=cx.providers.OpenStreetMap.HOT,
                               xlim=None, ylim=None):
     
@@ -244,5 +249,5 @@ def plot_data_with_contextily(gdf,
         ax.set_ylim(ylim)
     cx.add_basemap(ax, crs=gdf.crs, 
                    source=basemap_source)
-    plt.title(f"{map_var} for {place}", size=18)
+    plt.title(f"{map_var} for {place} for {year}", size=18)
     return ax

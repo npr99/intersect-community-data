@@ -11,6 +11,8 @@ import sys  # saving CSV files
 
 from pyncoda.CommunitySourceData.api_census_gov.acg_00b_hui_block2010 import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00c_hispan_block2010 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00b_hui_block2020 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00c_hispan_block2020 import *
 
 class add_new_char_by_random_merge_2dfs():
     """"
@@ -169,10 +171,10 @@ class add_new_char_by_random_merge_2dfs():
 
         # Check if blockid in column list
         if ('blockid' in column_list) and ('block' not in column_list):
-            print("Adding Block2010 to column list")
+            print(f"Adding Block{self.geovintage} to column list")
             # create column in input df
-            # Version 2.0 of HUI renames Block2010 to blockid
-            add_geovarid_df['Block2010'] = add_geovarid_df['blockid']
+            # Version 2.0 of HUI renames Block GeoVintage to blockid
+            add_geovarid_df[f'Block{self.geovintage}'] = add_geovarid_df['blockid']
 
         # Save a list of the current columns - without geovarid
         column_list = list(add_geovarid_df.columns)
@@ -404,11 +406,11 @@ class add_new_char_by_random_merge_2dfs():
 
         return df_split
 
-    @staticmethod
-    def drop_randommerge_adduniqueid(df, 
-                        remove_cols = ['random_mergeorder','hhincfamincmerge'],
-                        uniqueid_part1 = 'Tract2010'):
+    def drop_randommerge_adduniqueid(self, df, 
+                        remove_cols = ['random_mergeorder','hhincfamincmerge']):
     
+        uniqueid_part1 = f'Tract{self.geovintage}'
+        
         # Add unique ID based on group vars
         df.loc[:,'unique_part2'] = df.groupby([uniqueid_part1]).cumcount() + 1
         df.loc[:,'uniqueid'] = df[uniqueid_part1] + \

@@ -50,7 +50,7 @@ class generate_prec_functions():
             seed: int = 9876,
             version: str = '3.0.0',
             version_text: str = 'v3-0-0',
-            basevintage: str = 2010,
+            basevintage: str = '2010',
             outputfolder: str ="",
             outputfolders = {},
             savefiles: bool = True):

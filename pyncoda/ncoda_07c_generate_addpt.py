@@ -96,7 +96,7 @@ class generate_addpt_functions():
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
-            basevintage: str = 2010,
+            basevintage: str = '2010',
             outputfolder: str ="",
             savefiles: bool = True,
             use_incore: bool = True):

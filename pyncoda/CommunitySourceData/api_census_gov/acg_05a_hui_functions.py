@@ -55,7 +55,7 @@ class hui_workflow_functions():
             seed: int = 9876,
             version: str = '2.0.0',
             version_text: str = 'v2-0-0',
-            basevintage: str = 2010,
+            basevintage: str = '2010',
             outputfolder: str ="",
             outputfolders = {},
             savefiles: bool = True):
