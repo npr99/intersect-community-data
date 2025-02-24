@@ -24,8 +24,6 @@ from pyncoda.ncoda_00e_geoutilities import *
 
 # Load in data structure dictionaries
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
-from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
-    import incore_v2_DataStructure
 
 # open, read, and execute python program with reusable commands
 from pyncoda.CommunitySourceData.api_census_gov.acg_02a_add_categorical_char \

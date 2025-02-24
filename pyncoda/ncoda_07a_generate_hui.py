@@ -52,7 +52,7 @@ from pyncoda.ncoda_04a_Figures import *
 from pyncoda.ncoda_06c_Codebook import *
 
 from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
-    import incore_v2_DataStructure
+    import *
 
 class generate_hui_functions():
     """
@@ -179,6 +179,9 @@ class generate_hui_functions():
             # Save second set of files in common directory
             hui_incore_df_fixed.to_csv(common_directory+'.csv', index=False)
             
+            # create list of all required ergo:buildingInventoryVer6 columns
+            incore_v2_DataStructure = adjust_incore_datastructure_baseyear(self.basevintage)
+
             # Generate figures for explore data
             figures_list = []
             for by_var in ["race","hispan","family"]:

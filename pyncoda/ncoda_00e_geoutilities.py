@@ -291,6 +291,7 @@ def spatial_join_points_to_poly(points_gdf,
         precise_matches = \
             possible_matches[possible_matches.intersects(polygon['geometry'])]
         for col in join_column_list:
+            # add column and rename with geolevel
             copy_point_gdf.loc[precise_matches.index,geolevel+col] = polygon[col]
 
     # Switch Geometry back to Polygon

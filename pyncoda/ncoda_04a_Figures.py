@@ -6,14 +6,12 @@ import matplotlib.ticker as ticker
 import pandas as pd
 from IPython import display
 
-from pyncoda.CommunitySourceData.api_census_gov.acg_00e_incore_huiv2 \
-    import incore_v2_DataStructure
 
 def income_distribution(input_df,
                         variable: str = "randincome",
                         by_variable: str = "race",
                         xlabel_string: str = "Household Income",
-                        datastructure = incore_v2_DataStructure,
+                        datastructure: dict = {},
                         communities: dict = {},
                         community: str = "",
                         year: int = 2010,

@@ -79,7 +79,7 @@ def obtain_join_block_place_puma_data(county_fips: str = '48167',
         '2020' : f'{base_url}TIGER2020/PLACE/tl_2020_{state_fips}_place.zip'},
     'puma'  : 
         {'2010' : f'{base_url}TIGER2010/PUMA5/2010/tl_2010_{state_fips}_puma10.zip',
-        '2020' : f'{base_url}TIGER2020/PUMA/tl_2020_{state_fips}_puma10.zip'}}
+        '2020' : f'{base_url}TIGER2020/PUMA20/tl_2020_{state_fips}_puma20.zip'}}
 
     # start empty geodataframe dictionary to store geolevel gdfs
     gdf = {}
@@ -89,6 +89,9 @@ def obtain_join_block_place_puma_data(county_fips: str = '48167',
         gdf[geolevel] = read_in_zip_shapefile_data(geolevel=geolevel, 
                                                    year = year, 
                                                    url_list = url_list)
+        # Keep the variables that starts with GEOID and NAME
+        # GEOID is the unique identifier for the geography
+        # NAME is the name of the geography
         join_cols[geolevel] =  [col for col in gdf[geolevel] if col.startswith("GEOID")]
         join_cols[geolevel] =  join_cols[geolevel] + \
             [col for col in gdf[geolevel] if col.startswith("NAME")]
@@ -111,6 +114,30 @@ def obtain_join_block_place_puma_data(county_fips: str = '48167',
                     poly_var = f'blk{yr}4269',
                     geolevel = geolevel,
                     join_column_list = join_cols[geolevel])
+        
+    # Check that join columns match the format geolevel+'GEOID'+yr
+    # and geolevel+'NAME'+yr
+    geolevels = ['place','puma']
+    column_names = ['GEOID','NAME','NAMELSAD']
+    yr = year[2:4]
+    print(f'Checking Column Names for {column_names} in {geolevel} data')
+    for geolevel in geolevels:
+        for col in column_names:
+            # find the column in gdf['block'] that matches the format
+            # check format of column names
+            correct_name_col = f"{geolevel}{col}{yr}"
+            possible2020_name_col = f"{geolevel}{col}"
+            if correct_name_col in gdf['block'].columns:
+                print(f'Column {col} is correctly formatted')
+            elif possible2020_name_col in gdf['block'].columns:
+                print(f'Column {col} is not correctly formatted')
+                print(f'Changing column name to {correct_name_col}')
+                gdf['block'].rename(columns={possible2020_name_col: correct_name_col}, inplace=True)
+            else:
+                print(f'Column {col} is not correctly formatted')
+                print(f'Column name should be {geolevel}{col}{yr}')
+                print(f'Please check column names in {geolevel} data')
+
 
     # Add block id string to block data
     gdf['block'][f'BLOCKID{yr}'] = \
