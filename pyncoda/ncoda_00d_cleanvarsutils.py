@@ -56,16 +56,25 @@ def add_label_cat_values_df(df, valuelabels, variable = ''):
         variable  = valuelabels['categorical_variable']['variable']
     variable_label = valuelabels['categorical_variable']['variable_label']
 
+    #print(df[variable].describe())
+
     df[variable_label] = "No Data"
 
     for item in valuelabels['value_list'].keys():
+        #print(variable, item)
         value =  valuelabels['value_list'][item]['value']
         value_label = valuelabels['value_list'][item]['value_label']
+        #print(value, value_label)
         df.loc[df[variable] == value, variable_label] = value_label
+        # print count of new value
+        len_df = df.loc[df[variable] == value].shape[0]
+        #print(f"{value_label} had {len_df} observations")
 
     # Set variable to missing if no data- makes tables look nicer
     df.loc[(df[variable_label] == "No Data"), 
         variable_label] = np.nan
+    
+    #print(df[variable_label].describe())
 
     return df
 
