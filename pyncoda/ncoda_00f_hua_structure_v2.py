@@ -9,8 +9,12 @@ pyType = Python Type - needed to set correct data type in Python
 
 """
 
-def adjust_incore_datastructure_baseyear(baseyear, state_county):
-    incore_v2_DataStructure = {
+def adjust_hua_datastructure_baseyear(baseyear, state_county):
+
+    # last 2 digits of baseyear
+    by2 = baseyear[2:4]
+
+    hua_DataStructure = {
         'huid'  : 
         {   'label' : 'Housing Unit ID', 
             'DataType'  : 'String',
@@ -367,7 +371,7 @@ def adjust_incore_datastructure_baseyear(baseyear, state_county):
             'pyType' : "category",
             'categorical' : True,
             'AnalysisUnit' : 'Household',
-            'MeasureUnit' : '2012 INFLATION-ADJUSTED DOLLARS',
+            'MeasureUnit' : '2012 or 2022 INFLATION-ADJUSTED DOLLARS',
             'categories_dict' : {
                 0 : '0. NA vacant or group quarters',
                 1 : '1. Less than $15,000',
@@ -394,7 +398,7 @@ def adjust_incore_datastructure_baseyear(baseyear, state_county):
             'DataType'  : 'Float',
             'pyType' : float,
             'AnalysisUnit' : 'Household',
-            'MeasureUnit' : '2012 INFLATION-ADJUSTED DOLLARS',
+            'MeasureUnit' : '2012 or 2022 INFLATION-ADJUSTED DOLLARS',
             'notes' : '\n'.join([
                     '1.  Household income top coded at $250,000. \n \n'
                     '2.  Based on 2012 or 2022 5-year ACS tables B19001 and B19101. \n \n'
@@ -432,7 +436,62 @@ def adjust_incore_datastructure_baseyear(baseyear, state_county):
                     f'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2022.B17021'
                     ]),
                 'primary_key' : 'huid',
-                'pop_var' : 'numprec'}
+                'pop_var' : 'numprec'},
+        'fd_id_bid'  : 
+            {   'label' : 'Building ID from NSI', 
+                'DataType'  : 'String',
+                'pyType' : str,
+                'AnalysisUnit' : 'Building - Structure',
+                'MeasureUnit' : 'Building ID',
+                'notes' : '\n'.join([
+                    '1. fd_id_bid is the Primary Key for the Building Inventory. '
+                    'Use fd_id_bid to merge data with the NSI building inventory. \n \n',
+                    '2. Many housing units can be in one building. \n \n',
+                    '3. fd_id_bid assigned in NSI building inventory. \n \n',
+                    '4. The ID code for the building inventory is the last part of the HUA file name. \n \n',
+                    '5. If the building inventory is changed the HUA must be re-run.'
+                        ])},
+        f'placeNAME{by2}'  : 
+            {   'label' : f'Place Name {baseyear}', 
+                'DataType'  : 'String',
+                'pyType' : str,
+                'AnalysisUnit' : 'Census Place',
+                'MeasureUnit' : 'Census Place',
+                'notes' : '\n'.join([
+                    '1. The Census Bureau uses this term to refer to most cities, \n \n',
+                    'some towns, villages and boroughs.'
+                        ])},
+        'huestimate'  : 
+            {   'label' : 'Housing Unit Estimate', 
+                'DataType'  : 'Float',
+                'pyType' : float,
+                'AnalysisUnit' : 'Building',
+                'MeasureUnit' : 'Housing Unit',
+                'notes' : '\n'.join([
+                    '1. The estimated number of housing units in a building.'
+                        ])},
+        'x'  : 
+            {   'label' : 'Longitude', 
+                'DataType'  : 'Float',
+                'pyType' : float,
+                'AnalysisUnit' : 'Building',
+                'MeasureUnit' : 'Degrees',
+                'notes' : '\n'.join([
+                    '1. Estimated location of the building Longitude.',
+                    '2. Based on building inventory. \n \n',
+                    '3. Coordinate Reference System: EPSG:4326. \n \n'
+                        ])},
+        'y'  : 
+            {   'label' : 'Latitude', 
+                'DataType'  : 'Float',
+                'pyType' : float,
+                'AnalysisUnit' : 'Building',
+                'MeasureUnit' : 'Degrees',
+                'notes' : '\n'.join([
+                    '1. Estimated location of the building Latitude.',
+                    '2. Based on building inventory. \n \n',
+                    '3. Coordinate Reference System: EPSG:4326. \n \n'
+                        ])}
         }
     
-    return incore_v2_DataStructure
+    return hua_DataStructure
