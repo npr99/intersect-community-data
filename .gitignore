@@ -322,6 +322,19 @@ paket-files/
 __pycache__/
 *.pyc
 
+# PyCharm folders
+/.idea
+/.cache
+/.junie
+
+# Temporary files and folders
+.ipynb_checkpoints
+
+# Build and distribution artifacts
+build
+/pyncoda.egg-info/
+dist
+
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config

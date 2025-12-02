@@ -1,0 +1,100 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyncoda"
+version = "3.0.0"
+authors = [
+  { name = "Nathanael Rosenheim" },
+]
+description = "A Python package for generating probabilistic household and population data for community resilience analysis"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+
+dependencies = [
+    # Core scientific computing
+    "numpy>=1.26.4",
+    "pandas>=2.2.2",
+    "scipy>=1.13.1",
+    "scikit-learn>=1.4.2",
+
+    # Geospatial libraries
+    "geopandas>=0.14.2",
+    "shapely>=2.0.1",
+    "fiona>=1.9.5",
+    "pyproj>=3.6.1",
+    "rasterio>=1.3.10",
+    "geopy>=2.4.1",
+    "geographiclib>=2.0",
+    "affine>=2.4.0",
+    "mercantile>=1.2.1",
+    "snuggs>=1.4.7",
+
+    # Visualization
+    "matplotlib>=3.8.4",
+    "seaborn>=0.13.2",
+    "folium>=0.14.0",
+    "contextily>=1.6.0",
+
+    # Web and data access
+    "requests>=2.32.2",
+    "wget>=3.2",
+
+    # PDF generation
+    "fpdf2>=2.7.9",
+
+    # Jupyter/IPython support
+    "ipywidgets>=8.1.2",
+    "IPython",
+
+    # Utilities
+    "scooby>=0.10.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/npr99/intersect-community-data"
+
+[project.optional-dependencies]
+incore = ["pyincore"]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "jupyter",
+    "notebook",
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+
+[tool.setuptools]
+packages = { find = {} }
+include-package-data = false
+zip-safe = false
+
+[tool.setuptools.package-data]
+pyncoda = [
+    "*.py",
+    "*.md",
+    "CommunitySourceData/**/*.py",
+    "CommunitySourceData/**/*.md",
+]

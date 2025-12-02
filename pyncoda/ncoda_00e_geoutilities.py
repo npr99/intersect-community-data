@@ -25,7 +25,7 @@ def df2gdf_WKTgeometry(df: pd.DataFrame,
                        geometryvar = 'geometry'):
 
     """Function to convert dataframe with WKT Geometry to Geodata Frame
-    
+
     Tested Python Environment:
         Python Version      3.7.10
         geopandas version:  0.9.0
@@ -42,14 +42,14 @@ def df2gdf_WKTgeometry(df: pd.DataFrame,
             UTM zone 19N = Maine          = epsg:26919
             https://spatialreference.org/ref/epsg/26910/
         :param geometryvar: Variable with WKT geometry
-    
+
     Returns:
         geopandas geodataframe in CRS
-    
+
     @author: Nathanael Rosenheim - nrosenheim@arch.tamu.edu
     @version: 2021-06-19T1217
     """
-    
+
     # Check version replication # to do - add way to print warning when version is not same as test
     # check_package_version(gpd,"0.9.0") - example call of function - returns confirmation or warning
 
@@ -62,10 +62,10 @@ def df2gdf_WKTgeometry(df: pd.DataFrame,
     gdf = gdf.set_geometry(gdf[geometryvar])
 
     gdf.crs = CRS(projection)
-    
+
     # reproject data
     gdf = gdf.to_crs(reproject)
-    
+
     return gdf
 
 def add_representative_point(polygon_gdf,
@@ -118,11 +118,11 @@ def nearest_pt_search(gdf_a: gpd.GeoDataFrame, gdf_b: gpd.GeoDataFrame,
                     dist_cutoff = 99999):
         """Given two sets of points add unique id from locations a to locations b
         Inspired by: https://towardsdatascience.com/using-scikit-learns-binary-trees-to-efficiently-find-latitude-and-longitude-neighbors-909979bd929b
-        
+
         This function is used to identify buildings associated with businesses, schools, hospitals.
         The locations of businesses might be geocoded by address and may not overlap
         the actual structure. This function helps resolve this issue.
-        
+
         Tested Python Environment:
             Python Version      3.7.10
             geopandas version:  0.9.0
@@ -140,30 +140,30 @@ def nearest_pt_search(gdf_a: gpd.GeoDataFrame, gdf_b: gpd.GeoDataFrame,
                 initially set to 9999 which will set the value to outliers
         Returns:
             GeoDataFrame: Locations b with nearest unique id from Locations a Geopandas DataFrame object
-        
+
         @author: Nathanael Rosenheim - nrosenheim@arch.tamu.edu
         @version: 2021-06-21T1021
         """
-        
+
         # Check if both gdf have the same CRS
         if gdf_a.crs == gdf_b.crs:
             save_crs = gdf_a.crs
-        
+
         # set up locations a
         locations_a = gdf_a[[uniqueid_a,'geometry']].copy()
-        
+
         locations_a['LON'] = locations_a.geometry.apply(lambda p: p.centroid.x)
         locations_a['LAT'] = locations_a.geometry.apply(lambda p: p.centroid.y)
-        
+
         # Critical step: reset index for locations a
         locations_a = locations_a.reset_index()
-        
+
         # set up locations b
         locations_b = gdf_b[[uniqueid_b,'geometry']].copy()
-        
+
         locations_b['LON'] = locations_b.geometry.apply(lambda p: p.centroid.x)
         locations_b['LAT'] = locations_b.geometry.apply(lambda p: p.centroid.y)
-        
+
         # Takes the first group's latitude and longitude values to construct
         # the kd tree.
         kd = KDTree(locations_a[["LAT", "LON"]].values)
@@ -171,55 +171,55 @@ def nearest_pt_search(gdf_a: gpd.GeoDataFrame, gdf_b: gpd.GeoDataFrame,
         # Executes a query with the second group. This will return two
         # arrays.
         distances, indices = kd.query(locations_b[["LAT", "LON"]], k=k)
-        
+
         # add distance to output - what unit is distance? 
         # if projection is UTM the distance is in meters
         # place distance array columns in new dataframe columns
-        
+
         # Identify outliers based on mean and standard deviation of nearest neighbors
         # outlier was considered but distances were too large and created errors
         outlier = distances[:,0].mean() + distances[:,0].std()*3
-        
+
         if dist_cutoff == 9999:
             dist_cutoff = outlier
-        
+
         # start an empty container to hold all of the locations
         append_locations = []
         for i in range(0,k):
             # copy locations b to new dataframe
             locations = locations_b.copy(deep=True)
-            
+
             # Which neighbor is this match
             locations['neighbor'] = i+1
-            
+
             # Critical step - select column with distances for neighbor i
             locations['distance'] = distances[:,i]
             # look for distances greater than cutoff  
             locations['distoutlier'] = np.where(locations['distance'] > dist_cutoff, True, False)
-            
+
             # add location a index
             # Critical step - select column with indices for neighbor i
             locations['location a index'] = indices[:,i]
-                       
+
             # clear index if distance is greater than cutoff
             locations.loc[(locations['distoutlier']==True), 'location a index'] = np.nan
-            
+
             # Merge by index
             # https://thispointer.com/pandas-how-to-merge-dataframes-by-index-using-dataframe-merge-part-3/
             locations = locations.merge(locations_a, left_on = 'location a index', 
                                              right_index=True, how='inner')
-            
+
             # append location data
             append_locations.append(locations)
-        
+
         # Create dataframe from appended locations data
         locationmatch = pd.concat(append_locations)
-        
+
         # Set geodateframe crs
         from pyproj import CRS
         locationmatch.crs = CRS(save_crs)
 
-    
+
         return locationmatch
 
 
@@ -275,7 +275,15 @@ def spatial_join_points_to_poly(points_gdf,
     print("Identified",area_poly_gdf.shape[0],geolevel,"polygons to spatially join.")
 
     # build the r-tree index - Using Representative Point
-    copy_point_gdf['geometry'] = copy_point_gdf[point_var]
+    # Check if point_var exists in the DataFrame
+    if point_var not in copy_point_gdf.columns:
+        print(f"Warning: {point_var} column not found in points_gdf. Using 'geometry' column instead.")
+        # Use the geometry column as is
+        pass
+    else:
+        # Use the point_var column as the geometry
+        copy_point_gdf['geometry'] = copy_point_gdf[point_var]
+
     sindex_copy_point_gdf = copy_point_gdf.sindex
 
     #Loops for spatial join are time consuming
@@ -297,7 +305,12 @@ def spatial_join_points_to_poly(points_gdf,
             copy_point_gdf.loc[precise_matches.index,geolevel+col] = polygon[col]
 
     # Switch Geometry back to Polygon
-    copy_point_gdf['geometry'] = copy_point_gdf[poly_var]
+    # Check if poly_var exists in the DataFrame
+    if poly_var not in copy_point_gdf.columns:
+        print(f"Warning: {poly_var} column not found in points_gdf. Keeping current geometry.")
+    else:
+        # Use the poly_var column as the geometry
+        copy_point_gdf['geometry'] = copy_point_gdf[poly_var]
 
     return copy_point_gdf
 
@@ -317,11 +330,11 @@ def single_layer_folium_map(gdf,layer_name, output_folder):
     fm.GeoJson(gdf[['geometry']],
               name=layer_name,
               style_function=style_function,).add_to(gdf_map)
-    
+
     fm.LayerControl().add_to(gdf_map)
-    
+
     gdf_map.save(output_folder+'/'+layer_name+'.html')
-    
+
     return gdf_map
 
 def check_state_name(state_fips: str = '48'):

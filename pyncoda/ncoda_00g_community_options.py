@@ -11,7 +11,7 @@ added automatically.
 
 """
 
-from pyncoda.ncoda_00h_bldg_archetype_structure import *
+import pyncoda.ncoda_00h_bldg_archetype_structure as bldg_arch
 # issues with generalizability of using ipwidgets
 #import ipywidgets as widgets
 
@@ -30,7 +30,7 @@ communities_dictionary = {
                         'id' : '62ab7dcbf328861e25ffea9e',
                         'note' : 'IN-CORE Building inventory for Robeson County, NC',
                         'archetype_var' : 'archetype',
-                        'residential_archetypes' : Nofal_residential_archetypesv2,
+                        'residential_archetypes' : bldg_arch.Nofal_residential_archetypesv2,
                         'building_area_var' : 'sq_foot'
                     }
                 },
@@ -47,7 +47,7 @@ communities_dictionary = {
                         'id' : '63053ddaf5438e1f8c517fed',
                         'note' : 'IN-CORE Building inventory for Galveston County, TX',
                         'archetype_var' : 'arch_flood',
-                        'residential_archetypes' : Nofal_residential_archetypesv2,
+                        'residential_archetypes' : bldg_arch.Nofal_residential_archetypesv2,
                         'building_area_var' : 'sq_foot'
                         }
                     },
@@ -65,7 +65,7 @@ communities_dictionary = {
                     'note' : 'NSI Building inventory for Galveston County, TX',
                     'archetype_var' : 'occtype',
                     'bldg_uniqueid' : 'fd_id_bid',
-                    'residential_archetypes' : HAZUS_residential_archetypes,
+                    'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                     'building_area_var' : 'sqft',
                     'building_area_cutoff' : 300
                     }
@@ -83,7 +83,7 @@ communities_dictionary = {
                         'id' : '63ff6b135c35c0353d5ed3ac',
                         'note' : 'IN-CORE Building inventory for Galveston Island, TX',
                         'archetype_var' : 'arch_flood',
-                        'residential_archetypes' : Nofal_residential_archetypesv2,
+                        'residential_archetypes' : bldg_arch.Nofal_residential_archetypesv2,
                         'building_area_var' : 'sq_foot',
                         'bldg_uniqueid' : 'guid',
                         'building_area_cutoff' : 300
@@ -103,7 +103,7 @@ communities_dictionary = {
                         'note' : 'NSI Building inventory for Graves County, KY',
                         'archetype_var' : 'occtype',
                         'bldg_uniqueid' : 'fd_id_bid',
-                        'residential_archetypes' : HAZUS_residential_archetypes,
+                        'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                         'building_area_var' : 'sqft',
                         'building_area_cutoff' : 300
                     }
@@ -122,7 +122,7 @@ communities_dictionary = {
                         'note' : 'NSI Building inventory for Jefferson County, TX',
                         'archetype_var' : 'occtype',
                         'bldg_uniqueid' : 'fd_id_bid',
-                        'residential_archetypes' : HAZUS_residential_archetypes,
+                        'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                         'building_area_var' : 'sqft',
                         'building_area_cutoff' : 300
                     }
@@ -138,11 +138,11 @@ communities_dictionary = {
                     'building_inventory' : { 
                         'use_incore' : False,
                         'id' : 'Safayet',
-                        'filename' : "G:\Shared drives\HRRC_IN-CORE\Tasks\P5.2 Social Institution Resilience\WorkNPR\IN-CORE_2bv1_prep_bldgfile_hua_2023-06-23\IN-CORE_2bv1_prep_bldgfile_hua_2023-06-23.shp",
+                        'filename' : r"G:\Shared drives\HRRC_IN-CORE\Tasks\P5.2 Social Institution Resilience\WorkNPR\IN-CORE_2bv1_prep_bldgfile_hua_2023-06-23\IN-CORE_2bv1_prep_bldgfile_hua_2023-06-23.shp",
                         'note' : 'Safayet Building inventory for Jefferson County, TX',
                         'archetype_var' : 'res',
                         'bldg_uniqueid' : 'bldg_id',
-                        'residential_archetypes' : basic_residential_archetypes,
+                        'residential_archetypes' : bldg_arch.basic_residential_archetypes,
                         'building_area_var' : 'sqft',
                         'building_area_cutoff' : 300
                     }
@@ -161,7 +161,7 @@ communities_dictionary = {
                         'note' : 'NSI Building inventory for Oceana County, MI',
                         'archetype_var' : 'occtype',
                         'bldg_uniqueid' : 'fd_id_bid',
-                        'residential_archetypes' : HAZUS_residential_archetypes,
+                        'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                         'building_area_var' : 'sqft',
                         'building_area_cutoff' : 300
                         }
@@ -180,7 +180,7 @@ communities_dictionary = {
                     'note' : 'NSI Building inventory for Clatsop County, OR',
                     'archetype_var' : 'occtype',
                     'bldg_uniqueid' : 'fd_id_bid',
-                    'residential_archetypes' : HAZUS_residential_archetypes,
+                    'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                     'building_area_var' : 'sqft',
                     'building_area_cutoff' : 300
                     }
@@ -199,7 +199,7 @@ communities_dictionary = {
                     'note' : 'NSI Building inventory for Lane County, OR',
                     'archetype_var' : 'occtype',
                     'bldg_uniqueid' : 'fd_id_bid',
-                    'residential_archetypes' : HAZUS_residential_archetypes,
+                    'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                     'building_area_var' : 'sqft',
                     'building_area_cutoff' : 300
                     }
@@ -218,7 +218,7 @@ communities_dictionary = {
                     'note' : 'NSI Building inventory for Benton County, OR',
                     'archetype_var' : 'occtype',
                     'bldg_uniqueid' : 'fd_id_bid',
-                    'residential_archetypes' : HAZUS_residential_archetypes,
+                    'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                     'building_area_var' : 'sqft',
                     'building_area_cutoff' : 300
                     }
@@ -241,7 +241,7 @@ communities_dictionary = {
                     'note' : 'NSI Building inventory for Southeast Texas',
                     'archetype_var' : 'occtype',
                     'bldg_uniqueid' : 'fd_id_bid',
-                    'residential_archetypes' : HAZUS_residential_archetypes,
+                    'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                     'building_area_var' : 'sqft',
                     'building_area_cutoff' : 300
                 }
@@ -271,7 +271,7 @@ communities_dictionary = {
                     'note' : 'NSI Building inventory for Southeast Texas',
                     'archetype_var' : 'occtype',
                     'bldg_uniqueid' : 'fd_id_bid',
-                    'residential_archetypes' : HAZUS_residential_archetypes,
+                    'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                     'building_area_var' : 'sqft',
                     'building_area_cutoff' : 300
                 }
@@ -290,7 +290,7 @@ communities_dictionary = {
             'note' : 'NSI Building inventory for Brazos County, TX',
             'archetype_var' : 'occtype',
             'bldg_uniqueid' : 'fd_id_bid',
-            'residential_archetypes' : HAZUS_residential_archetypes,
+            'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
             'building_area_var' : 'sqft',
             'building_area_cutoff' : 300
             }
@@ -310,6 +310,7 @@ communities_dictionary = {
                 'archetype_var' : 'occtype',
                 'bldg_uniqueid' : 'fd_id_bid',
                 'residential_archetypes' : HAZUS_residential_archetypes,
+                'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                 'building_area_var' : 'sqft',
                 'building_area_cutoff' : 300
                 }
@@ -328,7 +329,7 @@ communities_dictionary = {
                 'note' : 'NSI Building inventory for Broomfield County, CO, 2010',
                 'archetype_var' : 'occtype',
                 'bldg_uniqueid' : 'fd_id_bid',
-                'residential_archetypes' : HAZUS_residential_archetypes,
+                'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                 'building_area_var' : 'sqft',
                 'building_area_cutoff' : 300
                 }

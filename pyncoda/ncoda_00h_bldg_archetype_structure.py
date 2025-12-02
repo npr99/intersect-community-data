@@ -30,14 +30,14 @@ Nofal_residential_archetypesv2 = {
 
 # HAZUS Archetypes for residential buildings include an estimate of housing units
 HAZUS_residential_archetypes = { 
-    "RES1-1SNB" : {'Description' : "Single Family Dwelling", 'HU estimate' : 1},
-    "RES1-1SWB" : {'Description' : "Single Family Dwelling", 'HU estimate' : 1},
-    "RES1-2SNB" : {'Description' : "Single Family Dwelling", 'HU estimate' : 1},
-    "RES1-2SWB" : {'Description' : "Single Family Dwelling", 'HU estimate' : 1},
-    "RES1-3SNB" : {'Description' : "Single Family Dwelling", 'HU estimate' : 1},
-    "RES1-3SWB" : {'Description' : "Single Family Dwelling", 'HU estimate' : 1},
-    "RES1-SLNB" : {'Description' : "Single Family Dwelling", 'HU estimate' : 1},
-    "RES1-SLWB" : {'Description' : "Single Family Dwelling", 'HU estimate' : 1},
+    "RES1-1SNB" : {'Description' : "Single Family Dwelling, 1 Story, No Basement", 'HU estimate' : 1},
+    "RES1-1SWB" : {'Description' : "Single Family Dwelling, 1 Story, With Basement", 'HU estimate' : 1},
+    "RES1-2SNB" : {'Description' : "Single Family Dwelling, 2 Stories, No Basement", 'HU estimate' : 1},
+    "RES1-2SWB" : {'Description' : "Single Family Dwelling, 2 Stories, With Basement", 'HU estimate' : 1},
+    "RES1-3SNB" : {'Description' : "Single Family Dwelling, 3 Stories, No Basement", 'HU estimate' : 1},
+    "RES1-3SWB" : {'Description' : "Single Family Dwelling, 3 Stories, With Basement", 'HU estimate' : 1},
+    "RES1-SLNB" : {'Description' : "Single Family Dwelling, Split Level, No Basement", 'HU estimate' : 1},
+    "RES1-SLWB" : {'Description' : "Single Family Dwelling, Split Level, With Basement", 'HU estimate' : 1},
     "RES1" : {'Description' : "Single Family Dwelling", 'HU estimate' : 1},
     "RES2" : {'Description' : "Mobile / Manufactured Home", 'HU estimate' : 1},
     "RES3A" : {'Description' : "Duplex", 'HU estimate' : 2},

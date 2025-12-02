@@ -1,12 +1,29 @@
+# Core scientific computing dependencies for pyncoda_wrapper.py functions
+numpy>=1.26.4
+pandas>=2.2.2
+scipy>=1.13.1
+
+# Geospatial libraries required for community data processing
+geopandas>=0.14.2
+shapely>=2.0.1
+fiona>=1.9.5
+pyproj>=3.6.1
+rasterio>=1.3.10
+geopy>=2.4.1
+geographiclib>=2.0
+affine>=2.4.0
+
+# Web and data access
+requests>=2.32.2
+wget>=3.2
+
+# Utilities
+scooby>=0.10.0
+
+# Plotting dependencies
 ipywidgets==8.1.2
 matplotlib==3.8.4
-numpy==1.26.4
-pandas==2.2.2
-geopandas==0.14.2
-requests==2.32.2
 seaborn==0.13.2
-scooby==0.10.0
 contextily==1.6.0
 folium==0.14.0
 fpdf2==2.7.9
-wget==3.2

@@ -12,14 +12,15 @@ def predict_residential_addresspoints(building_to_block_gdf,
                                      archetype_var, 
                                      residential_archetypes,
                                      building_area_var,
-                                     building_area_cutoff):
+                                     building_area_cutoff,
+                                     residential_unit_var=None):
     """
     Function that attempts to predict housing units in a structure.
     Function runs three rounds of checks and updates the housing unit counts in each round.
     To Do - This function repeats significant blocks of code that could 
     be split into sub functions.
     """
-    
+
     # Create a copy of the building data frame
     bldg_df = building_to_block_gdf.copy(deep=True)
     # start by assuming that buildings have 0 residential address points
@@ -27,28 +28,40 @@ def predict_residential_addresspoints(building_to_block_gdf,
     bldg_df['residentialAP1'].label = "Residential Address Point Round 1"
     bldg_df['residentialAP1'].note = \
         "Residential Address Point - first attempt to assign residential address points to buildings"
-    
+
     bldg_df['residential'] = 0
     bldg_df['residentialAP1'].label = "Residential Address Point Round 1"
     bldg_df['residentialAP1'].note = \
         "Residential Address Point - first attempt to assign residential address points to buildings"
-    
 
-    # Update residential address points by assigning 
-    # residential archetypes with 1 housing unit
-    for residential_archetype in residential_archetypes:
-        condition = (bldg_df[archetype_var] == residential_archetype)
-        # Check if HU estimate is in dictionary key
-        if 'HU estimate' in residential_archetypes[residential_archetype].keys():
-            # Assign HU estimate to residential address points
-            hu_estimate = residential_archetypes[residential_archetype]['HU estimate']
-            bldg_df.loc[condition,'residentialAP1'] = hu_estimate
-        else:
-            # Assign 1 to residential address points
-            bldg_df.loc[condition,'residentialAP1'] = 1
-        # Length of data frame
+
+    # If residential_unit_var is provided, use it to assign housing units directly
+    if residential_unit_var is not None and residential_unit_var in bldg_df.columns:
+        print(f"Using {residential_unit_var} from building inventory for residential unit estimates")
+        # Assign residential units directly from the building inventory
+        bldg_df.loc[bldg_df[residential_unit_var].notna(), 'residentialAP1'] = bldg_df[residential_unit_var]
+        # Count how many buildings have residential units assigned
+        condition = (bldg_df['residentialAP1'] > 0)
         len_bldg_df = bldg_df.loc[condition].shape[0]
-        print(len_bldg_df,"Buildings have Residential Archetype",residential_archetype)
+        print(len_bldg_df, "Buildings have residential units assigned from", residential_unit_var)
+    else:
+        # Update residential address points by assigning 
+        # residential archetypes with 1 housing unit
+        print("Using residential archetypes for residential unit estimates")
+
+        for residential_archetype in residential_archetypes:
+            condition = (bldg_df[archetype_var] == residential_archetype)
+            # Check if HU estimate is in dictionary key
+            if 'HU estimate' in residential_archetypes[residential_archetype].keys():
+                # Assign HU estimate to residential address points
+                hu_estimate = residential_archetypes[residential_archetype]['HU estimate']
+                bldg_df.loc[condition,'residentialAP1'] = hu_estimate
+            else:
+                # Assign 1 to residential address points
+                bldg_df.loc[condition,'residentialAP1'] = 1
+            # Length of data frame
+            len_bldg_df = bldg_df.loc[condition].shape[0]
+            print(len_bldg_df,"Buildings have Residential Archetype",residential_archetype)
 
     # remove small buildings from residential building list
     condition = (bldg_df[building_area_var] < building_area_cutoff)
@@ -78,7 +91,7 @@ def predict_residential_addresspoints(building_to_block_gdf,
     condition = (bldg_df['residentialAP1'] >= 1)
     bldg_df.loc[condition,'residential'] = 1
     bldg_df['bldgcount'] = 1
-    
+
     # Look at address point count by block
     hua_block_counts = hui_df[[hui_blockid,'huid']].groupby(hui_blockid).agg('count')
     hua_block_counts.reset_index(inplace = True)
@@ -152,7 +165,7 @@ def predict_residential_addresspoints(building_to_block_gdf,
                   'bldgcount1_sum','DiffCount1','ErrorCheck1_int']
 
     bldg_df_round2 = pd.merge(left = bldg_df, 
-                              right = census_blocks_df_rap1[keepcolumns], 
+                              right = census_blocks_df_rap1[keepcolumns],
                               left_on=bldg_blockid, 
                               right_on=bldg_blockid, 
                               how='left')
@@ -353,7 +366,7 @@ def block_error_check_addresspoints(census_blocks_df,
 
     # Create Error Variable
     census_blocks_df[ErrorCheck+'_int'] = 0
-    
+
     # Set up holders for variables to check
     hu_count =    f"df['{expected_count}']"
     addpt_count = f"df['{estimated_count}']"

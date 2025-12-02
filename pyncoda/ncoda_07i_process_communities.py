@@ -24,6 +24,11 @@ class process_community_workflow():
     1. Housing Unit Inventory
     2. Address Point Inventory
     3. Housing Unit Allocation
+
+    The class can be configured to process an entire county or a subset of census tracts
+    within a county by providing a list of census tract IDs to the census_tracts parameter.
+    When census_tracts is provided, the housing unit inventory will be filtered to include
+    only housing units in the specified census tracts.
     """
 
     def __init__(self,
@@ -34,7 +39,33 @@ class process_community_workflow():
             basevintage: str = '2010',
             outputfolder: str ="OutputData",
             outputfolders = {},
-            savefiles: bool = True):
+            savefiles: bool = True,
+            census_tracts: list = None,
+            import_hui_path: str = None,
+            export_hui_path: str = None,
+            force_hua_rerun: bool = False):
+        """
+        Initialize the process_community_workflow class.
+
+        Parameters:
+        - communities: Dictionary containing community-specific parameters and building inventory details.
+        - seed: Random seed for reproducibility.
+        - version: Version number.
+        - version_text: Version text.
+        - basevintage: Base vintage year.
+        - outputfolder: Output folder path.
+        - outputfolders: Dictionary of output folders.
+        - savefiles: Whether to save files.
+        - census_tracts: List of census tract IDs to include. If None, all tracts are included.
+                         Census tract IDs should be 11-character strings (e.g., '06001400100').
+        - import_hui_path: Path to a previously saved housing unit inventory CSV file. If provided,
+                          the workflow will skip the housing unit inventory generation step and use this file instead.
+        - export_hui_path: Path where the housing unit inventory CSV file should be saved for future use.
+                          If None, the file will be saved in the default location.
+        - force_hua_rerun: If True, always perform the housing unit allocation from scratch, even if
+                          previously saved data exists. This affects only the probabilistic assignment
+                          of housing units to buildings, not the generation of the housing unit inventory.
+        """
 
         self.communities = communities
         self.seed = seed
@@ -44,41 +75,87 @@ class process_community_workflow():
         self.outputfolder = outputfolder
         self.outputfolders = outputfolders
         self.savefiles = savefiles
+        self.census_tracts = census_tracts
+        self.import_hui_path = import_hui_path
+        self.export_hui_path = export_hui_path
+        self.force_hua_rerun = force_hua_rerun
 
 
     def generate_hui(self, communities, use_incore):
-        ## Read in Housing Unit Inventory or create a new one
-        generate_hui_df = generate_hui_functions(
-                            communities =   communities,
-                            seed =          self.seed,
-                            version =       self.version,
-                            version_text=   self.version_text,
-                            basevintage=    self.basevintage,
-                            outputfolder=   self.outputfolder,
-                            use_incore=     use_incore
-                            )
+        """
+        Generate or load Housing Unit Inventory.
 
-        hui_dataset_id = generate_hui_df.generate_hui_v2_for_incore()
+        If import_hui_path is provided, it will load the HUI from that file.
+        Otherwise, it will generate a new HUI.
 
-        # If using IN-CORE
-        if use_incore:
-            from pyincore import Dataset
-            # Housing Unit inventory
-            housing_unit_inv_id = hui_dataset_id
-            from pyncoda.ncoda_06d_INCOREDataService import loginto_incore_dataservice
-            # set IN-CORE data service
-            data_service = loginto_incore_dataservice()
-            # load housing unit inventory as pandas dataframe
-            housing_unit_inv = Dataset.from_data_service(housing_unit_inv_id, data_service)
-            filename = housing_unit_inv.get_file_path('csv')
-            print("The IN-CORE Dataservice has saved the Housing Unit Inventory on your local machine: "+filename)
-
-            # Convert CSV to Pandas Dataframe
-            housing_unit_inv_df = pd.read_csv(filename, header="infer")
+        If export_hui_path is provided, it will save the HUI to that file.
+        """
+        # Check if we should import a previously saved HUI
+        if self.import_hui_path is not None and os.path.exists(self.import_hui_path):
+            print(f"Loading Housing Unit Inventory from: {self.import_hui_path}")
+            housing_unit_inv_df = pd.read_csv(self.import_hui_path, header="infer")
+            hui_dataset_id = 'imported'
         else:
-            housing_unit_inv_df = hui_dataset_id
-            hui_dataset_id = 'local'
-        
+            ## Read in Housing Unit Inventory or create a new one
+            generate_hui_df = generate_hui_functions(
+                                communities =   communities,
+                                seed =          self.seed,
+                                version =       self.version,
+                                version_text=   self.version_text,
+                                basevintage=    self.basevintage,
+                                outputfolder=   self.outputfolder,
+                                use_incore=     use_incore
+                                )
+
+            hui_dataset_id = generate_hui_df.generate_hui_v2_for_incore()
+
+            # If using IN-CORE
+            if use_incore:
+                from pyincore import Dataset
+                # Housing Unit inventory
+                housing_unit_inv_id = hui_dataset_id
+                from pyncoda.ncoda_06d_INCOREDataService import loginto_incore_dataservice
+                # set IN-CORE data service
+                data_service = loginto_incore_dataservice()
+                # load housing unit inventory as pandas dataframe
+                housing_unit_inv = Dataset.from_data_service(housing_unit_inv_id, data_service)
+                filename = housing_unit_inv.get_file_path('csv')
+                print("The IN-CORE Dataservice has saved the Housing Unit Inventory on your local machine: "+filename)
+
+                # Convert CSV to Pandas Dataframe
+                housing_unit_inv_df = pd.read_csv(filename, header="infer")
+            else:
+                housing_unit_inv_df = hui_dataset_id
+                hui_dataset_id = 'local'
+
+        # Filter housing unit inventory by census tracts if specified
+        if self.census_tracts is not None:
+            print(f"Filtering housing unit inventory to include only census tracts: {self.census_tracts}")
+
+            # Get the year (last two digits)
+            yr = str(self.basevintage)[2:4]
+
+            # Convert blockid to string with B prefix and zero-padded to 15 characters
+            housing_unit_inv_df['BLOCKID_str'] = housing_unit_inv_df['blockid'].apply(
+                lambda x: "B" + str(int(x)).zfill(15) if pd.notnull(x) else None
+            )
+
+            # Extract tract ID from block ID (first 11 characters of the 15-character block ID)
+            housing_unit_inv_df['tract_id'] = housing_unit_inv_df['BLOCKID_str'].str[1:12]
+
+            # Filter housing units by tract ID
+            original_count = len(housing_unit_inv_df)
+            housing_unit_inv_df = housing_unit_inv_df[housing_unit_inv_df['tract_id'].isin(self.census_tracts)]
+            filtered_count = len(housing_unit_inv_df)
+            print(f"Filtered housing unit inventory from {original_count} to {filtered_count} housing units")
+
+        # Export HUI if requested
+        if self.export_hui_path is not None:
+            print(f"Saving Housing Unit Inventory to: {self.export_hui_path}")
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(self.export_hui_path), exist_ok=True)
+            housing_unit_inv_df.to_csv(self.export_hui_path, index=False)
+
         return housing_unit_inv_df, hui_dataset_id
 
 
@@ -86,18 +163,18 @@ class process_community_workflow():
                                 community_dict):
         """
         Loads building inventory for a given community from specified sources.
-        
+
         Parameters:
         - community: The community name.
         - community_config: Configuration dictionary for the community.
         - data_service: IN-CORE DataService instance for accessing datasets.
-        
+
         Returns:
         - Geopandas GeoDataFrame of the loaded building inventory.
         """
         # Logic to load building inventory based on community_config
         # This includes handling IN-CORE data service, file sources, or NSI datasets
-        
+
         use_incore = community_dict['building_inventory']['use_incore']
         bldg_inv_id = community_dict['building_inventory']['id']
 
@@ -121,7 +198,7 @@ class process_community_workflow():
         elif 'filename' in community_dict['building_inventory'].keys():
             # Get the Unique ID
             bldg_uniqueid = community_dict['building_inventory']['bldg_uniqueid']
-            
+
             print("Building inventory is from a file")
             bldg_filename = community_dict['building_inventory']['filename']
             bldg_inv_gdf = gpd.read_file(bldg_filename)
@@ -140,7 +217,13 @@ class process_community_workflow():
             # merge all counties into one geodataframe
             bldg_inv_gdf = pd.concat(county_nsi_gdf.values(), 
                                         ignore_index=True, axis=0)
-        
+
+        # Save the building inventory
+        bldg_inv_gdf.to_file(
+            os.path.join(self.outputfolder, 'building_inventory.geojson'),
+            driver='GeoJSON'
+        )
+
         return bldg_inv_gdf, bldg_inv_id, bldg_uniqueid
 
     def generate_and_process_addpt(self,
@@ -149,7 +232,7 @@ class process_community_workflow():
                                     bldg_inv_gdf, 
                                     community_dict,
                                     communities_dict):
-        
+
 
 
         archetype_var = community_dict['building_inventory']['archetype_var']
@@ -212,7 +295,7 @@ class process_community_workflow():
             print("The Address Point Inventory is not a string or pandas dataframe")
 
         return addpt_inv_df, addpt_dataset_id
-    
+
     def generate_and_process_hua(self,
                                 community,
                                 community_dict,
@@ -249,7 +332,8 @@ class process_community_workflow():
                                 basevintage=    self.basevintage,
                                 outputfolder=   self.outputfolder,
                                 outputfolders = outputfolders,
-                                use_incore=     use_incore
+                                use_incore=     use_incore,
+                                force_rerun=    self.force_hua_rerun
                                 )
 
         hua_gdf = run_hua_gdf.housing_unit_allocation_workflow()
@@ -291,7 +375,7 @@ class process_community_workflow():
             print(state_county_name,': county FIPS Code',state_county)
             county_list = county_list + state_county_name+': county FIPS Code '+state_county
         county_list
-        
+
         title = "Housing Unit Allocation v2.0.0 data for "+community + " " + str(self.basevintage)
         title
 
@@ -302,12 +386,22 @@ class process_community_workflow():
                                 csv_filepath = csv_filepath,
                                 output_filename = output_filename)
         return hua_hui_df
-                                       
+
     def process_communities(self):
         """
         Processes multiple communities to generate and allocate housing units based on 
         building inventories, either loaded from IN-CORE DataService, a file, or the NSI dataset.
-        
+
+        If import_hui_path is provided, it will load the housing unit inventory from that file
+        instead of generating it. This allows skipping the data collection steps.
+
+        If export_hui_path is provided, it will save the housing unit inventory to that file
+        for future use.
+
+        If force_hua_rerun is True, the housing unit allocation will be performed from scratch,
+        even if a previously saved file exists. This affects only the probabilistic assignment
+        of housing units to buildings, not the generation of the housing unit inventory.
+
         Parameters:
         - communities: Dictionary containing community-specific parameters and building inventory details.
         - housing_unit_inv_df: DataFrame containing housing unit inventory data.
@@ -327,17 +421,17 @@ class process_community_workflow():
             # Load Housing Unit Inventory
             housing_unit_inv_df, hui_dataset_id = \
                 self.generate_hui(self.communities, use_incore)
-        
+
             # Extract community-specific configuration
             bldg_inv_id = community_dict['building_inventory']['id']
-            
+
             # Load building inventory based on source configuration
             bldg_inv_gdf, bldg_inv_id, bldg_uniqueid = \
                 self.load_building_inventory(community_dict) 
 
             print(f"Generate Address point inventory for: {community}")
             print(f"Based on building inventory: {bldg_inv_id}")
-            
+
             # Generate Address Point Inventory
             addpt_inv_df, addpt_dataset_id = \
                 self.generate_and_process_addpt(community, 
@@ -345,7 +439,7 @@ class process_community_workflow():
                                                 bldg_inv_gdf, 
                                                 community_dict,
                                                 self.communities)
-            
+
             # Generate and process housing unit allocation
             hua_hui_df = self.generate_and_process_hua(community,
                                                         community_dict,
@@ -362,5 +456,5 @@ class process_community_workflow():
             crs = "EPSG:4326"
             hua_hui_gdf = gpd.GeoDataFrame(hua_hui_df, 
                 geometry=gpd.points_from_xy(hua_hui_df.x, hua_hui_df.y), crs=crs)
-            
+
             return hua_hui_gdf

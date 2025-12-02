@@ -20,7 +20,7 @@ Program requires the following inputs:
     - Current version will require users to have an IN-CORE account
 3. Housing Unit Inventory - for expected address point counts by block
 4. program will use the block data, expected counts, and building inventory to generate an address point inventory.
-    
+
 ## Output Description
 The output of this workflow is a CSV file with the address point inventory and a codebook that describes the data.
 
@@ -120,6 +120,12 @@ class generate_addpt_functions():
         self.year = basevintage
         self.use_incore = use_incore
 
+        # Check if residential_unit_var is defined in the community's building_inventory
+        self.residential_unit_var = None
+        if 'residential_unit_var' in self.communities[community]['building_inventory']:
+            self.residential_unit_var = self.communities[community]['building_inventory']['residential_unit_var']
+            print(f"Using residential_unit_var: {self.residential_unit_var} from building inventory")
+
 
     def remove_decimal0(self, cell):
         # code to remove decimal and 0 from cell
@@ -133,7 +139,7 @@ class generate_addpt_functions():
             return cell
         except ValueError:
             return cell  # Return the original value if conversion fails
-        
+
     def obtain_census_block_place_puma_gdf(self, community, year):
         """
         Create one file that has the census block, place, and puma for each block
@@ -166,7 +172,7 @@ class generate_addpt_functions():
                         reproject ="epsg:4269",
                         geometryvar = f'blk{yr}4269')
             return census_block_place_puma_gdf
-            
+
         # Create empty container to store outputs for in-core
         # Will use these to combine multiple counties
         county_df = {}
@@ -180,7 +186,7 @@ class generate_addpt_functions():
             # create output folders for hui data generation
             outputfolders = directory_design(state_county_name = community,
                                                 outputfolder = self.outputfolder)
-            
+
             # Check if State FIPS code matches state name
             # State FIPS code is the first two digits of the county FIPS code
             state_fips = state_county[:2]
@@ -204,11 +210,11 @@ class generate_addpt_functions():
                                 year = year,
                                 output_folder = output_folder,
                                 replace = False)
-            
+
         # Combine all counties into one dataframe
         census_block_place_puma_gdf = pd.concat(county_df.values(), 
                                     ignore_index=True, axis=0)
-        
+
         #Save results for community name
         savefile = os.path.join(os.getcwd(), csv_filepath)
         census_block_place_puma_gdf.to_csv(savefile, index=False)
@@ -241,7 +247,7 @@ class generate_addpt_functions():
         join_column_list = [f'BLOCKID{yr}',f'BLOCKID{yr}_str',
                             f'placeGEOID{yr}',f'placeNAME{yr}']
         geolevel = 'block'
-        
+
         # Drop observations where geometry is null
         # Count number of observations dropped
         print("Dropping observations where geometry is null")
@@ -269,7 +275,6 @@ class generate_addpt_functions():
                     poly_var = f'blk{yr}4269',
                     geolevel = geolevel,
                     join_column_list = join_column_list)
-        
 
         # Housing unit inventory needs the block string variable
         self.hui_df[f'BLOCKID{yr}_str'] = \
@@ -287,7 +292,8 @@ class generate_addpt_functions():
                         archetype_var = self.archetype_var,
                         residential_archetypes = self.residential_archetypes,
                         building_area_var = self.building_area_var,
-                        building_area_cutoff = self.building_area_cutoff
+                        building_area_cutoff = self.building_area_cutoff,
+                        residential_unit_var = self.residential_unit_var
                         )
 
         # Check errors
@@ -392,7 +398,7 @@ class generate_addpt_functions():
         # set year
         year = str(self.year)
         yr = year[2:4]
-        
+
         # Set community
         community = self.community
         title = "Address Point Inventory v2.0.0 data for "+community + " " + str(year)
@@ -444,7 +450,7 @@ class generate_addpt_functions():
                     county_list = county_list,
                     csv_filepath = csv_filepath,
                     output_filename = output_filename)
-                
+
                 if dataset_id_final == "No Dataset ID":
                     print("Could not upload file to INCORE")
                     print("dataset_id is set to the dataframe")
@@ -453,7 +459,7 @@ class generate_addpt_functions():
                                                     low_memory=False, 
                                                     dtype={f'blockid':str,f'placeGEOID{yr}':str,f'COUNTYFP{yr}':str})
                     return address_point_df
-                
+
                 return dataset_id_final
             else:
                 print("File already exists on local drive: "+savefile)
@@ -482,7 +488,7 @@ class generate_addpt_functions():
         self.hui_df[blockid_str] = \
                 self.hui_df[f'blockid'].\
                     apply(lambda x : "B"+str(int(x)).zfill(15))
-        
+
         hua_block_counts = self.hui_df[[blockid_str,'huid']].groupby(blockid_str).agg('count')
         hua_block_counts.reset_index(inplace = True)
         # rename columns to match census block data
@@ -550,7 +556,7 @@ class generate_addpt_functions():
         # code to expand dataframe using .repeat() method
         huesimate_df_cols_expand = huesimate_df_cols.reindex(
             huesimate_df_cols.index.repeat(huesimate_df_cols['expandvar']))
-        
+
         # Expand Residential Address Point Count File
         ## Using the count of address point variable expand residential address point count file
         # The expand variable can not have missing values
@@ -619,7 +625,7 @@ class generate_addpt_functions():
         print("Number of observations with missing building id: ",condition.sum())
         address_point_inventory.loc[condition,'strctid'] = address_point_inventory.\
             apply(lambda x: "C"+ str(x[f'BLOCKID{yr}_str']).zfill(36), axis=1)
-        
+
         condition = (address_point_inventory[self.bldg_uniqueid].notna())
         print("Number of observations with building id: ",condition.sum())
         address_point_inventory.loc[condition,'strctid'] = address_point_inventory.\
@@ -818,7 +824,7 @@ class generate_addpt_functions():
         # Add X and Y variables
         address_point_gdf['x'] = address_point_gdf['geometry'].x
         address_point_gdf['y'] = address_point_gdf['geometry'].y
-        
+
         ### ISSUE - There are buildings on the edge of the county
         '''
         These observations do not geocode inside the county boundary.
@@ -829,7 +835,7 @@ class generate_addpt_functions():
         in the inventory. If a building is missing then the housing unit 
         allocation method will not work.
         '''
-        
+
 
         # Set observations outside of the county to with filled in values
         condition1 = (address_point_gdf[f'COUNTYFP{yr}'].isna())
@@ -855,7 +861,7 @@ class generate_addpt_functions():
         # Remove .0 from data
         address_point_gdfv2 = address_point_gdf.apply(lambda col: col.map(self.remove_decimal0))
 
-        
+
         # Check if blockid is 15 characters long and a string
         if not isinstance(address_point_gdfv2['blockid'][0], str):
             print("Converting Block ID to string")
@@ -874,7 +880,7 @@ class generate_addpt_functions():
         # drop columns not needed for analysis
         #address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
         #    axis=1, inplace=True)
-        
+
         # Resave results for community name
         address_point_gdfv2.to_csv(savefile, index=False)
 
@@ -897,6 +903,3 @@ class generate_addpt_functions():
             return address_point_gdfv2
 
         return dataset_id_final
-
-
-

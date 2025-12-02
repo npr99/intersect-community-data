@@ -205,7 +205,7 @@ class add_new_char_by_random_merge_2dfs():
             if geo_level_lower in column_list:
                 # Each geolevel is a zero padded string
                 length = geo_levels[geo_level]['length']
-                print("Check length of", geo_level_lower, "expected length", length)
+                #print("Check length of", geo_level_lower, "expected length", length)
                 check_length = self.check_var_length(
                     input_df=add_geovarid_df,
                     var=geo_level_lower,
@@ -214,12 +214,12 @@ class add_new_char_by_random_merge_2dfs():
                 if (check_length == "Match") or \
                 (check_length == "Possible match with zero pad"):
                     # Check variable type
-                    geo_level_type = add_geovarid_df[geo_level_lower].dtypes
-                    print(geo_level_lower, "is type", geo_level_type)
+                    geo_level_type_original = add_geovarid_df[geo_level_lower].dtypes
+                    #print(geo_level_lower, "is type", geo_level_type)
                     add_geovarid_df[geo_level_lower] = add_geovarid_df[geo_level_lower].astype(str).str.zfill(length)
                     geolevels_available.append(geo_level_lower)
                     geo_level_type = add_geovarid_df[geo_level_lower].dtypes
-                    print("after update", geo_level_lower, "is type", geo_level_type)
+                    #print(geo_level_lower, "is type", geo_level_type_original,"after update", geo_level_type)
             
             # Check to see what geovarids are available
             geovarid_test = geo_level + self.geovintage
@@ -294,16 +294,19 @@ class add_new_char_by_random_merge_2dfs():
             # update variable length
             var_len = 0
 
-        print("Longest",var,":",varid_max)
-        print(var,"Expected Length",expected_length,"Available Length",var_len)
         if var_len == expected_length:
             return "Match"
         elif var_len == expected_length-1:
             return "Possible match with zero pad"
-        elif (var_len == expected_length+2) & ('.' in varid_max):
-            return "Possible convert to float"
         else:
-            return "No match"
+            
+            print("Longest",var,":",varid_max)
+            print(var,"Expected Length",expected_length,"Available Length",var_len)
+            
+            if (var_len == expected_length+2) & ('.' in varid_max):
+                return "Possible convert to float"
+            else:
+                return "No match"
     
     def add_primarykey(self, input_df, key):
         """
@@ -493,9 +496,9 @@ class add_new_char_by_random_merge_2dfs():
         # Prepare data for merge
         preped_for_merge_data = {}
         for key in self.dfs.keys():
-            print("\n***************************************")
+            #print("\n***************************************")
             print("    Setting up ",key,"data with primary key and flags")
-            print("***************************************\n")
+            #print("***************************************\n")
             # Check that primary and secondary data frames have 
             # primary key set correctly
             # Add geovar
@@ -503,6 +506,7 @@ class add_new_char_by_random_merge_2dfs():
             upper_case_geovars = ['Block','BlockGroup','Tract','County']
             if self.geolevel in lower_case_geovars + upper_case_geovars:
                 self.dfs[key]['data'] = self.add_geovarid(self.dfs[key]['data'])
+
             # Add primary key
             self.dfs[key]['data'] = self.add_primarykey(self.dfs[key]['data'],key)
 
@@ -527,9 +531,9 @@ class add_new_char_by_random_merge_2dfs():
             # Split up data frame by characteristic 
             # Check if By Groups is by Hispanic - if so split groups
             if self.by_groups.keys() == {"Hispanic","not Hispanic"}:
-                print("\n***************************************")
+                #print("\n***************************************")
                 print("    Splitting",key,"data by Hispanic")
-                print("***************************************\n")
+                #print("***************************************\n")
                 preped_for_merge_data[key] = self.split_byHispanic(key_df)
             else:
                 # If Hispanic and not Hispanic not the by groups
@@ -546,9 +550,9 @@ class add_new_char_by_random_merge_2dfs():
             # add seed increment to ensure random merge
             seed_increment = 1
             for by_group in self.by_groups:
-                print("\n***************************************")
+                #print("\n***************************************")
                 print("    Preparing",key,"by",by_group,"data for random merge.")
-                print("***************************************\n")
+                #print("***************************************\n")
                 preped_for_merge_data[key][by_group] = \
                         self.prepare_randommerge(
                                     randmerge_df = preped_for_merge_data[key][by_group],
@@ -572,16 +576,16 @@ class add_new_char_by_random_merge_2dfs():
             group1_df = preped_for_merge_data[group1][by_group].copy()
             group2_df = preped_for_merge_data[group2][by_group].copy()
 
-            print("\n***************************************")
+            #print("\n***************************************")
             print("    Random Merge",group1,"with",group2,"by",by_group)
-            print("***************************************\n")
+            #print("***************************************\n")
             merged_dfs[by_group] = self.merge_groups(group1_df = group1_df,
                              group2_df = group2_df,
                              groupby_vars = self.groupby_vars[by_group]) 
                     
-            print("\n***************************************")
+            #print("\n***************************************")
             print("    Set Flags after Merge")
-            print("***************************************\n")
+            #print("***************************************\n")
             
             # Update variables after merge
             flag_vars = [col for col in group1_df if '_flagsetrm' in col]
@@ -603,9 +607,9 @@ class add_new_char_by_random_merge_2dfs():
         flag_set_round = (merged_dfs[by_group][self.flag_var] == self.round-1)
         print("After Recombine flag set",self.round-1,"=",flag_set_round.sum())  
 
-        print("\n***************************************")
+        #print("\n***************************************")
         print("   Generate output data")
-        print("***************************************\n")
+        #print("***************************************\n")
 
         # Save output data for keys
         output_df = {}
@@ -649,9 +653,9 @@ class add_new_char_by_random_merge_2dfs():
             print("After update observations geovar flag set",\
                 self.round-1,"=",flag_set_round.sum())   
 
-            print("\n***************************************")
+            #print("\n***************************************")
             print("    Check random merge results for",key,"data.")
-            print("***************************************\n")
+            #print("***************************************\n")
 
             length_output_data = output_df[key].shape[0]
             # Check number of observations with new char set
@@ -671,9 +675,9 @@ class add_new_char_by_random_merge_2dfs():
                     "Observations with predicted",self.new_char)
                 print("Percent left to predict: %5.2f" % (percent_left_to_predict[key]))
 
-                print("\n***************************************")
+                #print("\n***************************************")
                 print("    Overwrite input data with update output data.")
-                print("***************************************\n")
+                #print("***************************************\n")
 
                 self.dfs[key]['data'] = output_df[key].copy()
 
@@ -721,7 +725,7 @@ class add_new_char_by_random_merge_2dfs():
             print("New flag:",self.flaggeo_var)
             input_df.loc[:, self.flaggeo_var] = 0
 
-        set_flag_df = input_df.copy()
+        set_flag_df = input_df.copy() 
 
         # Condition list for new characteristic set
         # Condition to check if flagset is not set
@@ -738,7 +742,6 @@ class add_new_char_by_random_merge_2dfs():
         set_flag_df.loc[conditions, self.flaggeo_var] = -777
         geoflag_not_set = (set_flag_df[self.flaggeo_var] == 0)
         print("After updated observations without geovar flag set",geoflag_not_set.sum())        
-
 
         if self.new_char in column_list:
             # Set conditions to check new characteristic
@@ -883,7 +886,6 @@ class add_new_char_by_random_merge_2dfs():
             print("File",csv_filename_secondary,"Already exists - Skipping Random Merge.")
             return output_df
 
-
         # Assume percent_left_to_predict starts off at 100
         round_percent_left_to_predict = 100
 
@@ -893,19 +895,20 @@ class add_new_char_by_random_merge_2dfs():
         while should_restart:
             print("Round",self.round)
             should_restart = False
+
             # Run options until all values are predicted
             for geo_level in rounds['geo_levels']:
-                print("\n***************************************")
-                print("***************************************\n")
+                #print("\n***************************************")
+                #print("***************************************\n")
                 print('Performing random merge at geography level:',geo_level)
-                print("\n***************************************")
-                print("***************************************\n")
+                #print("\n***************************************")
+                #print("***************************************\n")
                 for option in rounds['options']:
-                    print("\n***************************************")
-                    print("***************************************\n")
+                    #print("\n***************************************")
+                    #print("***************************************\n")
                     print(rounds['options'][option]['notes'])
-                    print("\n***************************************")
-                    print("***************************************\n")
+                    #print("\n***************************************")
+                    #print("***************************************\n")
 
                     # Update variables before merge
                     self.geolevel = geo_level
@@ -944,9 +947,9 @@ class add_new_char_by_random_merge_2dfs():
                         print('Error in process.')
                         return 'Error'
                     elif round_percent_left_to_predict['primary']  == 0:
-                        print("\n***************************************")
+                        #print("\n***************************************")
                         print("    Random merge complete.")
-                        print("***************************************\n")
+                        #print("***************************************\n")
 
                         if self.savefiles == True:
                             print("Save primary and secondary files with all columns")
@@ -963,10 +966,10 @@ class add_new_char_by_random_merge_2dfs():
                         return output_df
                     if round_percent_left_to_predict['secondary']  == 0:
                         if self.reuse_secondary == True:
-                            print("\n***************************************")
+                            #print("\n***************************************")
                             print("    All secondary data has been used.")
                             print("    All secondary data will reused.")
-                            print("***************************************\n")
+                            #print("***************************************\n")
                             print("    Need to reset flags and options.")
                             # Reset all flags
                             self.dfs['secondary']['data'].loc[:, self.flag_var] = 0
@@ -975,17 +978,17 @@ class add_new_char_by_random_merge_2dfs():
                             should_restart = True
                             break
                         else:
-                            print("\n***************************************")
+                            #print("\n***************************************")
                             print("    All secondary data has been used.")
                             print("    All secondary will not be reused.")
-                            print("***************************************\n")
+                            #print("***************************************\n")
                             break
 
 
 
-        print("\n***************************************")
+        #print("\n***************************************")
         print("    Random merge almost complete.")
-        print("***************************************\n")
+        #print("***************************************\n")
         print("Check primary and secondary files to understand why merge is not complete")
         if self.savefiles == True:
             csv_filepath_primary_almost = self.outputfolder+"/"+csv_filename_primary+'_almost.csv'

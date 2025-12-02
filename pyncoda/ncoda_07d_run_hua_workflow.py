@@ -51,7 +51,8 @@ class hua_workflow_functions():
             outputfolder: str ="",
             outputfolders = {},
             savefiles: bool = True,
-            use_incore: bool = True):
+            use_incore: bool = True,
+            force_rerun: bool = False):
 
         self.community = community
         self.hui_df = hui_df
@@ -68,6 +69,7 @@ class hua_workflow_functions():
         self.outputfolders = outputfolders
         self.savefiles = savefiles
         self.use_incore = use_incore
+        self.force_rerun = force_rerun
 
 
     def save_environment_version_details(self):
@@ -363,7 +365,7 @@ class hua_workflow_functions():
             logfile.stop()
 
         return hua_addptr2_df
-    
+
     def upload_hua_file_to_incore(self,
                         title,
                         county_list,
@@ -397,7 +399,7 @@ class hua_workflow_functions():
             "dataType": "incore:housingUnitAllocation",
             "format": "table"
             }
-        
+
         # Check if file exists on IN-CORE
         dataset_id = return_dataservice_id(title, output_filename)
 
@@ -437,6 +439,9 @@ class hua_workflow_functions():
         Each observation is a housing unit allocated to an address point
         Each address point is allocated to a building if there is a building 
         within the census block or nearby block group.
+
+        If force_rerun is True, the housing unit allocation will be performed from scratch,
+        even if a previously saved file exists.
         '''
         print("Running up Housing Unit Allocation for",self.community)
 
@@ -444,8 +449,9 @@ class hua_workflow_functions():
         output_filename = f'hua_{self.version_text}_{self.community}_{self.basevintage}_{self.bldg_inv_id}_rs{self.seed}'
         csv_filepath = self.outputfolders['top']+"/"+output_filename+'.csv'
         savefile = os.path.join(os.getcwd(), csv_filepath)
-        if os.path.exists(savefile):
+        if os.path.exists(savefile) and not self.force_rerun:
             print("Housing Unit Allocation file already exists: "+savefile)
+            print("Loading existing file. Set force_rerun=True to regenerate.")
             huav2_df = pd.read_csv(csv_filepath, low_memory=False)
             # Convert df to gdf
             huav2_gdf = df2gdf_WKTgeometry(df = huav2_df, 
@@ -454,6 +460,9 @@ class hua_workflow_functions():
                         geometryvar = 'geometry')
 
             return huav2_gdf
+        elif os.path.exists(savefile) and self.force_rerun:
+            print("Housing Unit Allocation file exists but force_rerun=True.")
+            print("Regenerating housing unit allocation from scratch.")
 
 
         # Generate base housing unit inventory
@@ -494,4 +503,3 @@ class hua_workflow_functions():
         huav2_gdf.to_csv(savefile, index=False)
 
         return huav2_gdf
-    

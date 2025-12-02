@@ -17,8 +17,7 @@ ipython = get_ipython()
 import time
 
 # Save output as a log file function
-from pyncoda \
-     import ncoda_00c_save_output_log as logfile
+from pyncoda import ncoda_00c_save_output_log as logfile
      
 # Load in data structure dictionaries
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
