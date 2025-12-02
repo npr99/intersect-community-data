@@ -309,7 +309,6 @@ communities_dictionary = {
                 'note' : 'NSI Building inventory for Adams County, CO, 2010',
                 'archetype_var' : 'occtype',
                 'bldg_uniqueid' : 'fd_id_bid',
-                'residential_archetypes' : HAZUS_residential_archetypes,
                 'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
                 'building_area_var' : 'sqft',
                 'building_area_cutoff' : 300
