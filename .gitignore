@@ -12,6 +12,11 @@
 # Ignore OuputData Folder
 OutputData*/
 
+# Ignore SimCenter BRAILS++ Folder and Files
+pyncoda_working_dir*/
+bldg_inventory.geojson
+housing_units.json
+
 # Ignore Temp.csv file
 temp.csv
 # Ignore IN-CORE outputs
