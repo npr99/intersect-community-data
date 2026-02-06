@@ -27,7 +27,7 @@ incore_v1_HUA_DataStructure = {
                 ])},
     'blockid' : 
     {   'label' : 'Block ID' , 
-        'huiv3-0-0' : 'Block2010',
+        'huiv3-0-0' : 'Block2020',
         'formula' : "\n".join([
                         "output_df['blockid']."
                         "apply(lambda x :"
@@ -39,10 +39,10 @@ incore_v1_HUA_DataStructure = {
         'length' : 15,
         'zero_padded' : True,
         'notes' :
-            '1. 2010 Census Block ID'},
+            '1. 2020 Census Block ID'},
     'bgid'    : 
-    {   'label' : '2010 Census Block Group ID', 
-        'huiv3-0-0' : 'BlockGroup2010', 
+    {   'label' : '2020 Census Block Group ID', 
+        'huiv3-0-0' : 'BlockGroup2020', 
         'formula' : "\n".join([
                         "output_df['blockid']."
                         "apply(lambda x :"
@@ -54,12 +54,12 @@ incore_v1_HUA_DataStructure = {
         'length' : 12,
         'zero_padded' : True,
         'notes' : '\n'.join([
-            '1. 12 Character String that contains 2010 census block group ID. \n \n'
+            '1. 12 Character String that contains 2020 census block group ID. \n \n'
             '2. Foreign Key with Block Group Data for population dislocation model.'
                 ])},
     'tractid' : {
-        'label' : '2010 Census Tract ID', 
-        'huiv3-0-0' : 'Tract2010',
+        'label' : '2020 Census Tract ID', 
+        'huiv3-0-0' : 'Tract2020',
         'formula' : "\n".join([
                         "output_df['blockid']."
                         "apply(lambda x :"
@@ -71,10 +71,10 @@ incore_v1_HUA_DataStructure = {
         'length' : 11,
         'zero_padded' : True,
         'notes' :
-            '1. 11 Character String that contains 2010 census tract ID.'},
+            '1. 11 Character String that contains 2020 census tract ID.'},
     'FIPScounty': 
     {   'label' : 'County FIPS Code', 
-        'huiv3-0-0' : 'County2010',
+        'huiv3-0-0' : 'County2020',
         'formula' : "\n".join([
                         "output_df['blockid']."
                         "apply(lambda x :"
@@ -114,11 +114,12 @@ incore_v1_HUA_DataStructure = {
         [   '1. Owned or being bought (loan)',
             '2. Rented'],
         'notes' : '\n'.join([
-            '1. Based on 2010 Census SF1 Table H16. \n \n'
+            '1. Based on 2010 Census SF1 Table H16 or 2020 Census DHC Table H12. \n \n'
             '2. Tenure status is not applicable for vacant not occupied housing units. \n \n'
             '3. Tenure status is not applicable for group quarters. \n \n'
             '4. To verify results compare table to: \n \n'
-            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H16.'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H16. \n \n'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.H12. \n \n'
                 ]),
         'primary_key' : 'huid',
         'pop_var' : 'numprec'},
@@ -165,9 +166,10 @@ incore_v1_HUA_DataStructure = {
             '1. Race is based on the race of the householder. \n \n'
             '2. Race of householder is not applicable for vacant not occupied housing units. \n \n'
             '3. Race is missing for population living in group quarters. \n \n'
-            '4. Race is based on 2010 Census SF1 Tables H16 by race. \n \n'
+            '4. Race is based on 2010 Census SF1 Tables H16 or 2020 Census DHC Table H12 by race. \n \n'
             '5. To verify results compare table to: \n \n'
-            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H6.'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H6. \n \n'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.H6. \n \n'
             ]),
         'primary_key' : 'huid',
         'pop_var' : 'numprec'},
@@ -195,9 +197,11 @@ incore_v1_HUA_DataStructure = {
             '2. Hispanic is missing for vacant not occupied housing units. \n \n'
             '3. Hispanic is missing for population living in group quarters.\n \n'
             '4. Hispanic is predicted based on 2010 Census SF1 Tables H7, H15, and H16. \n \n'
+            '4. Hispanic is predicted based on 2020 Census DHC Tables H7, H11, and H12. \n \n'
             '5. Hispanic totals will not match the US Census data, but they should be close. \n \n'
             '6. To verify results compare table to: \n \n'
-            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H7.'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H7. \n \n'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.H7.'
             ]),
         'primary_key' : 'huid',
         'pop_var' : 'numprec'},
@@ -221,9 +225,10 @@ incore_v1_HUA_DataStructure = {
         [   'Nonfamily', 
             'Family'],
         'notes' : '\n'.join([
-            '1. Family household is based on 2010 Census SF1 Tables P18 by race and ethnicity. \n \n'
+            '1. Family household is based on 2010 Census SF1 Table P18 and 2020 Census DHC P16 by race and ethnicity. \n \n'
             '2. To verify results compare table to: \n \n'
-            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.P18.'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.P18. \n \n'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.P16.'
             ]),
         'primary_key' : 'huid',
         'pop_var' : 'numprec'},
@@ -253,9 +258,10 @@ incore_v1_HUA_DataStructure = {
             '6. For migrant workers',
             '7. Other vacant'],
         'notes' : '\n'.join([
-            '1.  Based on 2010 Census SF1 Table H5. \n \n'
+            '1.  Based on 2010 Census SF1 Table H5 and 2020 Census DHC Table H5. \n \n'
             '2. To verify results compare table to: \n \n'
-            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H5.'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.H5. \n \n'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.H5.'
             ]),
         'primary_key' : 'huid',
         'pop_var' : 'numprec'},
@@ -285,11 +291,12 @@ incore_v1_HUA_DataStructure = {
             '6. Military quarters',
             '7. Other noninstitutional facilities'],
         'notes' : '\n'.join([
-            '1. Based on 2010 Census SF1 Table P42. \n \n'
+            '1. Based on 2010 Census SF1 Table P42 and 2020 Census DHC Table P18. \n \n'
             '2. Counts represent number of group quarters. '
                 'Sum by numprec to get population counts. \n \n'
             '3. To verify results compare table to: \n \n'
-            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.P42.'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALSF12010.P42.  \n \n'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=DECENNIALDHC2020.P18.'
             ]),
         'primary_key' : 'huid',
         'pop_var' : 'numprec'},
@@ -299,7 +306,7 @@ incore_v1_HUA_DataStructure = {
         'pyType' : "category",
         'categorical' : True,
         'AnalysisUnit' : 'Household',
-        'MeasureUnit' : '2012 INFLATION-ADJUSTED DOLLARS',
+        'MeasureUnit' : '2012 or 2022 INFLATION-ADJUSTED DOLLARS',
         'categories_dict' : {
             0 : '0. NA vacant or group quarters',
             1 : '1. Less than $10,000',
@@ -337,7 +344,7 @@ incore_v1_HUA_DataStructure = {
             '15. $150,000 to $199,999',
             '16. $200,000 or more'],
         'notes' : '\n'.join([
-            '1. Based on 2012 5-year ACS tables B19001 and B19101. \n \n'
+            '1. Based on 2012 or 2022 5-year ACS tables B19001 and B19101. \n \n'
             '2. This variable is designed to provide household income data that are comparable '
             'to income distributions by race, Hispanic and families. '
             'There are numerous assumptions associated with this variable. '
@@ -348,7 +355,8 @@ incore_v1_HUA_DataStructure = {
             '4. Compare that the inventory counts fall within the ACS '
             'the 90% CI (confidence interval) of the estimate. \n \n'
             '5. To verify results compare table to: \n \n'
-            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B19001'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B19001 \n \n'
+            'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2022.B19001'
             ]),
         'primary_key' : 'huid',
         'pop_var' : 'numprec'},
@@ -358,7 +366,7 @@ incore_v1_HUA_DataStructure = {
         'pyType' : "category",
         'categorical' : True,
         'AnalysisUnit' : 'Household',
-        'MeasureUnit' : '2012 INFLATION-ADJUSTED DOLLARS',
+        'MeasureUnit' : '2012 or 2022 INFLATION-ADJUSTED DOLLARS',
         'categories_dict' : {
             0 : '0. NA vacant or group quarters',
             1 : '1. Less than $15,000',
@@ -374,7 +382,7 @@ incore_v1_HUA_DataStructure = {
             '4. $75,000 to $99,999',
             '5. $100,000 or more'],
         'notes' : '\n'.join([
-                '1. Based on 2012 5-year ACS tables B19001 and B19101.  \n \n'
+                '1. Based on 2012 or 2022 5-year ACS tables B19001 and B19101.  \n \n'
                 '2. Based on incomegroup variable - with 5 groups versus 16.'
             ]),
         'primary_key' : 'huid',
@@ -385,16 +393,17 @@ incore_v1_HUA_DataStructure = {
         'DataType'  : 'Float',
         'pyType' : float,
         'AnalysisUnit' : 'Household',
-        'MeasureUnit' : '2012 INFLATION-ADJUSTED DOLLARS',
+        'MeasureUnit' : '2012 or 2022 INFLATION-ADJUSTED DOLLARS',
         'notes' : '\n'.join([
-                '1.  Household income top coded at $250,000. \n \n'
-                '2.  Based on 2012 5-year ACS tables B19001 and B19101. \n \n'
-                '3.  Missing cases are vacant housing units or group quaters. '
-                'The US Census does not collect income data for '
-                'populations living in group quarters.  \n \n'
-                '4.  To verify results compare median income to: \n \n'
-                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B19013'
-                ])},
+                    '1.  Household income top coded at $250,000. \n \n'
+                    '2.  Based on 2012 or 2022 5-year ACS tables B19001 and B19101. \n \n'
+                    '3.  Missing cases are vacant housing units or group quarters. '
+                    'The US Census does not collect income data for '
+                    'populations living in group quarters.  \n \n'
+                    '4.  To verify results compare median income to: \n \n'
+                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B19013 \n \n'
+                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2022.B19013 '
+                    ])},
     'poverty' : 
         {   'label' : 'Poverty Status',
             'DataType'  : 'Int',
@@ -412,31 +421,33 @@ incore_v1_HUA_DataStructure = {
             [   'Above poverty', 
                 'Below poverty'],
             'notes' : '\n'.join([
-                '1. Based on 2012 US Census Poverty Thresholds  \n \n',
-                'https://www.census.gov/topics/income-poverty/poverty/guidance/poverty-measures.html  \n \n',
-                'https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-poverty-thresholds/thresh12.xls  \n \n',
-                '2. Based on household size and random income, assuming random income represents household income in the past 12 months.  \n \n',
-                '3. To verify results compare table to: \n \n'
-                'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B17019'
-                ]),
+                    '1. Based on 2012 or 2022 US Census Poverty Thresholds  \n \n',
+                    'https://www.census.gov/data/tables/time-series/demo/income-poverty/historical-poverty-thresholds.html  \n \n',
+                    'https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-poverty-thresholds/thresh12.xlsx  \n \n',
+                    'https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-poverty-thresholds/thresh22.xlsx  \n \n',
+                    '2. Based on household size and random income, assuming random income represents household income in the past 12 months.  \n \n',
+                    '3. To verify results compare table to: \n \n'
+                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2012.B17021  \n \n'
+                    'https://data.census.gov/cedsci/table?g=0500000US{state_county}&tid=ACSDT5Y2022.B17021'
+                    ]),
             'primary_key' : 'huid',
             'pop_var' : 'numprec'},
-    'guid'  : 
-        {   'label' : 'Building ID from GUID', 
+    'fd_id_bid'  : 
+        {   'label' : 'Building ID from NSI', 
             'DataType'  : 'String',
             'pyType' : str,
             'AnalysisUnit' : 'Building - Structure',
             'MeasureUnit' : 'Building ID',
             'notes' : '\n'.join([
-                '1. GUID is the Primary Key for the Building Inventory. '
-                'Use GUID to merge data with the building inventory. \n \n',
+                '1. fd_id_bid is the Primary Key for the Building Inventory. '
+                'Use fd_id_bid to merge data with the NSI building inventory. \n \n',
                 '2. Many housing units can be in one building. \n \n',
-                '3. GUID assigned in IN-CORE for building inventory. \n \n',
+                '3. fd_id_bid assigned in NSI building inventory. \n \n',
                 '4. The ID code for the building inventory is the last part of the HUA file name. \n \n',
                 '5. If the building inventory is changed the HUA must be re-run.'
                     ])},
-    'placeNAME10'  : 
-        {   'label' : 'Place Name 2010', 
+    'placeNAME20'  : 
+        {   'label' : 'Place Name 2020', 
             'DataType'  : 'String',
             'pyType' : str,
             'AnalysisUnit' : 'Census Place',
