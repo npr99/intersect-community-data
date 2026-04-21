@@ -29,6 +29,8 @@ def folium_marker_layer_map(gdf,
         # convert points to gdf
         gdf = gpd.GeoDataFrame(
             gdf, geometry=gpd.points_from_xy(gdf.x, gdf.y), crs="EPSG:4326")
+    elif gdf.crs is None:
+        gdf = gdf.set_crs("EPSG:4326", allow_override=True)
     # Check projection is epsg:4326
     if gdf.crs != "EPSG:4326":
         gdf = gdf.to_crs("EPSG:4326")
@@ -132,9 +134,13 @@ def map_selected_block(df,
     # count gdfvar by building
     gdfvar_count_df = count_gdfvar_by_building(df, blocknum, gdvar=gdfvar, year=year)
 
+    input_crs = getattr(df, "crs", None) or "EPSG:4326"
+
     # convert points to gdf
     gdfvar_count_gdf = gpd.GeoDataFrame(
-        gdfvar_count_df, geometry=gpd.points_from_xy(gdfvar_count_df.x, gdfvar_count_df.y))
+        gdfvar_count_df,
+        geometry=gpd.points_from_xy(gdfvar_count_df.x, gdfvar_count_df.y),
+        crs=input_crs)
 
     """
     # convert dataframe to geodataframe using geometry

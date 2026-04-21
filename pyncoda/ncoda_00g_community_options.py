@@ -332,6 +332,25 @@ communities_dictionary = {
                 'building_area_var' : 'sqft',
                 'building_area_cutoff' : 300
                 }
+            },
+    'Hayward_CA_NSI' : {
+            'community_name' : 'Hayward, CA',
+            'focalplace_name' : 'Hayward',
+            'STATE' : 'CALIFORNIA',
+            'years' : ['2010'],
+            'counties' : {
+                1 : {'FIPS Code' : '06001', 'Name' : 'Alameda County, CA'}
+                },
+            'building_inventory' : {
+                'use_incore' : False,
+                'id' : 'NSI',
+                'note' : 'NSI Building inventory for Alameda County, CA, 2010',
+                'archetype_var' : 'occtype',
+                'bldg_uniqueid' : 'fd_id_bid',
+                'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
+                'building_area_var' : 'sqft',
+                'building_area_cutoff' : 300
+                }
             }
     }
 

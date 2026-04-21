@@ -304,7 +304,10 @@ class hui_workflow_functions():
 
         output_df = input_df.copy()
         # create list of all required ergo:buildingInventoryVer6 columns
-        incore_v2_DataStructure = adjust_incore_datastructure_baseyear(self.basevintage)
+        incore_v2_DataStructure = adjust_incore_datastructure_baseyear(
+            self.basevintage,
+            self.state_county
+        )
         incore_columns = incore_v2_DataStructure
         
         current_column_names = list(output_df.columns)
