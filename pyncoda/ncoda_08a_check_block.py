@@ -412,14 +412,12 @@ class BlockValidationChecker:
 		return compare_gdf
 
 	@staticmethod
-	def _scale_point_sizes(values, min_size=20, max_size=400, reference_max=None):
+	def _scale_point_sizes(values, min_size=20, size_per_unit=6, max_size=1200):
 		values = pd.Series(values).fillna(0).astype(float)
 		if values.empty:
 			return values
-		vmax = values.max() if reference_max is None else float(reference_max)
-		if vmax <= 0:
-			return pd.Series(min_size, index=values.index)
-		return min_size + (values / vmax) * (max_size - min_size)
+		sizes = min_size + values * size_per_unit
+		return sizes.clip(upper=max_size)
 
 	@staticmethod
 	def _plot_base_layers(ax, block_polygon_3857, block_buffer_3857):
@@ -450,8 +448,7 @@ class BlockValidationChecker:
 		ax = axes[0]
 		self._plot_base_layers(ax, block_polygon_3857, block_buffer_3857)
 		if not compare_gdf.empty:
-			common_max = compare_gdf[["expected_units", "addpt_count", "hua_allocated_units"]].max().max()
-			sizes = self._scale_point_sizes(compare_gdf["expected_units"], reference_max=common_max)
+			sizes = self._scale_point_sizes(compare_gdf["expected_units"])
 			compare_gdf.plot(
 				ax=ax,
 				markersize=sizes,
@@ -464,7 +461,7 @@ class BlockValidationChecker:
 		ax = axes[1]
 		self._plot_base_layers(ax, block_polygon_3857, block_buffer_3857)
 		if not compare_gdf.empty:
-			sizes = self._scale_point_sizes(compare_gdf["addpt_count"], reference_max=common_max)
+			sizes = self._scale_point_sizes(compare_gdf["addpt_count"])
 			compare_gdf.plot(
 				ax=ax,
 				markersize=sizes,
@@ -477,7 +474,7 @@ class BlockValidationChecker:
 		ax = axes[2]
 		self._plot_base_layers(ax, block_polygon_3857, block_buffer_3857)
 		if not compare_gdf.empty:
-			sizes = self._scale_point_sizes(compare_gdf["hua_allocated_units"], reference_max=common_max)
+			sizes = self._scale_point_sizes(compare_gdf["hua_allocated_units"])
 			compare_gdf.plot(
 				ax=ax,
 				markersize=sizes,
