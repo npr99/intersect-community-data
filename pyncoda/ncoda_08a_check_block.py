@@ -119,6 +119,19 @@ class BlockValidationChecker:
 	def _block_id_as_str(self, block_id):
 		return str(block_id)
 
+	@staticmethod
+	def _normalize_blockid_series(series, width=15):
+		"""Normalize block IDs to digit-only strings padded to a common width."""
+		if series is None:
+			return series
+		normalized = (
+			series.astype(str)
+			.str.replace(r"^B", "", regex=True)
+			.str.replace(r"\.0$", "", regex=True)
+			.str.replace(r"\D", "", regex=True)
+		)
+		return normalized.str.zfill(width)
+
 	def validate_allocation_by_block(self, population_col="numprec"):
 		"""Summarize HUA allocation quality by block.
 
@@ -129,7 +142,7 @@ class BlockValidationChecker:
 		- address point totals (if available)
 		"""
 		hua = self.hua_gdf.copy(deep=True)
-		hua[self.block_col] = hua[self.block_col].astype(str)
+		hua["_blockid"] = self._normalize_blockid_series(hua[self.block_col])
 
 		agg_spec = {
 			"housing_units": (self.hua_unit_col, "nunique"),
@@ -142,7 +155,8 @@ class BlockValidationChecker:
 				f"Population column {population_col} not found. total_population set to NA."
 			)
 
-		block_summary = hua.groupby(self.block_col, dropna=False).agg(**agg_spec).reset_index()
+		block_summary = hua.groupby("_blockid", dropna=False).agg(**agg_spec).reset_index()
+		block_summary = block_summary.rename(columns={"_blockid": self.block_col})
 
 		if "total_population" not in block_summary.columns:
 			block_summary["total_population"] = pd.NA
@@ -151,9 +165,10 @@ class BlockValidationChecker:
 			missing_condition = hua[self.missing_building_col] == self.missing_building_label
 			missing_counts = (
 				hua[missing_condition]
-				.groupby(self.block_col, dropna=False)
+				.groupby("_blockid", dropna=False)
 				.size()
 				.reset_index(name="missing_building_hu")
+				.rename(columns={"_blockid": self.block_col})
 			)
 			block_summary = block_summary.merge(missing_counts, on=self.block_col, how="left")
 		else:
@@ -168,11 +183,11 @@ class BlockValidationChecker:
 		if self.addpt_gdf is not None:
 			addpt = self.addpt_gdf.copy(deep=True)
 			if self.block_col in addpt.columns:
-				addpt["_blockid"] = addpt[self.block_col].astype(str)
+				addpt["_blockid"] = self._normalize_blockid_series(addpt[self.block_col])
 			elif "BLOCKID10_str" in addpt.columns:
-				addpt["_blockid"] = addpt["BLOCKID10_str"].astype(str).str.replace("^B", "", regex=True)
+				addpt["_blockid"] = self._normalize_blockid_series(addpt["BLOCKID10_str"])
 			elif "BLOCKID20_str" in addpt.columns:
-				addpt["_blockid"] = addpt["BLOCKID20_str"].astype(str).str.replace("^B", "", regex=True)
+				addpt["_blockid"] = self._normalize_blockid_series(addpt["BLOCKID20_str"])
 			else:
 				addpt["_blockid"] = pd.NA
 
@@ -207,17 +222,17 @@ class BlockValidationChecker:
 		return block_summary.set_index(self.block_col)["missing_building_hu"].sort_values(ascending=False)
 
 	def prepare_block_context(self, block_id):
-		block_id_str = self._block_id_as_str(block_id)
+		block_id_str = self._normalize_blockid_series(pd.Series([block_id])).iloc[0]
 
 		tab = self.tabblock_gdf.copy(deep=True)
-		tab[self.block_col_tab] = tab[self.block_col_tab].astype(str)
-		block_polygon_gdf = tab[tab[self.block_col_tab] == block_id_str].copy(deep=True)
+		tab["_blockid"] = self._normalize_blockid_series(tab[self.block_col_tab])
+		block_polygon_gdf = tab[tab["_blockid"] == block_id_str].copy(deep=True)
 		if block_polygon_gdf.empty:
 			raise ValueError(f"No polygon found in tabblock_gdf for block_id {block_id_str}")
 
 		hua = self.hua_gdf.copy(deep=True)
-		hua[self.block_col] = hua[self.block_col].astype(str)
-		block_hua_gdf = hua[hua[self.block_col] == block_id_str].copy(deep=True)
+		hua["_blockid"] = self._normalize_blockid_series(hua[self.block_col])
+		block_hua_gdf = hua[hua["_blockid"] == block_id_str].copy(deep=True)
 
 		block_polygon_3857 = block_polygon_gdf.to_crs(epsg=self.metric_epsg)
 		block_buffer_3857 = gpd.GeoDataFrame(
