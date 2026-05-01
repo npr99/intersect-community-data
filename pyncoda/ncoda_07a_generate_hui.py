@@ -194,7 +194,7 @@ class generate_hui_functions():
             hui_incore_df_fixed.to_csv(common_directory+'.csv', index=False)
 
             # create list of all required ergo:buildingInventoryVer6 columns
-            incore_v2_DataStructure = adjust_incore_datastructure_baseyear(self.basevintage)
+            incore_v2_DataStructure = adjust_incore_datastructure_baseyear(self.basevintage, state_county)
 
             # Generate figures for explore data
             figures_list = []

@@ -24,6 +24,11 @@ from pyncoda \
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_createAPI_datastructure import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00a_general_datastructures import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_00f_preci_block2010 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00f_preci_block2020 import (
+    sexbyage_P12_2020_varstem_roots,
+    sexbyage_P12HAI_2020_varstem_roots,
+    hispan_byrace_P5_2020_varstem_roots
+)
 
 # open, read, and execute python program with reusable commands
 from pyncoda.CommunitySourceData.api_census_gov.acg_01a_BaseInventory import BaseInventory
@@ -33,6 +38,8 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_02c_agefunctions \
      import *
 from pyncoda.CommunitySourceData.api_census_gov.acg_02d_polishdf \
      import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00h_disability_ACS5yr2012 import *
+from pyncoda.CommunitySourceData.api_census_gov.acg_00h_disability_ACS5yr2022 import *
 
 class prec_workflow_functions():
     """
@@ -108,24 +115,26 @@ class prec_workflow_functions():
         # Generate Person by Age, Sex, Race, and Hispanic
         block_df["preci"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'block',
-                                        vintage = "2010", 
+                                        vintage = str(self.basevintage), 
                                         mutually_exclusive_varstems_roots_dictionaries =
-                                                            [sexbyage_P12_varstem_roots],
+                                                            [sexbyage_P12_varstem_roots if str(self.basevintage) == '2010' else
+                                                            sexbyage_P12_2020_varstem_roots],
                                         outputfolders = self.outputfolders,
-                                        outputfile = "CorePREC")
+                                        outputfile = f"CorePREC_{self.basevintage}")
 
         block_df["precihispan"] = BaseInventory.graft_on_new_char(base_inventory= block_df['preci'],
                                         state_county = self.state_county,
                                         new_char = 'hispan',
-                                        new_char_dictionaries = [sexbyage_P12HAI_varstem_roots,
-                                            hispan_byrace_P5_varstem_roots
+                                        new_char_dictionaries = [
+                                            sexbyage_P12HAI_varstem_roots if str(self.basevintage) == '2010' else sexbyage_P12HAI_2020_varstem_roots,
+                                            hispan_byrace_P5_varstem_roots if str(self.basevintage) == '2010' else hispan_byrace_P5_2020_varstem_roots
                                             ],
-                                        outputfile = "preci",
+                                        outputfile = f"preci_{self.basevintage}",
                                         outputfolders = self.outputfolders)
 
         # Generate sex by age with individual years
-        vintage = '2010'
-        dataset_name = 'dec/sf1' 
+        vintage = str(self.basevintage)
+        dataset_name = 'dec/sf1' if str(self.basevintage) == '2010' else 'dec/dhc' 
         group = 'PCT12'
         sexbyage_PCT12 = createAPI_datastructure.obtain_api_metadata(
                             vintage = vintage,
@@ -135,11 +144,10 @@ class prec_workflow_functions():
 
         tract_df["PCT12"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'tract',
-                                        vintage = "2010", 
-                                        mutually_exclusive_varstems_roots_dictionaries =
-                                                            [sexbyage_PCT12],
+                                        vintage = str(self.basevintage), 
+                                        mutually_exclusive_varstems_roots_dictionaries = [sexbyage_PCT12_varstem_roots],
                                         outputfolders = self.outputfolders,
-                                        outputfile = group)
+                                        outputfile = f"{group}_{self.basevintage}")
 
         # Add random age to block_df["precihispan"]
         block_df["precihispan"] = add_randage(
@@ -168,22 +176,22 @@ class prec_workflow_functions():
             dfs = {'primary'  : {'data': block_df["precihispan"], 
                             'primarykey' : 'precid',
                             'geolevel' : 'Block',
-                            'geovintage' :'2010',
+                            'geovintage' : str(self.basevintage),
                             'notes' : 'Block agegroup, sex, race, ethnicity data.'},
                 'secondary' : {'data': tract_df["PCT12"], 
                             'primarykey' : 'uniqueidPCT12',
                             'geolevel' : 'Tract',
-                            'geovintage' :'2010',
+                            'geovintage' : str(self.basevintage),
                             'notes' : 'Tract single age years, sex data.'}},
             seed = self.seed,
             common_group_vars = ['agegroupP12'],
             new_char = 'randagePCT12',
             geolevel = "Tract",
-            geovintage = "2010",
+            geovintage = str(self.basevintage),
             by_groups = {'All' : {'by_variables' : ['sex']}},
             fillna_value= -999,
             state_county = self.state_county,
-            outputfile = "preci_randomage",
+            outputfile = f"preci_randomage_{self.basevintage}",
             outputfolder = self.outputfolders['RandomMerge'])
 
         # Set up round options
@@ -198,6 +206,69 @@ class prec_workflow_functions():
                 }
 
         prec_age_df = add_age.run_random_merge_2dfs(rounds)
+
+        print("\n***************************************")
+        print("    Add Disability Characteristics from ACS Tract Data")
+        print("***************************************\n")
+
+        # Retrieve tract-level disability data
+        tract_df["B18101"] = BaseInventory.get_apidata(
+                                        state_county = self.state_county,
+                                        geo_level = 'tract',
+                                        vintage = str(int(self.basevintage)+2),
+                                        mutually_exclusive_varstems_roots_dictionaries =
+                                                            [disability_B18101_varstem_roots if str(self.basevintage) == '2010' else
+                                                            disability_B18101_2022_varstem_roots],
+                                        outputfolders = self.outputfolders,
+                                        outputfile = f"B18101_disability_{self.basevintage}")
+
+        # Add B18101 age groups to person records
+        print("Adding B18101 age groups for disability matching...")
+        prec_age_df['primary'] = add_B18101age_groups(
+                                    prec_age_df['primary'],
+                                    varname = 'randagePCT12')
+
+        # Also add B18101 age groups to tract disability data
+        tract_df["B18101"] = add_B18101age_groups(
+                                    tract_df["B18101"],
+                                    varname = 'randagePCT12')
+
+        print("Random merging disability data...")
+        add_disability = add_new_char_by_random_merge_2dfs(
+            dfs = {'primary'  : {'data': prec_age_df['primary'],
+                            'primarykey' : 'precid',
+                            'geolevel' : 'Block',
+                            'geovintage' : str(self.basevintage),
+                            'notes' : 'Person-level data without disability'},
+                'secondary' : {'data': tract_df["B18101"],
+                            'primarykey' : 'uniqueidB18101',
+                            'geolevel' : 'Tract',
+                            'geovintage' : str(self.basevintage),
+                            'notes' : 'Tract-level disability counts by sex and age'}},
+            seed = self.seed,
+            common_group_vars = ['agegroupB18101'],
+            new_char = 'disability',
+            geolevel = "Tract",
+            geovintage = str(self.basevintage),
+            by_groups = {'All' : {'by_variables' : ['sex']}},
+            fillna_value = -999,
+            state_county = self.state_county,
+            outputfile = f"prec_disability_{self.basevintage}",
+            outputfolder = self.outputfolders['RandomMerge'],
+            savefiles = self.savefiles)
+
+        # Set up round options
+        rounds = add_disability.make_round_options_dict()
+
+        # Run multi-round random merge
+        # Flags automatically created:
+        # - disability_flagsetrm: Overall assignment flag (0 = not assigned, 1 = assigned)
+        # - disability_Tract2010_flagsetrm: Round-specific flag (0, 1, 2, 3, etc.)
+        # These track which persons received disability assignments and in which round
+        prec_disability_df = add_disability.run_random_merge_2dfs(rounds)
+
+        # Update return variable to include disability
+        prec_age_df = prec_disability_df
 
         print("\n***************************************")
         print("    Try to polish final hui data.")
@@ -231,8 +302,8 @@ class prec_workflow_functions():
         print("\n***************************************")
         print("    Set up Data structures for obtaining data.")
         print("***************************************\n")
-        vintage = '2010'
-        dataset_name = 'dec/sf1' 
+        vintage = str(self.basevintage)
+        dataset_name = 'dec/sf1' if str(self.basevintage) == '2010' else 'dec/dhc' 
         group = 'P43'
         prec_P43_dict = createAPI_datastructure.obtain_api_metadata(
                 vintage = vintage,
@@ -252,11 +323,11 @@ class prec_workflow_functions():
         block_df = {}
         block_df["P43"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'block',
-                                        vintage = "2010", 
+                                        vintage = str(self.basevintage), 
                                         mutually_exclusive_varstems_roots_dictionaries =
                                                             [prec_P43_dict],
                                         outputfolders = self.outputfolders,
-                                        outputfile = "P43")
+                                        outputfile = f"P43_{self.basevintage}")
 
 
         # Add random age
