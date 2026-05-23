@@ -122,7 +122,7 @@ class generate_hui_functions():
             # Create empty container to store outputs for in-core
             # Will use these to combine multiple counties
             hui_incore_county_df = {}
-            title = "Housing Unit Inventory v2.0.0 data for "+self.communities[community]['community_name']
+            title = f"Housing Unit Inventory {self.version_text} data for "+self.communities[community]['community_name']
             print("Generating",title)
             output_filename = f'hui_{self.version_text}_{community}_{self.basevintage}_rs{self.seed}'
 
@@ -248,7 +248,7 @@ class generate_hui_functions():
 
             # Upload CSV file to IN-CORE and save dataset_id
             # note you have to put the correct dataType as well as format
-            hui_description =  '\n'.join([f"{self.basevintage} Housing Unit Inventory v2.0.0 with required IN-CORE columns. " 
+            hui_description =  '\n'.join([f"{self.basevintage} Housing Unit Inventory {self.version_text} with required IN-CORE columns. " 
                     "Compatible with pyincore v1.4. " 
                     "Unit of observation is housing unit. " 
                     "Detailed characteristics include number of persons, race, ethnicity, "

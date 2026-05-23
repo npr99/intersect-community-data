@@ -4,6 +4,9 @@
 # terms of the Mozilla Public License v2.0 which accompanies this distribution,
 # and is available at https://www.mozilla.org/en-US/MPL/2.0/
 
+# Version notes:
+# v2.2.0: Pull request #136 changed address point estimate for round 2
+
 import pandas as pd
 import geopandas as gpd # For reading in shapefiles
 import numpy as np
@@ -34,8 +37,8 @@ class process_community_workflow():
     def __init__(self,
             communities,
             seed: int = 9876,
-            version: str = '2.0.0',
-            version_text: str = 'v2-0-0',
+            version: str = '2.2.0',
+            version_text: str = 'v2-2-0',
             basevintage: str = '2010',
             outputfolder: str ="OutputData",
             outputfolders = {},
@@ -388,7 +391,7 @@ class process_community_workflow():
             county_list = county_list + state_county_name+': county FIPS Code '+state_county
         county_list
 
-        title = "Housing Unit Allocation v2.0.0 data for "+community + " " + str(self.basevintage)
+        title = f"Housing Unit Allocation {self.version_text} data for {community} {self.basevintage}"
         title
 
         if use_incore:
