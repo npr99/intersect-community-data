@@ -382,22 +382,57 @@ class BaseInventory():
         api_hyperlink = ('https://api.census.gov/data/' + vintage + '/'+dataset_name + '?get=' + get_vars +
                         '&in=state:' + state + '&in=county:' + county + '&for='+for_geography)
 
+        # As of 2026-05-12 the Census Data API requires an API key on
+        # every request. Read it from the environment so it never ends
+        # up in source control or in logs. See CENSUS_API_KEY.md at the
+        # repository root for how to obtain and set the key.
+        census_api_key = os.environ.get('CENSUS_API_KEY')
+        if not census_api_key:
+            raise Exception(
+                "The Census Data API requires an API key. Set the "
+                "CENSUS_API_KEY environment variable to a valid key. "
+                "See CENSUS_API_KEY.md for free signup and setup steps."
+            )
+
+        # Print the URL without the key so it doesn't leak into logs.
         print("       Census API data from: " + api_hyperlink)
 
-        # Obtain Census API JSON Data
-        apijson = requests.get(api_hyperlink)
+        # Append the key only for the actual request. allow_redirects is
+        # disabled so that the missing-key 302 to .../missing_key.html
+        # surfaces as a hard error here instead of leaking through as an
+        # HTML "200 OK" body that later breaks JSON parsing.
+        apijson = requests.get(
+            api_hyperlink + '&key=' + census_api_key,
+            allow_redirects=False,
+        )
+
+        if (apijson.status_code == 302
+                and apijson.headers.get('X-DataWebAPI-KeyError')):
+            raise Exception(
+                "Census API rejected the CENSUS_API_KEY (missing or "
+                "invalid). Verify the value of the CENSUS_API_KEY "
+                "environment variable; see CENSUS_API_KEY.md."
+            )
         if apijson.status_code != 200:
-            print("API status code:",apijson.status_code)
+            print("API status code:", apijson.status_code)
             error_msg = "Failed to download the data from Census API."
             #logger.error(error_msg)
             raise Exception(error_msg)
 
+        try:
+            payload = apijson.json()
+        except ValueError as e:
+            raise Exception(
+                "Census API returned a non-JSON response "
+                f"({e}). First 200 bytes: {apijson.text[:200]!r}"
+            )
+
         # Convert the requested json into pandas dataframe
-        df = pd.DataFrame(columns=apijson.json()[0], data=apijson.json()[1:])
-        
+        df = pd.DataFrame(columns=payload[0], data=payload[1:])
+
         # save json as text file
         with open(json_filepath, 'w') as convert_file:
-            json.dump(apijson.json(),convert_file)
+            json.dump(payload, convert_file)
 
         return df
 
