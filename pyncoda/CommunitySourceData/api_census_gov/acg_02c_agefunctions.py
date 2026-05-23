@@ -154,6 +154,44 @@ def add_B19037age_groups(input_df,varname):
 
     return output_df
 
+def add_B18101age_groups(input_df, varname):
+    """
+    Add age groups for ACS Table B18101 (Disability)
+
+    Parameters:
+    - input_df: DataFrame with person records
+    - varname: Column containing age (e.g., 'randagePCT12')
+
+    Returns:
+    - DataFrame with new column 'agegroupB18101'
+    """
+
+    output_df = input_df.copy()
+
+    agegroupB18101_dict = {
+        1: {'minageyrs':  0, 'maxageyrs':   4},
+        2: {'minageyrs':  5, 'maxageyrs':  17},
+        3: {'minageyrs': 18, 'maxageyrs':  34},
+        4: {'minageyrs': 35, 'maxageyrs':  64},
+        5: {'minageyrs': 65, 'maxageyrs':  74},
+        6: {'minageyrs': 75, 'maxageyrs': 110}
+    }
+
+    for agegroup in agegroupB18101_dict:
+        randvar_greater_than = \
+            (output_df[varname] >= agegroupB18101_dict[agegroup]['minageyrs'])
+        randvar_less_than    = \
+            (output_df[varname] <= agegroupB18101_dict[agegroup]['maxageyrs'])
+        conditions = randvar_greater_than & randvar_less_than
+        output_df.loc[conditions, 'agegroupB18101'] = agegroup
+
+    # Add 0 agegroup - for no age data
+    randage_missing = (output_df[varname].isnull())
+    conditions = randage_missing
+    output_df.loc[conditions, 'agegroupB18101'] = 0
+
+    return output_df
+
 def add_P43age_groups(input_df,varname):
     """
     Add age groups for P43
