@@ -178,8 +178,13 @@ def predict_residential_addresspoints(building_to_block_gdf,
     print(len_bldg_df,"buildings with error 5. HU > 0, AP = 0.")
 
     # Calculate sum of Residential Area By Block
+    # Use all residential buildings (residentialAP1 >= 1), not just single-unit
+    # buildings, so the block surplus is redistributed across every residential
+    # building weighted by floor area. Using '== 1' here forced all extra units
+    # onto single-unit buildings and excluded multi-unit buildings entirely.
     bldg_df_round2['Res_Area'] = 0
-    condition = (bldg_df_round2['residentialAP1'] == 1)
+    # condition = (bldg_df_round2['residentialAP1'] == 1)
+    condition = (bldg_df_round2['residentialAP1'] >= 1)
     # Fill non-finite values in building_area_var with 0, then cast to int64
     bldg_df_round2.loc[condition, 'Res_Area'] = bldg_df_round2[
         building_area_var

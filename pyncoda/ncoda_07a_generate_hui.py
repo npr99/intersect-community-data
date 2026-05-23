@@ -71,7 +71,9 @@ class generate_hui_functions():
             outputfolder: str ="",
             outputfolders = {},
             savefiles: bool = True,
-            use_incore: bool = True):
+            use_incore: bool = True,
+            generate_figures: bool = True,
+            generate_codebook: bool = True):
 
         self.communities = communities
         self.seed = seed
@@ -82,6 +84,11 @@ class generate_hui_functions():
         self.outputfolders = outputfolders
         self.savefiles = savefiles
         self.use_incore = use_incore
+        # Optional outputs. Defaults preserve the full IN-CORE workflow.
+        # Callers that only need the raw inventory (e.g. BRAILS) can set
+        # these to False to skip figure and PDF codebook generation.
+        self.generate_figures = generate_figures
+        self.generate_codebook = generate_codebook
 
 
         # Save Outputfolder - due to long folder name paths output saved to folder with shorter name
@@ -201,41 +208,43 @@ class generate_hui_functions():
 
             # Generate figures for explore data
             figures_list = []
-            for by_var in ["race","hispan","family"]:
-                try:
-                    income_by_var_figure = income_distribution(input_df = hui_incore_df,
-                                    variable = "randincome",
-                                    by_variable = by_var,
-                                    datastructure = incore_v2_DataStructure,
-                                    communities= self.communities,
-                                    community = community,
-                                    year = self.basevintage,
-                                    outputfolders = outputfolders)
-                    filename = income_by_var_figure+".png"
-                    figures_list.append(filename)
-                except Exception as e:
-                    print(f'Error making figure for {by_var}: {e}')
-
-            # Paths for codebook text
-            CommunitySourceData_filepath = os.path.join('pyncoda', 'CommunitySourceData', 'api_census_gov')
-            keyterms_filepath = os.path.join(CommunitySourceData_filepath, 'acg_00a_keyterms.md')
-
-            projectoverview_filepath = os.path.join('pyncoda', 'ncoda_00a_projectoverview.md')
+            if self.generate_figures:
+                for by_var in ["race","hispan","family"]:
+                    try:
+                        income_by_var_figure = income_distribution(input_df = hui_incore_df,
+                                        variable = "randincome",
+                                        by_variable = by_var,
+                                        datastructure = incore_v2_DataStructure,
+                                        communities= self.communities,
+                                        community = community,
+                                        year = self.basevintage,
+                                        outputfolders = outputfolders)
+                        filename = income_by_var_figure+".png"
+                        figures_list.append(filename)
+                    except Exception as e:
+                        print(f'Error making figure for {by_var}: {e}')
 
             # Create PDF Codebook
-            pdfcodebook = codebook(input_df = hui_incore_df_fixed,
-                    header_title = 'Housing Unit Inventory',
-                    datastructure = incore_v2_DataStructure,
-                    projectoverview = projectoverview_filepath,
-                    keyterms = keyterms_filepath,
-                    communities = self.communities,
-                    community = community,
-                    year = self.basevintage,
-                    output_filename = output_filename,
-                    outputfolders = outputfolders,
-                    figures = figures_list,
-                    image_path = 'IN-CORE_HRRC_Banner.png')
-            pdfcodebook.create_codebook()
+            if self.generate_codebook:
+                # Paths for codebook text
+                CommunitySourceData_filepath = os.path.join('pyncoda', 'CommunitySourceData', 'api_census_gov')
+                keyterms_filepath = os.path.join(CommunitySourceData_filepath, 'acg_00a_keyterms.md')
+
+                projectoverview_filepath = os.path.join('pyncoda', 'ncoda_00a_projectoverview.md')
+
+                pdfcodebook = codebook(input_df = hui_incore_df_fixed,
+                        header_title = 'Housing Unit Inventory',
+                        datastructure = incore_v2_DataStructure,
+                        projectoverview = projectoverview_filepath,
+                        keyterms = keyterms_filepath,
+                        communities = self.communities,
+                        community = community,
+                        year = self.basevintage,
+                        output_filename = output_filename,
+                        outputfolders = outputfolders,
+                        figures = figures_list,
+                        image_path = 'IN-CORE_HRRC_Banner.png')
+                pdfcodebook.create_codebook()
 
             # Upload CSV file to IN-CORE and save dataset_id
             # note you have to put the correct dataType as well as format
