@@ -346,11 +346,10 @@ def predict_residential_addresspoints(building_to_block_gdf,
                               how='left')                                
 
     return_cols1 = [bldg_blockid,bldg_uniqueid,placename_var,
-                    archetype_var,'residential','apcount','bldgcount',
-                    'residentialAP1_sum','bldgcount1_sum','DiffCount1','ErrorCheck1_int',
-                    'residentialAP2v2_sum','bldgcountv2_sum','DiffCount2','ErrorCheck2_int',
-                    'residentialAP2v3_sum','bldgcountv3_sum','DiffCount3','ErrorCheck3_int',
-                    'huestimate']
+                    archetype_var,building_area_var,'huestimate','residential','apcount','bldgcount',
+                    'residentialAP1','residentialAP1_sum','bldgcount1_sum','DiffCount1','ErrorCheck1_int',
+                    'residentialAP2','residentialAP2v2','residentialAP2v2_sum','bldgcountv2_sum','DiffCount2','ErrorCheck2_int',
+                    'residentialAP2v3_sum','bldgcountv3_sum','DiffCount3','ErrorCheck3_int']
     return_cols = return_cols1
     return bldg_df_round3[return_cols]
 
