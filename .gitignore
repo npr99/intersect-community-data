@@ -9,6 +9,9 @@
 [Ww]ork*/
 **/[Ww]ork*/**
 
+# ignore html files in the main folder
+*.html
+
 # Ignore OuputData Folder
 OutputData*/
 
