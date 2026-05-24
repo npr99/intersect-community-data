@@ -878,8 +878,8 @@ class generate_addpt_functions():
             print("Block ID is not 15 characters long")
 
         # drop columns not needed for analysis
-        #address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
-        #    axis=1, inplace=True)
+        address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
+            axis=1, inplace=True)
 
         # Resave results for community name
         address_point_gdfv2.to_csv(savefile, index=False)
