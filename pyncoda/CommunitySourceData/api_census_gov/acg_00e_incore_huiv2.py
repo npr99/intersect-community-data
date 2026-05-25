@@ -367,7 +367,7 @@ def adjust_incore_datastructure_baseyear(baseyear, state_county):
             'pyType' : "category",
             'categorical' : True,
             'AnalysisUnit' : 'Household',
-            'MeasureUnit' : '2012 INFLATION-ADJUSTED DOLLARS',
+            'MeasureUnit' : '2012 or 2022 INFLATION-ADJUSTED DOLLARS',
             'categories_dict' : {
                 0 : '0. NA vacant or group quarters',
                 1 : '1. Less than $15,000',
@@ -394,7 +394,7 @@ def adjust_incore_datastructure_baseyear(baseyear, state_county):
             'DataType'  : 'Float',
             'pyType' : float,
             'AnalysisUnit' : 'Household',
-            'MeasureUnit' : '2012 INFLATION-ADJUSTED DOLLARS',
+            'MeasureUnit' : '2012 or 2022 INFLATION-ADJUSTED DOLLARS',
             'notes' : '\n'.join([
                     '1.  Household income top coded at $250,000. \n \n'
                     '2.  Based on 2012 or 2022 5-year ACS tables B19001 and B19101. \n \n'
