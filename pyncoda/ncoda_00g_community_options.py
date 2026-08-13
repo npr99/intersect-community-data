@@ -223,6 +223,27 @@ communities_dictionary = {
                     'building_area_cutoff' : 300
                     }
                 },
+
+    'GraysHarbor_WA_NSI' : {
+                'community_name' : 'Grays Harbor, WA',
+                'focalplace_name' : 'Aberdeen',
+                'STATE' : 'WASHINGTON',
+                'years' : ['2020'],
+                'counties' : { 
+                    1 : {'FIPS Code' : '53027', 'Name' : 'Grays Harbor County, WA'}
+                    },
+                'building_inventory' : {
+                    'use_incore' : False, 
+                    'id' : 'NSI',
+                    'note' : 'NSI Building inventory for Grays Harbor County, WA',
+                    'archetype_var' : 'occtype',
+                    'bldg_uniqueid' : 'fd_id_bid',
+                    'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
+                    'building_area_var' : 'sqft',
+                    'building_area_cutoff' : 300
+                    }
+                },
+    
     'SETXUIFL_TX_NSI' : {
                 'community_name' : 'Southeast Texas Urban Integrated Field Lab',
                 'focalplace_name' : 'Beaumont',
