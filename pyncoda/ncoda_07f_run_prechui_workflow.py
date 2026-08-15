@@ -495,9 +495,28 @@ class prechui_workflow_functions():
 
         return df
 
-    def merge_prec_to_hui(self, prec_df, hui_numprec):
+    def merge_prec_to_hui(self, prec_df, hui_numprec, geo_levels = None):
         """
         Attach a huid to each person record.
+
+        geo_levels controls how far the merge may look for a housing unit.
+
+        The default is block only, which is what the 2021 method does and what
+        keeps every placed person in the block they actually live in. The cost
+        is coverage: the two inventories distribute people to blocks
+        differently, so some blocks hold more people than they have slots for
+        and those people go unplaced.
+
+        Passing ['Block','Tract','County'] lets the merge look wider when a
+        block is full. That raises coverage, and should also improve age
+        fidelity, because a larger pool is more likely to contain someone in
+        the age band a slot needs. The cost is that people placed beyond their
+        own block are housed somewhere they do not live, which for hazard
+        exposure work can move them across an inundation boundary.
+
+        Neither is the right answer in general. validate_linkage reports how
+        many people ended up outside their own block, so the trade can be
+        measured rather than assumed.
 
         Rounds weaken in a fixed order so the result is reproducible. The first
         matches householders on everything known about them. Group quarters
@@ -583,7 +602,7 @@ class prechui_workflow_functions():
                             'common_group_vars' : [],
                             'by_groups' : prec_hui.by_groups}
                                 },
-                'geo_levels' : [self.basegeolevel]
+                'geo_levels' : geo_levels if geo_levels else [self.basegeolevel]
                 }
 
         return prec_hui.run_random_merge_2dfs(rounds)
