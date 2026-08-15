@@ -38,43 +38,33 @@ Geography column names are built from the vintage, so 'Block2010str' or
 characteristics in acg_05c_hui_householder, group quarters in
 acg_05b_prec_functions.tidy_group_quarters.
 
-KNOWN LIMITATION - the second round exhausts the slot pool
-----------------------------------------------------------
-The merge runs end to end and every structural invariant holds, but only about
-14% of person records currently receive a huid. The cause is located but not
-yet resolved, and it is not in the rounds themselves.
+A null merge key disqualifies a row permanently
+-----------------------------------------------
+The single most important thing to know when adding or reordering rounds.
 
-run_random_merge_2dfs reports two figures per round, one for the primary frame
-and one for the secondary. On Grays Harbor 2020 the secondary - the pool of
-housing unit person slots - runs down like this:
+When a round groups by a variable, any row where that variable is null is
+flagged -888, "does not have required variable". A row flagged -888 is then
+excluded from every later round, including the final round that matches on
+nothing at all. The exclusion is permanent and silent.
+
+So one round keyed on a mostly-null variable destroys the merge. The group
+quarters round keys on agegroupP43, which only group quarters slots have. On
+Grays Harbor that flagged 73,033 of 75,942 housing unit slots on round two, and
+every round after it had almost nothing left to match against:
 
     round 1  householder     primary 73.24% left    secondary 89.73% left
     round 2  group quarters  primary 69.44% left    secondary  0.04% left
     rounds 3-6                primary 69.44% left    secondary  0.04% left
     round 7  catch all       primary 69.40% left    secondary  0.01% left
 
-The group quarters round consumes 99.96% of the slot pool while placing only
-2,875 people, after which no later round has anything to match against. Rounds
-3 to 6 place nobody at all and the catch all places 26.
+Rounds 3 to 6 placed nobody, the catch all placed 26, and the assignment rate
+was 14%. The rounds themselves were never at fault - the same catch all round
+placed 64,516 when run on its own.
 
-The rounds are not individually at fault. Run on its own against the same data
-the catch all round places 64,516 of 75,636 - so the matching logic works and
-the ordering is what fails. Filling the 12,447 null age bands on the person side
-changes nothing, which rules out the obvious first suspect.
-
-What remains is to establish what marks a secondary row as used. The count
-consumed far exceeds the count matched, which suggests rows are flagged by
-group rather than by pair, so a round with coarse keys burns the pool. The merge
-already has a reuse_secondary switch that resets the flags when the pool empties;
-whether that is the intended remedy, or whether the group quarters round should
-be restricted to group quarters slots, is a question about upstream behaviour
-rather than about this module.
-
-Until then this workflow should be treated as structurally correct and
-substantively incomplete: what it does assign is verifiably sound - nothing is
-duplicated or lost, no unit is overfilled, everyone is housed in their own
-block, and 2,901 of 2,909 group quarters residents are placed - but most people
-are not yet assigned.
+fill_merge_keys fills the nulls before the merge starts, which raises the
+assignment rate to 85% with group quarters still placed. The distinction it
+relies on is that -999 means "not set" and still matches other -999 rows, while
+null means "cannot participate at all".
 """
 
 import numpy as np
@@ -463,6 +453,48 @@ class prechui_workflow_functions():
 
         return prec_df
 
+    # Every variable any round matches on. A null in one of these disqualifies
+    # the row permanently, so they are filled before the merge starts.
+    merge_key_vars = ['agegroupH17','agegroupH18','agegroupP43',
+                      'sex','race','hispan','child']
+
+    def fill_merge_keys(self, df, label, fillna_value = -999):
+        """
+        Replace nulls in the merge keys with the not-set value.
+
+        This is not cosmetic. When a round groups by a variable, any row where
+        that variable is null is flagged -888 - "does not have required
+        variable" - and a row flagged -888 is excluded from every later round,
+        including the catch all round that matches on nothing at all.
+
+        So a single round keyed on a mostly-null variable disqualifies most of
+        the frame permanently. The group quarters round keys on agegroupP43,
+        which only group quarters slots have; on Grays Harbor that flagged
+        73,033 of 75,942 housing unit slots and the assignment rate fell to
+        14%. Filling the nulls first raises it to 85%, with group quarters
+        still placed. Person records under 15 have no householder age band for
+        the same reason and are filled likewise.
+
+        The distinction matters: -999 means "not set" and still matches other
+        -999 rows, while null means "cannot participate at all".
+        """
+
+        df = df.copy()
+        filled = {}
+        for column in self.merge_key_vars:
+            if column not in df.columns:
+                continue
+            missing = int(df[column].isnull().sum())
+            if missing:
+                filled[column] = missing
+                df[column] = df[column].fillna(fillna_value)
+
+        if filled:
+            print("Filled null merge keys in", label, "-", filled,
+                  "of", len(df), "rows.")
+
+        return df
+
     def merge_prec_to_hui(self, prec_df, hui_numprec):
         """
         Attach a huid to each person record.
@@ -478,6 +510,9 @@ class prechui_workflow_functions():
         print("\n***************************************")
         print("    Random merge between person records and housing units.")
         print("***************************************\n")
+
+        prec_df = self.fill_merge_keys(prec_df, 'person records')
+        hui_numprec = self.fill_merge_keys(hui_numprec, 'housing unit slots')
 
         prec_hui = add_new_char_by_random_merge_2dfs(
             dfs = {'primary'  : {'data': prec_df,
