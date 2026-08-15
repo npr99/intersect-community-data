@@ -703,31 +703,105 @@ class prechui_workflow_functions():
 
         return checks
 
-    def validate_against_census(self, prechui_df, census_marginals):
-        """
-        Compare the linked result against Census tables that were NOT used as
-        merge inputs.
+    # Tables describing whether a household CONTAINS a person of a given age.
+    # Nothing in the merge is fitted to these - they depend entirely on which
+    # person the linkage placed in which household - so agreement is evidence
+    # rather than a restatement of the inputs. Both are 2020 DHC.
+    outofsample_tables = {
+        'PCT5' : {'threshold': 60,
+                  'total': 'PCT5_001N', 'with': 'PCT5_002N',
+                  'with_1person': 'PCT5_003N', 'with_2plus': 'PCT5_004N',
+                  'no_1person': 'PCT5_008N',
+                  'concept': 'households by presence of people 60 years and over'},
+        'PCT6' : {'threshold': 75,
+                  'total': 'PCT6_001N', 'with': 'PCT6_002N',
+                  'with_1person': 'PCT6_003N', 'with_2plus': 'PCT6_004N',
+                  'no_1person': 'PCT6_008N',
+                  'concept': 'households by presence of people 75 years and over'},
+        }
 
-        The merge matches on householder age band, sex, race and ethnicity, so
-        agreement with those marginals is guaranteed by construction and proves
-        only that the merge conserved them. Tables describing household type by
-        age of householder are not inputs, so agreement with them is evidence
-        about the joint distribution rather than a restatement of the inputs.
-
-        census_marginals: dict of label to expected count.
-        Returns a dataframe of label, linked value, census value, difference.
+    def validate_against_census(self, prechui_df, census_counts,
+                                age_var = 'randagePCT12'):
         """
+        Compare the linked households against Census tables not used as inputs.
+
+        Agreement with the merge's own inputs - householder age band, sex, race,
+        ethnicity - is guaranteed by construction and evidences only that the
+        merge conserved them. The tables used here instead describe whether a
+        household contains someone above an age threshold, which is decided
+        entirely by the linkage.
+
+        census_counts: {table name: {variable name: count}}, so the caller
+        fetches from the API and this function stays offline and testable.
+
+        Two corrections matter for reading the result:
+
+        Incomplete households bias every comparison downward, because a
+        household missing members is less likely to show an older one. The
+        comparison is therefore also reported over households whose slots are
+        all filled.
+
+        Household size confounds the rest: one person households are trivially
+        complete and skew old, so their share of the complete subset differs
+        from the county. Where the table breaks out one person households the
+        comparison is made within size class, which removes it.
+        """
+
+        assigned = prechui_df[~self.unassigned_mask(prechui_df['huid'])]
+        # Group quarters have no householder and are outside these universes
+        households_only = assigned[assigned['gqtype'].fillna(0) == 0]
+
+        grouped = households_only.groupby('huid').agg(
+            people_placed = ('precid', 'count'),
+            expected = ('numprec', 'max'),
+            oldest = (age_var, 'max'))
+        grouped['complete'] = grouped['people_placed'] >= grouped['expected']
+        complete = grouped[grouped['complete']]
 
         rows = []
-        householders = prechui_df[prechui_df['pernum'] == 1]
-        for label, (expected, mask) in census_marginals.items():
-            observed = int(mask(householders).sum())
-            rows.append({
-                'marginal': label,
-                'linked': observed,
-                'census': expected,
-                'difference': observed - expected,
-                'percent': (observed - expected) / expected * 100 if expected else np.nan,
-                })
+        for table, spec in self.outofsample_tables.items():
+            counts = census_counts.get(table)
+            if not counts:
+                continue
+            threshold = spec['threshold']
+            total = counts[spec['total']]
+            with_older = counts[spec['with']]
+            census_rate = with_older / total * 100 if total else np.nan
+
+            for label, subset in (('all households', grouped),
+                                  ('complete households', complete)):
+                if not len(subset):
+                    continue
+                rate = (subset['oldest'] >= threshold).sum() / len(subset) * 100
+                rows.append({
+                    'table': table, 'concept': spec['concept'],
+                    'subset': label, 'households': len(subset),
+                    'linked_percent': round(rate, 2),
+                    'census_percent': round(census_rate, 2),
+                    'difference_pp': round(rate - census_rate, 2)})
+
+            # Within size class, where the table supports it
+            if spec.get('with_1person') and len(complete):
+                with_1 = counts[spec['with_1person']]
+                with_2 = counts[spec['with_2plus']]
+                no_1 = counts[spec['no_1person']]
+                no_2 = total - with_1 - with_2 - no_1
+                sizes = {
+                    '1-person'  : (with_1, with_1 + no_1,
+                                   complete[complete['expected'] == 1]),
+                    '2-or-more' : (with_2, with_2 + no_2,
+                                   complete[complete['expected'] > 1]),
+                    }
+                for label, (cwith, ctotal, subset) in sizes.items():
+                    if not len(subset) or not ctotal:
+                        continue
+                    rate = (subset['oldest'] >= threshold).sum() / len(subset) * 100
+                    crate = cwith / ctotal * 100
+                    rows.append({
+                        'table': table, 'concept': spec['concept'],
+                        'subset': 'complete, ' + label, 'households': len(subset),
+                        'linked_percent': round(rate, 2),
+                        'census_percent': round(crate, 2),
+                        'difference_pp': round(rate - crate, 2)})
 
         return pd.DataFrame(rows)
