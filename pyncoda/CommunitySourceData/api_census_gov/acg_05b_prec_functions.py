@@ -6,6 +6,7 @@
 
 import numpy as np
 import pandas as pd
+import copy # For copying data structure dictionaries before modifying them
 import os # For saving output to path
 import sys
 
@@ -33,6 +34,8 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_00f_preci_PCT12_2020 import 
     sexbyage_PCT12_2020_varstem_roots
 
 # open, read, and execute python program with reusable commands
+from pyncoda.CommunitySourceData.api_census_gov.acg_00b_hui_block2020 \
+    import group_quarters_P18_2020_varstem_roots
 from pyncoda.CommunitySourceData.api_census_gov.acg_01a_BaseInventory import BaseInventory
 from pyncoda.CommunitySourceData.api_census_gov.acg_02a_add_categorical_char \
      import add_new_char_by_random_merge_2dfs
@@ -293,56 +296,157 @@ class prec_workflow_functions():
         return prec_df
 
     # Function not currently used - might be in PRECHUI Workflow
-    def hui_tidy_P43(self):
+    def tidy_group_quarters(self, unit_of_analysis: str = 'person'):
         """
-        Obtain, Tidy, and transfer data with population
-        in group quarters by age, sex, by gqtype
+        Obtain group quarters population by sex, age and group quarters type.
 
+        This is the hook the person record linkage uses to place group quarters
+        residents, who have no householder and so cannot be matched through the
+        household tables.
+
+        Vintage handling. The 2020 Demographic and Housing Characteristics file
+        renumbered this table, so the group name is mapped rather than assumed:
+
+            2010  dec/sf1  P43  GROUP QUARTERS POPULATION BY SEX BY AGE BY
+                                GROUP QUARTERS TYPE
+            2020  dec/dhc  P18  GROUP QUARTERS POPULATION BY SEX BY AGE BY
+                                MAJOR GROUP QUARTERS TYPE
+
+        Despite the "major" in the 2020 title the seven group quarters types are
+        the same, so the linkage needs no vintage branching. Requesting P43 from
+        dec/dhc, as this function previously did, fails with an unknown variable
+        error - the dataset name was switched by vintage but the group name was
+        not.
+
+        Output columns are named for the 2010 table (agegroupP43) in both
+        vintages, matching the convention used for the householder age groups:
+        they label age bands rather than tables, and the bands are identical.
+
+        unit_of_analysis
+        ----------------
+        'person' (default) returns one row per group quarters resident, which
+        is what the linkage needs: it matches person records one to one, so a
+        facility level frame would supply far too few rows to match against.
+
+        'housingunit' returns one row per facility, with numprec holding the
+        resident count. This is the shape the housing unit workflow uses, where
+        a block's group quarters population is treated as a single unit.
+
+        The distinction is easy to miss and quiet when wrong. For Grays Harbor
+        2020 the facility frame has 142 rows and the person frame 2,909; the
+        first happens to equal the number of group quarters units in the
+        housing unit inventory, so a facility frame passed to the linkage looks
+        plausible and silently leaves most residents unmatched.
         """
 
-        print("\n***************************************")
-        print("    Set up Data structures for obtaining data.")
-        print("***************************************\n")
+        if unit_of_analysis not in ('person', 'housingunit'):
+            raise ValueError(
+                "unit_of_analysis must be 'person' or 'housingunit', got "
+                + repr(unit_of_analysis))
+
         vintage = str(self.basevintage)
-        dataset_name = 'dec/sf1' if str(self.basevintage) == '2010' else 'dec/dhc' 
-        group = 'P43'
-        prec_P43_dict = createAPI_datastructure.obtain_api_metadata(
-                vintage = vintage,
-                dataset_name = dataset_name,
-                group = group,
-                outputfolder = self.outputfolder,
-                version_text = self.version_text)
-        
-        # Need to add graft chars to metadata
-        # Graft chars are used to check the merge by variables in grafting function
-        prec_P43_dict['metadata']['graft_chars'] = ['gqytpe']
+        dataset_name = 'dec/sf1' if vintage == '2010' else 'dec/dhc'
+        group = 'P43' if vintage == '2010' else 'P18'
 
-        
         print("\n***************************************")
-        print("   Obtain and Clean P43 Data.")
+        print("    Set up data structures for", group, "-", dataset_name)
+        print("***************************************\n")
+
+        if vintage == '2020':
+            # Already written out, with the seven group quarters types and the
+            # same three age bands P43 uses.
+            groupquarters_dict = copy.deepcopy(group_quarters_P18_2020_varstem_roots)
+        else:
+            groupquarters_dict = createAPI_datastructure.obtain_api_metadata(
+                    vintage = vintage,
+                    dataset_name = dataset_name,
+                    group = group,
+                    outputfolder = self.outputfolder,
+                    version_text = self.version_text)
+            # obtain_api_metadata describes a table, not a request, and defaults
+            # to tract geography. Without this the data returns at tract level
+            # and, because this outputfile is not a "Core" file, no block id is
+            # built and nothing raises - the geography is simply wrong.
+            groupquarters_dict['metadata']['for_geography'] = 'block:*'
+            groupquarters_dict['metadata']['indexvar'] = \
+                ['GEO_ID','state','county','tract','block']
+
+        # Graft chars are used to check the merge by variables in the grafting
+        # function. Previously misspelled 'gqytpe', which silently checked
+        # nothing.
+        groupquarters_dict['metadata']['graft_chars'] = ['gqtype']
+
+        print("\n***************************************")
+        print("   Obtain and clean", group, "data.")
         print("***************************************\n")
         block_df = {}
-        block_df["P43"] = BaseInventory.get_apidata(state_county = self.state_county,
+        block_df[group] = BaseInventory.get_apidata(
+                                        state_county = self.state_county,
                                         geo_level = 'block',
-                                        vintage = str(self.basevintage), 
+                                        vintage = vintage,
                                         mutually_exclusive_varstems_roots_dictionaries =
-                                                            [prec_P43_dict],
+                                                            [groupquarters_dict],
                                         outputfolders = self.outputfolders,
-                                        outputfile = f"P43_{self.basevintage}")
+                                        outputfile = f"{group}_{vintage}")
 
+        output_df = block_df[group]
 
-        # Add random age
-        print("Add random age and P43 age groups.")
-        block_df["P43"] = self.add_randage(
-                                    block_df["P43"],
+        if vintage == '2020':
+            # The 2020 dictionary carries the age band and sex directly, so no
+            # random age is drawn. Rename to the names the linkage expects.
+            rename_map = {}
+            if 'ageP18' in output_df.columns:
+                rename_map['ageP18'] = 'agegroupP43'
+            if 'sexP18' in output_df.columns:
+                rename_map['sexP18'] = 'sex'
+            output_df = output_df.rename(columns=rename_map)
+        else:
+            # The 2010 table gives an age range, so draw a random age within it
+            # and band it, the same way the person records are aged.
+            print("Add random age and group quarters age groups.")
+            output_df = add_randage(output_df,
                                     seed = self.seed,
                                     varname = 'randageP43')
-        # Add agegroups to block_df["hhage_hispan"]
-        block_df["P43"] = self.add_P43age_groups(
-                                    block_df["P43"],
-                                    varname = 'randageP43')
+            output_df = add_P43age_groups(output_df,
+                                          varname = 'randageP43')
 
-        return block_df["P43"]
+        if unit_of_analysis == 'person' and 'numprec' in output_df.columns:
+            # One row per resident, so the frame can be matched against person
+            # records one to one.
+            residents = int(output_df['numprec'].sum())
+            print("Expand", len(output_df), "group quarters facilities to",
+                  residents, "residents.")
+            output_df = BaseInventory.expand_df(df = output_df,
+                                                expand_var = 'numprec')
+            output_df = output_df.reset_index(drop = True)
+
+            # A key the random merge can hold onto, mirroring the huid built
+            # for housing units: block, group quarters type, then a counter.
+            output_df['gq_counter'] = \
+                output_df.groupby(['GEO_ID','gqtype']).cumcount() + 1
+            counter_width = len(str(int(output_df['gq_counter'].max())))
+            output_df['uniqueidP43'] = (
+                output_df['GEO_ID'].astype(str)
+                + 'G' + output_df['gqtype'].astype(int).astype(str)
+                + output_df['gq_counter'].apply(
+                    lambda x: str(int(x)).zfill(counter_width)))
+
+            if len(output_df) != residents:
+                raise ValueError(
+                    "group quarters expansion produced " + str(len(output_df))
+                    + " rows for " + str(residents) + " residents.")
+
+        return output_df
+
+    def hui_tidy_P43(self):
+        """
+        Deprecated name kept so existing callers keep working.
+
+        The table is P43 only in 2010; use tidy_group_quarters, which maps the
+        group name by vintage.
+        """
+
+        return self.tidy_group_quarters()
 
     def final_polish_prec(self, input_df):
 
