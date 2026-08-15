@@ -537,6 +537,20 @@ class prechui_workflow_functions():
             outputfile = "prec_hui_randomhuid",
             outputfolder = self.outputfolders['RandomMerge'])
 
+        # The ladder weakens in a fixed order so the result is reproducible.
+        #
+        # Age is given up LAST, not first. The 2021 ladder went straight from
+        # matching on all four householder characteristics to rounds that
+        # ignore age entirely, which is fatal for a person living alone: they
+        # are the householder, so their age should come from the first round,
+        # and when it does not match they end up close to a draw from the
+        # county age distribution. Validated against PCT5 that produced 51.6%
+        # of one person households containing someone 60 or over against the
+        # 64.1% the Census reports.
+        #
+        # The age preserving rounds between them relax sex, then race and
+        # ethnicity, while keeping the age band, so a household reaches the
+        # age blind rounds only when nothing else can place it.
         rounds = {'options': {
                 'householderH17' : {'notes' : 'Householder on age band, sex, race and ethnicity.',
                             'common_group_vars' : ['agegroupH17','sex','race','hispan'],
@@ -544,17 +558,26 @@ class prechui_workflow_functions():
                 'groupquarters' : {'notes' : 'Group quarters residents by sex and age band.',
                             'common_group_vars' : ['sex','agegroupP43'],
                             'by_groups' : prec_hui.by_groups},
+                'age_race' : {'notes' : 'Keep the age band, drop sex.',
+                            'common_group_vars' : ['agegroupH17','race','hispan'],
+                            'by_groups' : prec_hui.by_groups},
+                'age_sex' : {'notes' : 'Keep the age band and sex, drop race and ethnicity.',
+                            'common_group_vars' : ['agegroupH17','sex'],
+                            'by_groups' : prec_hui.by_groups},
+                'age_only' : {'notes' : 'Keep the age band alone.',
+                            'common_group_vars' : ['agegroupH17'],
+                            'by_groups' : prec_hui.by_groups},
+                'householderH18' : {'notes' : 'Householder on the coarser age band.',
+                            'common_group_vars' : ['agegroupH18','sex','race','hispan'],
+                            'by_groups' : prec_hui.by_groups},
+                'age_only_H18' : {'notes' : 'Coarser age band alone.',
+                            'common_group_vars' : ['agegroupH18'],
+                            'by_groups' : prec_hui.by_groups},
                 'child1' : {'notes' : 'Children by race and ethnicity.',
                             'common_group_vars' : ['race','hispan','child'],
                             'by_groups' : prec_hui.by_groups},
                 'child2' : {'notes' : 'Children without race and ethnicity.',
                             'common_group_vars' : ['child'],
-                            'by_groups' : prec_hui.by_groups},
-                'spouse' : {'notes' : 'Other members assumed to share the householder race and ethnicity.',
-                            'common_group_vars' : ['race','hispan','agegroupH17'],
-                            'by_groups' : prec_hui.by_groups},
-                'householderH18' : {'notes' : 'Householder on the coarser age band.',
-                            'common_group_vars' : ['agegroupH18','sex','race','hispan'],
                             'by_groups' : prec_hui.by_groups},
                 'others' : {'notes' : 'Whoever is left, no assumptions.',
                             'common_group_vars' : [],
