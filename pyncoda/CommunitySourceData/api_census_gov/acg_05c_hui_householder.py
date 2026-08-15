@@ -42,36 +42,23 @@ for both vintages. They are labels for age bands rather than table names, the
 bands are identical in 2010 and 2020, and keeping the names fixed means code
 downstream of this module needs no vintage branching.
 
-KNOWN LIMITATION - married couple households carry no householder sex
----------------------------------------------------------------------
-The household type table is currently described by ``obtain_api_metadata``,
-which keeps only the variables carrying the largest number of characteristics
-and discards the rest as aggregates. That rule assumes an evenly nested table,
-and H14/H18 is not evenly nested:
+Why the two tables are obtained differently
+-------------------------------------------
+The tenure by age table is evenly nested, so ``obtain_api_metadata`` describes
+it correctly and is used directly.
 
-    Owner > Family > Married couple > Householder 15 to 34 years      (5 levels)
-    Owner > Family > Other family > Male householder > Householder ..  (6 levels)
-    Owner > Nonfamily > Male householder > Living alone > Householder  (6 levels)
-
-A married couple household has no single householder sex, so its leaves sit one
-level shallower and are dropped. For Grays Harbor that removes the largest
-household category: the table yields 16,710 households against the 29,869 that
-tenure by age of householder reports, and the missing 13,159 are exactly the
-married couple households.
-
-The consequence is that roughly 44% of occupied units currently fall through to
-the weaker fallback rounds without a householder sex.
-
-The fix is a hand written variable dictionary for H14/H18, in the style of
-``acg_00b_hui_block2020.tenure_size_H12_2020_varstem_roots``, assigning
-``sex = -999`` to married couple households. That value is not a placeholder:
-the linkage identifies husband-wife families by testing ``sex == -999`` when it
-decides which household members to treat as spouse and which as children, so
-the dictionary has to encode it deliberately rather than leave it missing.
-
-Until that dictionary exists this module should be treated as producing a
-usable but incomplete householder assignment.
+The household type table is not evenly nested, and must not be discovered that
+way. ``obtain_api_metadata`` keeps only the variables carrying the largest
+number of characteristics and discards the rest as aggregates; a married couple
+household has no single householder sex, so its leaves sit one level shallower
+and are silently dropped. For Grays Harbor that discarded 13,159 of 29,869
+households - the largest category in the county - and left roughly 44% of
+occupied units without a householder. That table is therefore described by a
+written out dictionary in ``acg_00i_householdertype``, whose leaves are
+verified to partition the published county total exactly.
 """
+
+import copy
 
 import numpy as np
 import pandas as pd
@@ -90,6 +77,8 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_02a_add_categorical_char \
     import add_new_char_by_random_merge_2dfs
 from pyncoda.CommunitySourceData.api_census_gov.acg_02c_agefunctions \
     import add_randage, add_H17age_groups, add_H18age_groups
+from pyncoda.CommunitySourceData.api_census_gov.acg_00i_householdertype \
+    import householdertype_H18_2010_varstem_roots, householdertype_H14_2020_varstem_roots
 
 
 # Census renumbered the householder tables between 2010 and 2020.
@@ -100,6 +89,7 @@ householder_tables = {
         'dataset_name'  : 'dec/sf1',
         'age_by_tenure' : 'H17',   # TENURE BY AGE OF HOUSEHOLDER
         'type_by_age'   : 'H18',   # TENURE BY HOUSEHOLD TYPE BY AGE OF HOUSEHOLDER
+        'type_by_age_dictionary' : householdertype_H18_2010_varstem_roots,
         'hispan_dictionaries' : [hispan_byrace_H7_varstem_roots,
                                  tenure_byhispan_H15_varstem_roots],
         },
@@ -107,6 +97,7 @@ householder_tables = {
         'dataset_name'  : 'dec/dhc',
         'age_by_tenure' : 'H13',
         'type_by_age'   : 'H14',
+        'type_by_age_dictionary' : householdertype_H14_2020_varstem_roots,
         'hispan_dictionaries' : [hispan_byrace_H7_2020_varstem_roots,
                                  tenure_byhispan_H11_2020_varstem_roots],
         },
@@ -271,16 +262,10 @@ class hui_householder_functions():
         print("\n***************************************")
         print("    Set up data structures for", group, "-", dataset_name)
         print("***************************************\n")
-        typeage_dict = createAPI_datastructure.obtain_api_metadata(
-                vintage = self.basevintage,
-                dataset_name = dataset_name,
-                group = group,
-                outputfolder = self.outputfolder,
-                version_text = self.version_text)
-
-        typeage_dict = self.set_block_geography(typeage_dict)
-
-        typeage_dict['metadata']['graft_chars'] = ['ownershp','agegroupH18']
+        # Written out rather than discovered: this table is unevenly nested and
+        # metadata discovery drops married couple households entirely. See
+        # acg_00i_householdertype for the reasoning and the verification.
+        typeage_dict = copy.deepcopy(self.tables['type_by_age_dictionary'])
 
         print("\n***************************************")
         print("   Obtain and clean", group, "data.")
@@ -488,13 +473,43 @@ class hui_householder_functions():
             checks["'%s' added" % column] = (
                 True, "%d of %d not set" % (unset, len(hui_after)))
 
-        # Occupied units should have a householder; vacant units should not.
-        if 'vacancy' in hui_after.columns and 'agegroupH17' in hui_after.columns:
-            occupied = hui_after[hui_after['numprec'] > 0]
-            unmatched = int((occupied['agegroupH17'].isin([-999, 0]) |
-                             occupied['agegroupH17'].isnull()).sum())
-            checks['occupied units have a householder age group'] = (
-                unmatched == 0,
-                "%d of %d occupied units unmatched" % (unmatched, len(occupied)))
+        if 'agegroupH17' in hui_after.columns and 'gqtype' in hui_after.columns:
+            unset = (hui_after['agegroupH17'].isin([-999, 0]) |
+                     hui_after['agegroupH17'].isnull())
+
+            # gqtype marks group quarters, but which value means "not group
+            # quarters" depends on how far through the workflow the inventory
+            # is: the polished inventory uses 0, earlier stages leave it null.
+            # Treating only one of them as ordinary housing silently empties
+            # the set below and turns the check into a vacuous pass.
+            is_groupquarters = hui_after['gqtype'].fillna(0) > 0
+
+            # An occupied housing unit must have a householder. Group quarters
+            # are excluded: a prison or nursing home has residents but no
+            # householder, and its occupants are matched through the group
+            # quarters table instead.
+            households = hui_after[(hui_after['numprec'] > 0) & (~is_groupquarters)]
+            unmatched = int(unset.loc[households.index].sum())
+            checks['occupied households have a householder'] = (
+                unmatched == 0 and len(households) > 0,
+                "%d of %d unmatched" % (unmatched, len(households)) if len(households)
+                else "no households found - check failed to select anything")
+
+            # The converse: group quarters must NOT be given a householder,
+            # or the linkage would treat residents as family members.
+            groupquarters = hui_after[is_groupquarters]
+            wrongly_matched = int((~unset.loc[groupquarters.index]).sum())
+            checks['group quarters have no householder'] = (
+                wrongly_matched == 0,
+                "%d of %d wrongly assigned" % (wrongly_matched, len(groupquarters)))
+
+            # Vacant units have no householder either.
+            vacant = hui_after[(hui_after['numprec'].isnull()) |
+                               (hui_after['numprec'] == 0)]
+            if len(vacant):
+                vacant_matched = int((~unset.loc[vacant.index]).sum())
+                checks['vacant units have no householder'] = (
+                    vacant_matched == 0,
+                    "%d of %d wrongly assigned" % (vacant_matched, len(vacant)))
 
         return checks
