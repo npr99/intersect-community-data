@@ -37,6 +37,44 @@ Geography column names are built from the vintage, so 'Block2010str' or
 'Block2020str'. Table differences are handled upstream: householder
 characteristics in acg_05c_hui_householder, group quarters in
 acg_05b_prec_functions.tidy_group_quarters.
+
+KNOWN LIMITATION - the second round exhausts the slot pool
+----------------------------------------------------------
+The merge runs end to end and every structural invariant holds, but only about
+14% of person records currently receive a huid. The cause is located but not
+yet resolved, and it is not in the rounds themselves.
+
+run_random_merge_2dfs reports two figures per round, one for the primary frame
+and one for the secondary. On Grays Harbor 2020 the secondary - the pool of
+housing unit person slots - runs down like this:
+
+    round 1  householder     primary 73.24% left    secondary 89.73% left
+    round 2  group quarters  primary 69.44% left    secondary  0.04% left
+    rounds 3-6                primary 69.44% left    secondary  0.04% left
+    round 7  catch all       primary 69.40% left    secondary  0.01% left
+
+The group quarters round consumes 99.96% of the slot pool while placing only
+2,875 people, after which no later round has anything to match against. Rounds
+3 to 6 place nobody at all and the catch all places 26.
+
+The rounds are not individually at fault. Run on its own against the same data
+the catch all round places 64,516 of 75,636 - so the matching logic works and
+the ordering is what fails. Filling the 12,447 null age bands on the person side
+changes nothing, which rules out the obvious first suspect.
+
+What remains is to establish what marks a secondary row as used. The count
+consumed far exceeds the count matched, which suggests rows are flagged by
+group rather than by pair, so a round with coarse keys burns the pool. The merge
+already has a reuse_secondary switch that resets the flags when the pool empties;
+whether that is the intended remedy, or whether the group quarters round should
+be restricted to group quarters slots, is a question about upstream behaviour
+rather than about this module.
+
+Until then this workflow should be treated as structurally correct and
+substantively incomplete: what it does assign is verifiably sound - nothing is
+duplicated or lost, no unit is overfilled, everyone is housed in their own
+block, and 2,901 of 2,909 group quarters residents are placed - but most people
+are not yet assigned.
 """
 
 import numpy as np
@@ -44,6 +82,10 @@ import pandas as pd
 
 from pyncoda.CommunitySourceData.api_census_gov.acg_01a_BaseInventory \
     import BaseInventory
+from pyncoda.CommunitySourceData.api_census_gov.acg_02a_add_categorical_char \
+    import add_new_char_by_random_merge_2dfs
+from pyncoda.CommunitySourceData.api_census_gov.acg_02c_agefunctions \
+    import add_P43age_groups, add_H17age_groups, add_H18age_groups
 from pyncoda.CommunitySourceData.api_census_gov.acg_02e_conditionsets \
     import create_conditionset, describe_conditionset
 
@@ -341,6 +383,167 @@ class prechui_workflow_functions():
 
         return hui_numprec
 
+    def merge_groupquarters(self, hui_numprec, groupquarters_df):
+        """
+        Give group quarters slots an age band and a sex.
+
+        Group quarters residents have no householder to inherit from, so the
+        slots created for them carry nothing the person merge could match on.
+        This fills them from the group quarters table, matching within block on
+        group quarters type.
+
+        groupquarters_df must be person level - one row per resident, as
+        returned by tidy_group_quarters(unit_of_analysis='person'). A facility
+        level frame has far too few rows and would leave most residents unfilled
+        while looking plausible.
+        """
+
+        print("\n***************************************")
+        print("    Random merge between housing inventory and group quarters records.")
+        print("***************************************\n")
+
+        add_gq = add_new_char_by_random_merge_2dfs(
+            dfs = {'primary'  : {'data': hui_numprec,
+                            'primarykey' : 'uniquehuid_numprec',
+                            'geolevel' : self.basegeolevel,
+                            'geovintage' : self.basevintage,
+                            'notes' : 'Housing unit inventory expanded by numprec.'},
+                'secondary' : {'data': groupquarters_df,
+                            'primarykey' : 'uniqueidP43',
+                            'geolevel' : self.basegeolevel,
+                            'geovintage' : self.basevintage,
+                            'notes' : 'Group quarters residents.'}},
+            seed = self.seed,
+            common_group_vars = ['gqtype'],
+            new_char = 'agegroupP43',
+            extra_vars = ['sex'],
+            geolevel = self.basegeolevel,
+            geovintage = self.basevintage,
+            by_groups = {'NA' : {'by_variables' : []}},
+            fillna_value = -999,
+            state_county = self.state_county,
+            outputfile = "hui_groupquarters",
+            outputfolder = self.outputfolders['RandomMerge'])
+
+        rounds = {'options': {
+                'option1' : {'notes' : 'Match group quarters residents on type within block.',
+                            'common_group_vars' : add_gq.common_group_vars,
+                            'by_groups' : add_gq.by_groups}
+                                },
+                'geo_levels' : [self.basegeolevel]
+                }
+
+        return add_gq.run_random_merge_2dfs(rounds)
+
+    def prepare_prec_for_merge(self, prec_df, randage_var = 'randagePCT12'):
+        """
+        Put the person records on the same age bands the housing units use.
+
+        Person records carry a single year of age; housing units carry bands
+        from the householder tables. The merge needs both sides in the same
+        terms, so the person ages are banded three ways - the two householder
+        bandings and the group quarters banding - and a child flag is added.
+        """
+
+        if randage_var not in prec_df.columns:
+            raise KeyError(
+                "person records have no '" + randage_var + "' column; the age "
+                "banding cannot be derived. Available: " +
+                str(sorted(prec_df.columns)[:12]))
+
+        prec_df = prec_df.copy()
+        prec_df = add_P43age_groups(prec_df, varname = randage_var)
+        prec_df = add_H18age_groups(prec_df, varname = randage_var)
+        prec_df = add_H17age_groups(prec_df, varname = randage_var)
+
+        # The housing unit side marks assumed children; the person side needs
+        # the same flag so the child rounds have something to match on.
+        prec_df.loc[prec_df[randage_var] >= 18, 'child'] = 0
+        prec_df.loc[prec_df[randage_var] < 18, 'child'] = 1
+
+        return prec_df
+
+    def merge_prec_to_hui(self, prec_df, hui_numprec):
+        """
+        Attach a huid to each person record.
+
+        Rounds weaken in a fixed order so the result is reproducible. The first
+        matches householders on everything known about them. Group quarters
+        residents match on sex and their own age band. Children match on race
+        and ethnicity, then on nothing but the child flag. Spouses and other
+        adults match on race, ethnicity and age band. The last round places
+        whoever is left with no assumptions at all.
+        """
+
+        print("\n***************************************")
+        print("    Random merge between person records and housing units.")
+        print("***************************************\n")
+
+        prec_hui = add_new_char_by_random_merge_2dfs(
+            dfs = {'primary'  : {'data': prec_df,
+                            'primarykey' : 'precid',
+                            'geolevel' : self.basegeolevel,
+                            'geovintage' : self.basevintage,
+                            'notes' : 'Person records with race, hispan, age, sex.'},
+                'secondary' : {'data': hui_numprec,
+                            'primarykey' : 'uniquehuid_numprec',
+                            'geolevel' : self.basegeolevel,
+                            'geovintage' : self.basevintage,
+                            'notes' : 'Housing unit person slots.'}},
+            seed = self.seed,
+            common_group_vars = ['agegroupH17','sex','race','hispan'],
+            new_char = 'huid',
+            extra_vars = ['gqtype','numprec','pernum','family'],
+            geolevel = self.basegeolevel,
+            geovintage = self.basevintage,
+            by_groups = {'NA' : {'by_variables' : []}},
+            fillna_value = -999,
+            state_county = self.state_county,
+            outputfile = "prec_hui_randomhuid",
+            outputfolder = self.outputfolders['RandomMerge'])
+
+        rounds = {'options': {
+                'householderH17' : {'notes' : 'Householder on age band, sex, race and ethnicity.',
+                            'common_group_vars' : ['agegroupH17','sex','race','hispan'],
+                            'by_groups' : prec_hui.by_groups},
+                'groupquarters' : {'notes' : 'Group quarters residents by sex and age band.',
+                            'common_group_vars' : ['sex','agegroupP43'],
+                            'by_groups' : prec_hui.by_groups},
+                'child1' : {'notes' : 'Children by race and ethnicity.',
+                            'common_group_vars' : ['race','hispan','child'],
+                            'by_groups' : prec_hui.by_groups},
+                'child2' : {'notes' : 'Children without race and ethnicity.',
+                            'common_group_vars' : ['child'],
+                            'by_groups' : prec_hui.by_groups},
+                'spouse' : {'notes' : 'Other members assumed to share the householder race and ethnicity.',
+                            'common_group_vars' : ['race','hispan','agegroupH17'],
+                            'by_groups' : prec_hui.by_groups},
+                'householderH18' : {'notes' : 'Householder on the coarser age band.',
+                            'common_group_vars' : ['agegroupH18','sex','race','hispan'],
+                            'by_groups' : prec_hui.by_groups},
+                'others' : {'notes' : 'Whoever is left, no assumptions.',
+                            'common_group_vars' : [],
+                            'by_groups' : prec_hui.by_groups}
+                                },
+                'geo_levels' : [self.basegeolevel]
+                }
+
+        return prec_hui.run_random_merge_2dfs(rounds)
+
+    def polish_prechui(self, prec_hui_df):
+        """
+        Sort and order the linked person records.
+        """
+
+        output_df = prec_hui_df.sort_values(by = ['huid','pernum'])
+
+        primary_key_names = ['precid','huid','pernum', self.geo_id]
+        columnlist = [col for col in output_df.columns
+                      if col not in primary_key_names]
+        ordered = [col for col in primary_key_names if col in output_df.columns]
+
+        return output_df[ordered + columnlist]
+
     @staticmethod
     def validate_person_slots(hui_df, hui_numprec):
         """
@@ -380,3 +583,116 @@ class prechui_workflow_functions():
             "%d householders for %d units" % (len(householders), len(occupied)))
 
         return checks
+
+    @staticmethod
+    def unassigned_mask(series):
+        """
+        Which rows failed to receive a value from a random merge.
+
+        A merge can leave a value as the fillna sentinel -999, as null, or - in
+        the housing unit allocation - as the literal string 'missing building
+        id'. Testing only one of them understates the miss rate, which is the
+        kind of error that makes a linkage look better than it is.
+        """
+
+        return (series.isnull() |
+                series.astype(str).isin(['-999', '-999.0', 'missing building id']))
+
+    def validate_linkage(self, prec_df, hui_numprec, prechui_df):
+        """
+        Invariants for the completed linkage.
+
+        Returns a dict of check name to (passed, detail). Every check reports,
+        and a check that selects nothing fails rather than passes.
+        """
+
+        checks = {}
+        geo_id = self.geo_id
+
+        # Nothing gained, nothing lost
+        checks['every person record kept'] = (
+            len(prechui_df) == len(prec_df) and len(prec_df) > 0,
+            "%d out for %d in" % (len(prechui_df), len(prec_df)))
+
+        checks['precid still unique'] = (
+            prechui_df['precid'].is_unique,
+            "%d duplicated" % int(prechui_df['precid'].duplicated().sum()))
+
+        checks['precid set unchanged'] = (
+            set(prechui_df['precid']) == set(prec_df['precid']),
+            "%d missing" % len(set(prec_df['precid']) - set(prechui_df['precid'])))
+
+        unassigned = self.unassigned_mask(prechui_df['huid'])
+        assigned_count = int((~unassigned).sum())
+        checks['every person has a huid'] = (
+            int(unassigned.sum()) == 0,
+            "%d of %d unassigned (%.2f%% assigned)"
+            % (int(unassigned.sum()), len(prechui_df),
+               assigned_count / len(prechui_df) * 100 if len(prechui_df) else 0))
+
+        assigned = prechui_df[~unassigned]
+
+        # A housing unit cannot hold more people than it has slots
+        if len(assigned):
+            per_unit = assigned.groupby('huid').size()
+            capacity = hui_numprec.groupby('huid').size()
+            shared = per_unit.index.intersection(capacity.index)
+            overfilled = int((per_unit.loc[shared] > capacity.loc[shared]).sum())
+            checks['no unit holds more than its slots'] = (
+                overfilled == 0 and len(shared) > 0,
+                "%d of %d units overfilled" % (overfilled, len(shared)))
+
+            unknown = len(per_unit.index.difference(capacity.index))
+            checks['every assigned huid exists'] = (
+                unknown == 0, "%d unknown huid" % unknown)
+
+        # Group quarters residents belong in group quarters, and only there
+        if 'gqtype' in assigned.columns and len(assigned):
+            in_gq = assigned['gqtype'].fillna(0) > 0
+            gq_slots = int((hui_numprec['gqtype'].fillna(0) > 0).sum())
+            checks['group quarters residents placed'] = (
+                int(in_gq.sum()) <= gq_slots,
+                "%d residents into %d group quarters slots"
+                % (int(in_gq.sum()), gq_slots))
+
+        # Block conservation: a person should be housed in their own block
+        if geo_id in assigned.columns and geo_id in hui_numprec.columns:
+            slot_block = hui_numprec.set_index('huid')[geo_id]
+            slot_block = slot_block[~slot_block.index.duplicated()]
+            housed_block = assigned['huid'].map(slot_block)
+            same_block = (housed_block == assigned[geo_id])
+            moved = int((~same_block).sum())
+            checks['persons housed in their own block'] = (
+                moved == 0 and len(assigned) > 0,
+                "%d of %d housed outside their block" % (moved, len(assigned)))
+
+        return checks
+
+    def validate_against_census(self, prechui_df, census_marginals):
+        """
+        Compare the linked result against Census tables that were NOT used as
+        merge inputs.
+
+        The merge matches on householder age band, sex, race and ethnicity, so
+        agreement with those marginals is guaranteed by construction and proves
+        only that the merge conserved them. Tables describing household type by
+        age of householder are not inputs, so agreement with them is evidence
+        about the joint distribution rather than a restatement of the inputs.
+
+        census_marginals: dict of label to expected count.
+        Returns a dataframe of label, linked value, census value, difference.
+        """
+
+        rows = []
+        householders = prechui_df[prechui_df['pernum'] == 1]
+        for label, (expected, mask) in census_marginals.items():
+            observed = int(mask(householders).sum())
+            rows.append({
+                'marginal': label,
+                'linked': observed,
+                'census': expected,
+                'difference': observed - expected,
+                'percent': (observed - expected) / expected * 100 if expected else np.nan,
+                })
+
+        return pd.DataFrame(rows)
