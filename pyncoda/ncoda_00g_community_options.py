@@ -170,7 +170,11 @@ communities_dictionary = {
                 'community_name' : 'Seaside, OR',
                 'focalplace_name' : 'Seaside',
                 'STATE' : 'OREGON',
-                'years' : ['2010'],
+                # 2020 added so the 2020 workflows can be exercised on a second
+                # county. Grays Harbor was the only 2020 community in this
+                # dictionary, which meant every 2020 result rested on one place.
+                # The entry is otherwise unchanged and 2010 still works.
+                'years' : ['2010','2020'],
                 'counties' : { 
                     1 : {'FIPS Code' : '41007', 'Name' : 'Clatsop County, OR'}
                     },
