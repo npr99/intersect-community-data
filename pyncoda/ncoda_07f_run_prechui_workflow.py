@@ -607,6 +607,112 @@ class prechui_workflow_functions():
 
         return prec_hui.run_random_merge_2dfs(rounds)
 
+    # The ladder split into the part that keeps age and the part that gives it
+    # up. Kept separate so they can be run at different geographies.
+    age_preserving_rounds = {
+        'householderH17' : {'notes' : 'Householder on age band, sex, race and ethnicity.',
+                    'common_group_vars' : ['agegroupH17','sex','race','hispan']},
+        'groupquarters' : {'notes' : 'Group quarters residents by sex and age band.',
+                    'common_group_vars' : ['sex','agegroupP43']},
+        'age_race' : {'notes' : 'Keep the age band, drop sex.',
+                    'common_group_vars' : ['agegroupH17','race','hispan']},
+        'age_sex' : {'notes' : 'Keep the age band and sex, drop race and ethnicity.',
+                    'common_group_vars' : ['agegroupH17','sex']},
+        'age_only' : {'notes' : 'Keep the age band alone.',
+                    'common_group_vars' : ['agegroupH17']},
+        'householderH18' : {'notes' : 'Householder on the coarser age band.',
+                    'common_group_vars' : ['agegroupH18','sex','race','hispan']},
+        'age_only_H18' : {'notes' : 'Coarser age band alone.',
+                    'common_group_vars' : ['agegroupH18']},
+        }
+
+    age_blind_rounds = {
+        'child1' : {'notes' : 'Children by race and ethnicity.',
+                    'common_group_vars' : ['race','hispan','child']},
+        'child2' : {'notes' : 'Children without race and ethnicity.',
+                    'common_group_vars' : ['child']},
+        'others' : {'notes' : 'Whoever is left, no assumptions.',
+                    'common_group_vars' : []},
+        }
+
+    def merge_prec_to_hui_staged(self, prec_df, hui_numprec,
+                                 age_geo_levels = None,
+                                 blind_geo_levels = None):
+        """
+        Run the age preserving rounds everywhere before giving age up anywhere.
+
+        run_random_merge_2dfs nests geography OUTSIDE the rounds: every round
+        runs at Block before any round runs at Tract. A single call therefore
+        cannot express "try to match on age at block level, then at tract level,
+        and only then stop caring about age" - the age blind catch all fires at
+        Block and takes the slots before the age preserving rounds ever see the
+        wider pool.
+
+        That is why widening the geography in one call barely moved the one
+        person household age gap: the wider pool was offered only to rounds that
+        had already been beaten to the slots.
+
+        This runs the ladder in two calls instead. The first uses only the
+        rounds that keep an age band, across whatever geographies are allowed.
+        The second gives age up, and by default stays at block level so that
+        nobody is moved out of their own block merely to be placed.
+
+        Persons already carrying a huid are skipped by the second call, because
+        the merge treats a set new characteristic as done.
+        """
+
+        age_geo_levels = age_geo_levels or [self.basegeolevel]
+        blind_geo_levels = blind_geo_levels or [self.basegeolevel]
+
+        prec_df = self.fill_merge_keys(prec_df, 'person records')
+        hui_numprec = self.fill_merge_keys(hui_numprec, 'housing unit slots')
+
+        def run_stage(stage_name, round_spec, geo_levels, primary, secondary):
+            print("\n***************************************")
+            print("    Stage:", stage_name, "at", geo_levels)
+            print("***************************************\n")
+            merger = add_new_char_by_random_merge_2dfs(
+                dfs = {'primary'  : {'data': primary,
+                                'primarykey' : 'precid',
+                                'geolevel' : self.basegeolevel,
+                                'geovintage' : self.basevintage,
+                                'notes' : 'Person records.'},
+                    'secondary' : {'data': secondary,
+                                'primarykey' : 'uniquehuid_numprec',
+                                'geolevel' : self.basegeolevel,
+                                'geovintage' : self.basevintage,
+                                'notes' : 'Housing unit person slots.'}},
+                seed = self.seed,
+                common_group_vars = list(round_spec.values())[0]['common_group_vars'],
+                new_char = 'huid',
+                extra_vars = ['gqtype','numprec','pernum','family'],
+                geolevel = self.basegeolevel,
+                geovintage = self.basevintage,
+                by_groups = {'NA' : {'by_variables' : []}},
+                fillna_value = -999,
+                state_county = self.state_county,
+                outputfile = "prec_hui_" + stage_name,
+                outputfolder = self.outputfolders['RandomMerge'])
+
+            options = {}
+            for name, spec in round_spec.items():
+                options[name] = {'notes' : spec['notes'],
+                                 'common_group_vars' : spec['common_group_vars'],
+                                 'by_groups' : merger.by_groups}
+            result = merger.run_random_merge_2dfs(
+                {'options': options, 'geo_levels': geo_levels})
+            if not isinstance(result, dict):
+                raise RuntimeError("stage " + stage_name + " did not return a result")
+            return result
+
+        first = run_stage('ageband', self.age_preserving_rounds,
+                          age_geo_levels, prec_df, hui_numprec)
+
+        second = run_stage('ageblind', self.age_blind_rounds,
+                           blind_geo_levels, first['primary'], first['secondary'])
+
+        return second
+
     def polish_prechui(self, prec_hui_df):
         """
         Sort and order the linked person records.
