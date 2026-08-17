@@ -343,14 +343,24 @@ communities_dictionary = {
             'community_name' : 'Broomfield Co, CO',
             'focalplace_name' : 'Broomfield',
             'STATE' : 'COLORADO',
-            'years' : ['2010'],
+            # 2020 added to give the 2020 workflows a second county. Broomfield
+            # is close to Grays Harbor in size, 74,112 against 75,636, but much
+            # younger - 17.9% aged 60 and over against 27.4% - and holds 497
+            # people in group quarters against 2,909. That contrast exercises
+            # the age band and group quarters paths rather than repeating a
+            # county the code was already tuned on.
+            'years' : ['2010','2020'],
             'counties' : {
                 1 : {'FIPS Code' : '08014', 'Name' : 'Broomfield County, CO'}
                 },
             'building_inventory' : {
                 'use_incore' : False,
                 'id' : 'NSI',
-                'note' : 'NSI Building inventory for Broomfield County, CO, 2010',
+                # The year was dropped from this note when 2020 was added. The
+                # note becomes the selection string a user picks from, so
+                # leaving "2010" in it would advertise a vintage the entry no
+                # longer restricts itself to.
+                'note' : 'NSI Building inventory for Broomfield County, CO',
                 'archetype_var' : 'occtype',
                 'bldg_uniqueid' : 'fd_id_bid',
                 'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
