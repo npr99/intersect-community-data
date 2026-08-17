@@ -278,8 +278,32 @@ class prec_workflow_functions():
             outputfolder = self.outputfolders['RandomMerge'],
             savefiles = self.savefiles)
 
-        # Set up round options
-        rounds = add_disability.make_round_options_dict()
+        # Set the rounds explicitly rather than taking the generic defaults.
+        #
+        # make_round_options_dict includes a round that groups by race, which
+        # suits tables that carry a race dimension. B18101 does not - it is sex
+        # by age by disability status - so that round tries to sort the tract
+        # data by a column it does not have and raises KeyError: 'race'.
+        #
+        # This ladder matches the one HUA_Disability_2020 uses and is known to
+        # work: tract with sex and age band, then tract with sex, then tract
+        # alone, then county as the final fallback.
+        rounds = {'options': {
+                'option1' : {'notes' : 'Tract, sex and age band.',
+                            'common_group_vars' : ['agegroupB18101'],
+                            'by_groups' : {'All' : {'by_variables' : ['sex']}}},
+                'option2' : {'notes' : 'Tract and sex, drop the age band.',
+                            'common_group_vars' : [],
+                            'by_groups' : {'All' : {'by_variables' : ['sex']}}},
+                'option3' : {'notes' : 'Tract alone, drop sex.',
+                            'common_group_vars' : [],
+                            'by_groups' : {'All' : {'by_variables' : []}}},
+                'option4' : {'notes' : 'County, the broadest fallback.',
+                            'common_group_vars' : [],
+                            'by_groups' : {'All' : {'by_variables' : []}}}
+                                },
+                'geo_levels' : ['Tract','Tract','Tract','County']
+                }
 
         # Run multi-round random merge
         # Flags automatically created:
