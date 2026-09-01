@@ -4,6 +4,9 @@
 # terms of the Mozilla Public License v2.0 which accompanies this distribution,
 # and is available at https://www.mozilla.org/en-US/MPL/2.0/
 
+# Version notes:
+# v2.2.0: Pull request #136 changed address point estimate for round 2
+
 import pandas as pd
 import geopandas as gpd # For reading in shapefiles
 import numpy as np
@@ -34,8 +37,8 @@ class process_community_workflow():
     def __init__(self,
             communities,
             seed: int = 9876,
-            version: str = '2.0.0',
-            version_text: str = 'v2-0-0',
+            version: str = '2.2.0',
+            version_text: str = 'v2-2-0',
             basevintage: str = '2010',
             outputfolder: str ="OutputData",
             outputfolders = {},
@@ -43,7 +46,9 @@ class process_community_workflow():
             census_tracts: list = None,
             import_hui_path: str = None,
             export_hui_path: str = None,
-            force_hua_rerun: bool = False):
+            force_hua_rerun: bool = False,
+            generate_figures: bool = True,
+            generate_codebook: bool = True):
         """
         Initialize the process_community_workflow class.
 
@@ -65,6 +70,12 @@ class process_community_workflow():
         - force_hua_rerun: If True, always perform the housing unit allocation from scratch, even if
                           previously saved data exists. This affects only the probabilistic assignment
                           of housing units to buildings, not the generation of the housing unit inventory.
+        - generate_figures: If True (default), generate the explore-data figures for the housing
+                          unit inventory. Set to False to skip figure generation when only the raw
+                          inventory is needed (e.g. when called from BRAILS).
+        - generate_codebook: If True (default), generate the PDF codebook for the housing unit
+                          inventory. Set to False to skip codebook generation when only the raw
+                          inventory is needed (e.g. when called from BRAILS).
         """
 
         self.communities = communities
@@ -79,6 +90,8 @@ class process_community_workflow():
         self.import_hui_path = import_hui_path
         self.export_hui_path = export_hui_path
         self.force_hua_rerun = force_hua_rerun
+        self.generate_figures = generate_figures
+        self.generate_codebook = generate_codebook
 
 
     def generate_hui(self, communities, use_incore):
@@ -104,7 +117,9 @@ class process_community_workflow():
                                 version_text=   self.version_text,
                                 basevintage=    self.basevintage,
                                 outputfolder=   self.outputfolder,
-                                use_incore=     use_incore
+                                use_incore=     use_incore,
+                                generate_figures=   self.generate_figures,
+                                generate_codebook=  self.generate_codebook
                                 )
 
             hui_dataset_id = generate_hui_df.generate_hui_v2_for_incore()
@@ -376,7 +391,7 @@ class process_community_workflow():
             county_list = county_list + state_county_name+': county FIPS Code '+state_county
         county_list
 
-        title = "Housing Unit Allocation v2.0.0 data for "+community + " " + str(self.basevintage)
+        title = f"Housing Unit Allocation {self.version_text} data for {community} {self.basevintage}"
         title
 
         if use_incore:

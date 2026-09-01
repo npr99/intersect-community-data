@@ -30,9 +30,9 @@ def predict_residential_addresspoints(building_to_block_gdf,
         "Residential Address Point - first attempt to assign residential address points to buildings"
 
     bldg_df['residential'] = 0
-    bldg_df['residentialAP1'].label = "Residential Address Point Round 1"
-    bldg_df['residentialAP1'].note = \
-        "Residential Address Point - first attempt to assign residential address points to buildings"
+    bldg_df['residential'].label = "Residential Binary"
+    bldg_df['residential'].note = \
+        "Residential Binary - first attempt to assign residential status to buildings"
 
 
     # If residential_unit_var is provided, use it to assign housing units directly
@@ -178,8 +178,13 @@ def predict_residential_addresspoints(building_to_block_gdf,
     print(len_bldg_df,"buildings with error 5. HU > 0, AP = 0.")
 
     # Calculate sum of Residential Area By Block
+    # Use all residential buildings (residentialAP1 >= 1), not just single-unit
+    # buildings, so the block surplus is redistributed across every residential
+    # building weighted by floor area. Using '== 1' here forced all extra units
+    # onto single-unit buildings and excluded multi-unit buildings entirely.
     bldg_df_round2['Res_Area'] = 0
-    condition = (bldg_df_round2['residentialAP1'] == 1)
+    # condition = (bldg_df_round2['residentialAP1'] == 1)
+    condition = (bldg_df_round2['residentialAP1'] >= 1)
     # Fill non-finite values in building_area_var with 0, then cast to int64
     bldg_df_round2.loc[condition, 'Res_Area'] = bldg_df_round2[
         building_area_var
@@ -328,10 +333,11 @@ def predict_residential_addresspoints(building_to_block_gdf,
     # Identify difference between expected housing unit count and 
     # sum of estimated address points
     census_blocks_df_rap3['DiffCount3'] = \
-        census_blocks_df_rap3['apcount'] - census_blocks_df_rap3['bldgcountv3_sum']
+        census_blocks_df_rap3['apcount'] - census_blocks_df_rap3['residentialAP2v3_sum']
 
     # Merge Block level data with building level data
-    keepcolumns = [bldg_blockid,'DiffCount3','ErrorCheck3_int','bldgcountv3_sum']
+    keepcolumns = [bldg_blockid,'DiffCount3','ErrorCheck3_int','residentialAP2v3_sum',
+                   'bldgcountv3_sum']
 
     bldg_df_round3 = pd.merge(left = bldg_df_round3, 
                               right = census_blocks_df_rap3[keepcolumns], 
@@ -340,9 +346,10 @@ def predict_residential_addresspoints(building_to_block_gdf,
                               how='left')                                
 
     return_cols1 = [bldg_blockid,bldg_uniqueid,placename_var,
-                    archetype_var,'residential','apcount','bldgcount',
-                    'huestimate','DiffCount3',"bldgcountv3_sum",
-                    'ErrorCheck1_int','ErrorCheck2_int','ErrorCheck3_int']
+                    archetype_var,building_area_var,'huestimate','residential','apcount','bldgcount',
+                    'residentialAP1','residentialAP1_sum','bldgcount1_sum','DiffCount1','ErrorCheck1_int',
+                    'residentialAP2','residentialAP2v2','residentialAP2v2_sum','bldgcountv2_sum','DiffCount2','ErrorCheck2_int',
+                    'residentialAP2v3_sum','bldgcountv3_sum','DiffCount3','ErrorCheck3_int']
     return_cols = return_cols1
     return bldg_df_round3[return_cols]
 
@@ -383,10 +390,10 @@ def block_error_check_addresspoints(census_blocks_df,
                             ' the expected address points and the' + \
                             ' estimated address points.'},
          'condition_list' : 
-        {   1 : {'condition': f"({hu_count}.isna()) & " + \
+        {   0 : {'condition': f"({hu_count}.isna()) & " + \
                               f"{base_condition}",
-                 'value_label': "1. HU=0",
-                 'notes' : 'Block has no housing units based on the US Census.'},
+                 'value_label': "0. HU = Missing",
+                 'notes' : 'Block has missing housing unit count.'},
             1 : {'condition': f"({hu_count}==0) & " + \
                               f"{base_condition}",
                  'value_label': "1. HU=0",

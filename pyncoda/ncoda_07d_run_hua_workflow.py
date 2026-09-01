@@ -45,8 +45,8 @@ class hua_workflow_functions():
             bldg_uniqueid: str = 'guid',
             archetype_var: str = 'archetype',
             seed: int = 9876,
-            version: str = '2.0.0',
-            version_text: str = 'v2-0-0',
+            version: str = '2.2.0',
+            version_text: str = 'v2-2-0',
             basevintage: str = "2010",
             outputfolder: str ="",
             outputfolders = {},
@@ -382,7 +382,7 @@ class hua_workflow_functions():
         ## Upload Housing Unit Allocation Inventory to IN-CORE
         # Upload CSV file to IN-CORE and save dataset_id
         # note you have to put the correct dataType as well as format
-        hua_description =  '\n'.join([f"'{self.basevintage}' Housing Unit Allocation Results v2.0.0 with required IN-CORE columns. " 
+        hua_description =  '\n'.join([f"'{self.basevintage}' Housing Unit Allocation Results {self.version_text} with required IN-CORE columns. " 
                 "Compatible with pyincore v1.4. " 
                 "Unit of observation is housing unit. " 
                 "Each housing unit is associated with a building in the building inventory. "

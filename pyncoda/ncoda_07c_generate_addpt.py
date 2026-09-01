@@ -346,7 +346,7 @@ class generate_addpt_functions():
         ## Upload Address Point Inventory to IN-CORE
         # Upload CSV file to IN-CORE and save dataset_id
         # note you have to put the correct dataType as well as format
-        addpt_description =  '\n'.join([f"{self.basevintage} Address Point Inventory v2.0.0 with required IN-CORE columns. " 
+        addpt_description =  '\n'.join([f"{self.basevintage} Address Point Inventory {self.version_text} with required IN-CORE columns. " 
                 "Compatible with pyincore v1.4. " 
                 "Unit of observation is address point. " 
                 "Each address point is associated with a building in the building inventory. "
@@ -401,7 +401,7 @@ class generate_addpt_functions():
 
         # Set community
         community = self.community
-        title = "Address Point Inventory v2.0.0 data for "+community + " " + str(year)
+        title = f"Address Point Inventory {self.version_text} data for {community} {year}"
         print("Generating",title)
         output_filename = f'addpt_{self.version_text}_{community}_{year}_{self.bldg_inv_id}'
         csv_filepath = self.outputfolder+"/"+output_filename+'.csv'
@@ -878,8 +878,8 @@ class generate_addpt_functions():
             print("Block ID is not 15 characters long")
 
         # drop columns not needed for analysis
-        #address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
-        #    axis=1, inplace=True)
+        address_point_gdfv2.drop(['geometry','building_geometry',f'block{yr}_geometry',f'rppnt{yr}4269'], \
+            axis=1, inplace=True)
 
         # Resave results for community name
         address_point_gdfv2.to_csv(savefile, index=False)

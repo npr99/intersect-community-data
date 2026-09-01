@@ -258,7 +258,7 @@ def spatial_join_points_to_poly(points_gdf,
     copy_point_gdf = copy_point_gdf.to_crs(epsg=epsg)
     copy_polygon_gdf = copy_polygon_gdf.to_crs(epsg=epsg)
 
-    # Find the bounds of the point File
+    # Find the bounds of the point file
 
     minx = copy_point_gdf.bounds.minx.min() - buffer_dist # subtract buffer from minimum values
     miny = copy_point_gdf.bounds.miny.min() - buffer_dist
@@ -274,32 +274,37 @@ def spatial_join_points_to_poly(points_gdf,
     area_poly_gdf = copy_polygon_gdf.iloc[possible_matches_index]
     print("Identified",area_poly_gdf.shape[0],geolevel,"polygons to spatially join.")
 
-    # build the r-tree index - Using Representative Point
+    # build the r-tree index - using representative point geometry
     # Check if point_var exists in the DataFrame
     if point_var not in copy_point_gdf.columns:
         print(f"Warning: {point_var} column not found in points_gdf. Using 'geometry' column instead.")
         # Use the geometry column as is
         pass
     else:
-        # Use the point_var column as the geometry
-        copy_point_gdf['geometry'] = copy_point_gdf[point_var]
+        # Use point_var as active geometry for the spatial index and intersection checks.
+        copy_point_gdf = copy_point_gdf.set_geometry(point_var)
 
     sindex_copy_point_gdf = copy_point_gdf.sindex
 
-    #Loops for spatial join are time consuming
-    #Here is a way to know that the loop is running and how long it takes to run
-    #https://cmdlinetips.com/2018/01/two-ways-to-compute-executing-time-in-python/
-    # find the points that intersect with each subpolygon and add ID to Point
+    # Loops for spatial join are time consuming.
+    # Here is a way to know that the loop is running and how long it takes to run:
+    # https://cmdlinetips.com/2018/01/two-ways-to-compute-executing-time-in-python/
+    # Find the points that intersect with each subpolygon and add ID to point.
+    polygon_geom_col = copy_polygon_gdf.geometry.name
     for index, polygon in area_poly_gdf.iterrows():
         if index%100==0:
             print('.', end ="")
 
+        polygon_geom = polygon[polygon_geom_col]
+        if isinstance(polygon_geom, str):
+            polygon_geom = loads(polygon_geom)
+
         # find approximate matches with r-tree, then precise matches from those approximate ones
         possible_matches_index = \
-            list(sindex_copy_point_gdf.intersection(polygon['geometry'].bounds))
+            list(sindex_copy_point_gdf.intersection(polygon_geom.bounds))
         possible_matches = copy_point_gdf.iloc[possible_matches_index]
         precise_matches = \
-            possible_matches[possible_matches.intersects(polygon['geometry'])]
+            possible_matches[possible_matches.intersects(polygon_geom)]
         for col in join_column_list:
             # add column and rename with geolevel
             copy_point_gdf.loc[precise_matches.index,geolevel+col] = polygon[col]
@@ -309,8 +314,8 @@ def spatial_join_points_to_poly(points_gdf,
     if poly_var not in copy_point_gdf.columns:
         print(f"Warning: {poly_var} column not found in points_gdf. Keeping current geometry.")
     else:
-        # Use the poly_var column as the geometry
-        copy_point_gdf['geometry'] = copy_point_gdf[poly_var]
+        # Switch active geometry back to polygon geometry.
+        copy_point_gdf = copy_point_gdf.set_geometry(poly_var)
 
     return copy_point_gdf
 
