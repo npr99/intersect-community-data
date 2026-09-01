@@ -29,6 +29,8 @@ from pyncoda.CommunitySourceData.api_census_gov.acg_00f_preci_block2020 import (
     sexbyage_P12HAI_2020_varstem_roots,
     hispan_byrace_P5_2020_varstem_roots
 )
+from pyncoda.CommunitySourceData.api_census_gov.acg_00f_preci_PCT12_2020 import \
+    sexbyage_PCT12_2020_varstem_roots
 
 # open, read, and execute python program with reusable commands
 from pyncoda.CommunitySourceData.api_census_gov.acg_01a_BaseInventory import BaseInventory
@@ -129,18 +131,22 @@ class prec_workflow_functions():
                                             sexbyage_P12HAI_varstem_roots if str(self.basevintage) == '2010' else sexbyage_P12HAI_2020_varstem_roots,
                                             hispan_byrace_P5_varstem_roots if str(self.basevintage) == '2010' else hispan_byrace_P5_2020_varstem_roots
                                             ],
+                                        basevintage = str(self.basevintage),
+                                        basegeolevel = 'Block',
                                         outputfile = f"preci_{self.basevintage}",
                                         outputfolders = self.outputfolders)
 
         # Generate sex by age with individual years
         vintage = str(self.basevintage)
-        dataset_name = 'dec/sf1' if str(self.basevintage) == '2010' else 'dec/dhc' 
         group = 'PCT12'
-        sexbyage_PCT12 = createAPI_datastructure.obtain_api_metadata(
+        if vintage == '2010':
+            sexbyage_PCT12_varstem_roots = createAPI_datastructure.obtain_api_metadata(
                             vintage = vintage,
-                            dataset_name = dataset_name,
+                            dataset_name = 'dec/sf1',
                             group = group,
                             outputfolder = self.outputfolder)
+        else:
+            sexbyage_PCT12_varstem_roots = sexbyage_PCT12_2020_varstem_roots
 
         tract_df["PCT12"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'tract',
@@ -218,7 +224,7 @@ class prec_workflow_functions():
                                         vintage = str(int(self.basevintage)+2),
                                         mutually_exclusive_varstems_roots_dictionaries =
                                                             [disability_B18101_varstem_roots if str(self.basevintage) == '2010' else
-                                                            disability_B18101_2022_varstem_roots],
+                                                            disability_B18101_varstem_roots_2022],
                                         outputfolders = self.outputfolders,
                                         outputfile = f"B18101_disability_{self.basevintage}")
 
@@ -226,11 +232,6 @@ class prec_workflow_functions():
         print("Adding B18101 age groups for disability matching...")
         prec_age_df['primary'] = add_B18101age_groups(
                                     prec_age_df['primary'],
-                                    varname = 'randagePCT12')
-
-        # Also add B18101 age groups to tract disability data
-        tract_df["B18101"] = add_B18101age_groups(
-                                    tract_df["B18101"],
                                     varname = 'randagePCT12')
 
         print("Random merging disability data...")
