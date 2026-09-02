@@ -161,13 +161,10 @@ class prec_workflow_functions():
         else:
             sexbyage_PCT12_varstem_roots = sexbyage_PCT12_2020_varstem_roots
 
-        # Use the structure just discovered. The name sexbyage_PCT12_varstem_roots
-        # does not exist anywhere in the package, so this raised NameError for
-        # either vintage - the function could never have completed as written.
         tract_df["PCT12"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'tract',
                                         vintage = str(self.basevintage),
-                                        mutually_exclusive_varstems_roots_dictionaries = [sexbyage_PCT12],
+                                        mutually_exclusive_varstems_roots_dictionaries = [sexbyage_PCT12_varstem_roots],
                                         outputfolders = self.outputfolders,
                                         outputfile = f"{group}_{self.basevintage}")
 
