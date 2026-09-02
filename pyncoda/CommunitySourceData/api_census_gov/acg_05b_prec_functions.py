@@ -159,7 +159,27 @@ class prec_workflow_functions():
                             group = group,
                             outputfolder = self.outputfolder)
         else:
-            sexbyage_PCT12_varstem_roots = sexbyage_PCT12_2020_varstem_roots
+            # The static 2020 dictionary carries all 206 single-year-age
+            # variables under one varstem, and get_apidata refuses any varstem
+            # over 50 variables per API call - it prints "too many variables"
+            # and returns None, which surfaces two lines later as
+            # "All objects passed were None" from pd.concat.
+            #
+            # Split it into the PCT12_partNN shape the discovered 2010
+            # structure uses (44 roots per part, five parts for this table),
+            # which the API layer handled end to end for Grays Harbor and
+            # Broomfield. Root order is preserved, so the parts match the
+            # discovered structure's chunking exactly.
+            sexbyage_PCT12_varstem_roots = {
+                'metadata': copy.deepcopy(
+                    sexbyage_PCT12_2020_varstem_roots['metadata'])}
+            pct12_roots = list(
+                sexbyage_PCT12_2020_varstem_roots['PCT12'].items())
+            part_size = 44
+            for start in range(0, len(pct12_roots), part_size):
+                part_key = f'PCT12_part{start // part_size + 1:02d}'
+                sexbyage_PCT12_varstem_roots[part_key] = \
+                    dict(pct12_roots[start:start + part_size])
 
         tract_df["PCT12"] = BaseInventory.get_apidata(state_county = self.state_county,
                                         geo_level = 'tract',
