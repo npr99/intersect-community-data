@@ -233,7 +233,13 @@ class add_new_char_by_random_merge_2dfs():
                     geovarids_available.append(geovarid_test)
                 elif (check_length == "Possible convert to float"):
                     print("Possible convert to float")
-                    add_geovarid_df[geovarid_test] = add_geovarid_df[geovarid_test].astype(str).apply(lambda x: str(x)[:-2].zfill(total_length_of_geovar))
+                    # Split on the decimal point rather than removing the last
+                    # two characters. Chopping a fixed number of characters
+                    # assumes the value always prints as exactly ".0", which is
+                    # not guaranteed once the leading zero of a state FIPS code
+                    # below 10 has changed the printed width.
+                    add_geovarid_df[geovarid_test] = add_geovarid_df[geovarid_test].astype(str).apply(
+                        lambda x: str(x).split('.')[0].zfill(total_length_of_geovar))
                     geovarids_available.append(geovarid_test)
         
         print('Geolevels available', geolevels_available)
@@ -286,25 +292,49 @@ class add_new_char_by_random_merge_2dfs():
         # Make sure variable is a string
         string_list = input_df[var].astype(str)
         varid_list = list(string_list.fillna(value="0"))
-        varid_max = max(varid_list)       
+        varid_max = max(varid_list)
         var_len = len(varid_max)
 
         # Check if max variable is just 0
         if varid_max == "0" or varid_max == 'nan':
-            # update variable length
-            var_len = 0
+            # An empty or all-zero column carries no geography. Return early:
+            # the zero-pad repair below would otherwise turn it into a
+            # plausible looking but entirely invented id such as 000000000000000.
+            return "No match"
 
         if var_len == expected_length:
             return "Match"
         elif var_len == expected_length-1:
             return "Possible match with zero pad"
         else:
-            
+
             print("Longest",var,":",varid_max)
             print(var,"Expected Length",expected_length,"Available Length",var_len)
-            
-            if (var_len == expected_length+2) & ('.' in varid_max):
+
+            # A geography id held as a float prints with a trailing ".0", so
+            # compare the digits rather than the printed length.
+            #
+            # The original test was var_len == expected_length + 2, which is a
+            # full length id plus ".0" - correct for a state whose FIPS code is
+            # 10 or above. States below 10 carry a leading zero that is lost the
+            # moment the value is held as a number, so their ids arrive one digit
+            # short and the test missed them.
+            #
+            # Grays Harbor, WA is 53027 and its block ids print as
+            # "530270002011000.0", seventeen characters, which matched.
+            # Broomfield, CO is 08014 and prints as "80140300001000.0", sixteen,
+            # which did not, so no geography column could be built and the merge
+            # failed with a bare KeyError on Tract2020. The same would happen in
+            # Alabama, Alaska, Arizona, Arkansas, California and Connecticut.
+            #
+            # Comparing digits covers both cases, and a geography id can only
+            # ever be short because leading zeros were dropped, so zero padding
+            # it back is always the right repair.
+            digits_only = varid_max.split('.')[0]
+            if ('.' in varid_max) and (len(digits_only) <= expected_length):
                 return "Possible convert to float"
+            elif len(digits_only) < expected_length:
+                return "Possible match with zero pad"
             else:
                 return "No match"
     

@@ -170,7 +170,11 @@ communities_dictionary = {
                 'community_name' : 'Seaside, OR',
                 'focalplace_name' : 'Seaside',
                 'STATE' : 'OREGON',
-                'years' : ['2010'],
+                # 2020 added so the 2020 workflows can be exercised on a second
+                # county. Grays Harbor was the only 2020 community in this
+                # dictionary, which meant every 2020 result rested on one place.
+                # The entry is otherwise unchanged and 2010 still works.
+                'years' : ['2010','2020'],
                 'counties' : { 
                     1 : {'FIPS Code' : '41007', 'Name' : 'Clatsop County, OR'}
                     },
@@ -223,6 +227,27 @@ communities_dictionary = {
                     'building_area_cutoff' : 300
                     }
                 },
+
+    'GraysHarbor_WA_NSI' : {
+                'community_name' : 'Grays Harbor, WA',
+                'focalplace_name' : 'Aberdeen',
+                'STATE' : 'WASHINGTON',
+                'years' : ['2020'],
+                'counties' : { 
+                    1 : {'FIPS Code' : '53027', 'Name' : 'Grays Harbor County, WA'}
+                    },
+                'building_inventory' : {
+                    'use_incore' : False, 
+                    'id' : 'NSI',
+                    'note' : 'NSI Building inventory for Grays Harbor County, WA',
+                    'archetype_var' : 'occtype',
+                    'bldg_uniqueid' : 'fd_id_bid',
+                    'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,
+                    'building_area_var' : 'sqft',
+                    'building_area_cutoff' : 300
+                    }
+                },
+    
     'SETXUIFL_TX_NSI' : {
                 'community_name' : 'Southeast Texas Urban Integrated Field Lab',
                 'focalplace_name' : 'Beaumont',
@@ -318,14 +343,24 @@ communities_dictionary = {
             'community_name' : 'Broomfield Co, CO',
             'focalplace_name' : 'Broomfield',
             'STATE' : 'COLORADO',
-            'years' : ['2010'],
+            # 2020 added to give the 2020 workflows a second county. Broomfield
+            # is close to Grays Harbor in size, 74,112 against 75,636, but much
+            # younger - 17.9% aged 60 and over against 27.4% - and holds 497
+            # people in group quarters against 2,909. That contrast exercises
+            # the age band and group quarters paths rather than repeating a
+            # county the code was already tuned on.
+            'years' : ['2010','2020'],
             'counties' : {
                 1 : {'FIPS Code' : '08014', 'Name' : 'Broomfield County, CO'}
                 },
             'building_inventory' : {
                 'use_incore' : False,
                 'id' : 'NSI',
-                'note' : 'NSI Building inventory for Broomfield County, CO, 2010',
+                # The year was dropped from this note when 2020 was added. The
+                # note becomes the selection string a user picks from, so
+                # leaving "2010" in it would advertise a vintage the entry no
+                # longer restricts itself to.
+                'note' : 'NSI Building inventory for Broomfield County, CO',
                 'archetype_var' : 'occtype',
                 'bldg_uniqueid' : 'fd_id_bid',
                 'residential_archetypes' : bldg_arch.HAZUS_residential_archetypes,

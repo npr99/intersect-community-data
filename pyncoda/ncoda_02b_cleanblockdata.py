@@ -4,6 +4,7 @@ import sys
 import io
 import os
 import requests
+import zipfile # To check a download is an archive before handing it to geopandas
 from pyncoda.ncoda_00e_geoutilities import *
 
 def read_in_zip_shapefile_data(geolevel, year, url_list):
@@ -16,11 +17,32 @@ def read_in_zip_shapefile_data(geolevel, year, url_list):
     response = requests.get(census_url, verify=False)
     response.raise_for_status()
 
+    # raise_for_status is not enough. www2.census.gov can answer with HTTP 200
+    # and a short HTML page - "Request Rejected" from its web application
+    # firewall - for a file that is listed in the directory index and that
+    # downloads normally for other states. Observed on
+    # TIGER2020/PLACE/tl_2020_41_place.zip (Oregon) while the same path served
+    # Washington, California, Texas and North Carolina without trouble, and
+    # while Oregon's own TIGER2021, 2022 and 2023 place files served fine.
+    #
+    # Without this check the HTML is handed to geopandas, which fails inside
+    # pyogrio with "not recognized as being in a supported file format" and no
+    # indication that the download is the problem rather than the reader.
+    if not zipfile.is_zipfile(io.BytesIO(response.content)):
+        preview = response.content[:200].decode('utf-8', errors='replace')
+        error_msg = (
+            f"Census returned {len(response.content)} bytes that are not a zip "
+            f"archive for {geolevel} {year}, with HTTP {response.status_code}. "
+            f"The file may be blocked or temporarily unavailable even though it "
+            f"is listed in the directory index. URL: {census_url} "
+            f"First bytes: {preview}")
+        raise ValueError(error_msg)
+
     # Wrap the downloaded bytes in an in-memory file-like object
     with io.BytesIO(response.content) as zip_file_in_memory:
         # Read directly from memory
         gdf = gpd.read_file(zip_file_in_memory)
-    
+
     return gdf
 
 def add_address_point_counts(addpt_df, 

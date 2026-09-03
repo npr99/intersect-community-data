@@ -166,15 +166,28 @@ def obtain_api_metadata_2020_aware(
 
         census_label_string = str(variable_metadata.get("label", ""))
 
-        # Strip group prefix to get the linenumber
-        # 2020 DHC: PCT12_107N -> 107   (strip '_' prefix and 'N' suffix)
-        # 2010 SF1: PCT012107 -> 107
-        # ACS:      B18101_007E -> 007
+        # Strip the group prefix to get the linenumber.
+        #
+        # The linenumber must concatenate back onto the varstem to rebuild the
+        # exact API variable name, because that is how
+        # get_data_based_on_varstems_and_roots builds its requests:
+        #     varstem + linenumber == variable
+        # so nothing may be removed beyond the varstem itself.
+        #
+        #   2020 DHC: 'PCT12_107N' - 'PCT12'  -> '_107N'
+        #   2010 SF1: 'PCT012107'  - 'PCT012' -> '107'
+        #   ACS:      'B18101_007E' - 'B18101' -> '_007E'
+        #
+        # This also matches the hand written dictionaries: the 2020 ones key on
+        # '_003N' and the ACS ones on '004E' under a varstem of 'B18101_',
+        # both of which rebuild their API names by plain concatenation.
+        #
+        # Previously the '_' and trailing 'N' were stripped here for dec/dhc,
+        # producing keys like '107'. Static dictionaries were unaffected, so
+        # the block level P12 steps still worked, but any group discovered
+        # through this function - PCT12 above all - rebuilt as 'PCT12107',
+        # which does not exist, and every request failed with HTTP 400.
         variable_linenumber = variable.replace(varstem, "")
-        if dataset_name == 'dec/dhc':
-            variable_linenumber = variable_linenumber.lstrip('_').rstrip('N')
-        elif dataset_name == 'acs/acs5':
-            variable_linenumber = variable_linenumber.replace("_", "").rstrip('E')
 
         datastructure_dict[varstem][variable_linenumber] = {}
         datastructure_dict[varstem][variable_linenumber]['label'] = census_label_string
