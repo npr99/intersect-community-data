@@ -5,6 +5,7 @@
 # and is available at https://www.mozilla.org/en-US/MPL/2.0/
 
 import requests # Census API Calls
+import json # For the random merge configuration manifest
 import os  # Operating System (os) For folders and finding working directory
 import pandas as pd
 import sys  # saving CSV files
@@ -906,15 +907,34 @@ class add_new_char_by_random_merge_2dfs():
         csv_filepath_primary = self.outputfolder+"/"+csv_filename_primary+'.csv'
         csv_filepath_secondary = self.outputfolder+"/"+csv_filename_secondary+'.csv'
 
+        # The reload below accepts any existing result pair by name, but the
+        # name does not encode the merge configuration. Two different
+        # geo_levels or round ladders at the same seed would silently share
+        # one cached result - the second run reading back the first, with a
+        # printed message that reads like success. A sidecar manifest records
+        # the configuration that produced a pair; a pair whose manifest is
+        # missing or different is re-merged instead of reloaded. This is what
+        # makes a single shared output folder safe (#140).
+        rounds_fingerprint = json.dumps(rounds, sort_keys=True, default=str)
+        manifest_filepath = self.outputfolder+"/"+csv_filename+'_rounds.json'
+
         # Check if selected data already exists - if yes read in saved file
         if os.path.exists(csv_filepath_primary) & os.path.exists(csv_filepath_secondary):
-            output_df = {}
-            output_df['primary'] = pd.read_csv(csv_filepath_primary, low_memory=False)
-            output_df['secondary'] = pd.read_csv(csv_filepath_secondary, low_memory=False)
-            # If file already exists return csv as dataframe
-            print("File",csv_filepath_primary,"Already exists - Skipping Random Merge.")
-            print("File",csv_filename_secondary,"Already exists - Skipping Random Merge.")
-            return output_df
+            manifest_matches = False
+            if os.path.exists(manifest_filepath):
+                with open(manifest_filepath, encoding='utf-8') as manifest_file:
+                    manifest_matches = (manifest_file.read() == rounds_fingerprint)
+            if manifest_matches:
+                output_df = {}
+                output_df['primary'] = pd.read_csv(csv_filepath_primary, low_memory=False)
+                output_df['secondary'] = pd.read_csv(csv_filepath_secondary, low_memory=False)
+                # If file already exists return csv as dataframe
+                print("File",csv_filepath_primary,"Already exists - Skipping Random Merge.")
+                print("File",csv_filename_secondary,"Already exists - Skipping Random Merge.")
+                return output_df
+            print("File",csv_filepath_primary,"exists but was produced by a")
+            print("    different merge configuration (or predates configuration")
+            print("    manifests) - re-running the random merge.")
 
         # Assume percent_left_to_predict starts off at 100
         round_percent_left_to_predict = 100
@@ -987,6 +1007,11 @@ class add_new_char_by_random_merge_2dfs():
                             output_df['primary'].to_csv(savefile, index=False)
                             savefile = os.path.join(os.getcwd(), csv_filepath_secondary)
                             output_df['secondary'].to_csv(savefile, index=False)
+                            # Record the configuration that produced this pair,
+                            # so the reload above can refuse a stale one.
+                            with open(os.path.join(os.getcwd(), manifest_filepath),
+                                      'w', encoding='utf-8') as manifest_file:
+                                manifest_file.write(rounds_fingerprint)
 
                         return output_df
                     # Create break if rounds exceeds 100
