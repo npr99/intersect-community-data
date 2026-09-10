@@ -421,8 +421,11 @@ class hui_householder_functions():
         Run the whole step: obtain both tables, join them, and add householder
         age group and sex to the housing unit inventory.
 
-        Returns the housing unit inventory with agegroupH17, agegroupH18 and
-        sex added. Row count and huid set are unchanged.
+        Returns the housing unit inventory with householder age bands, sex
+        and family type added, under vintage-true column names: agegroupH17,
+        agegroupH18, sexH18, familytypeH18 for 2010; agegroupH13,
+        agegroupH14, sexH14, familytypeH14 for 2020. Row count and huid set
+        are unchanged.
         """
 
         agetenure_df = self.tidy_householder_agetenure()
@@ -433,8 +436,63 @@ class hui_householder_functions():
         hui_householder_df = self.randommerge_hui_householder(
                             hui_df = hui_df,
                             householder_df = householder_df['primary'])
+        # The random merge returns a {'primary', 'secondary'} pair; the
+        # housing unit inventory with householder characteristics is the
+        # primary side. Callers get a plain dataframe from here on.
+        if isinstance(hui_householder_df, dict):
+            hui_householder_df = hui_householder_df['primary']
+
+        hui_householder_df = self.add_family_type(hui_householder_df)
+
+        # Output names follow the census table that carried the data, per
+        # vintage (#140 housecleaning goal 2): the type-by-age table is H18
+        # in 2010 and H14 in 2020, the fine age-by-tenure band is H17 in
+        # 2010 and H13 in 2020. Internal computation uses fixed 2010-style
+        # names; the rename happens only here, at the product boundary.
+        hui_householder_df = hui_householder_df.rename(
+            columns = self.output_names[self.basevintage])
 
         return hui_householder_df
+
+    # Internal fixed name -> vintage-true product name. 2010 names already
+    # match their tables except sex, which gains its table suffix.
+    output_names = {
+        '2010': {'sex': 'sexH18', 'familytype': 'familytypeH18'},
+        '2020': {'agegroupH17': 'agegroupH13', 'agegroupH18': 'agegroupH14',
+                 'sex': 'sexH14', 'familytype': 'familytypeH14'},
+        }
+
+    @staticmethod
+    def add_family_type(hui_df):
+        """
+        Add the household family type, derived from the type-by-age table's
+        structure already on the frame (#140 housecleaning goal 3).
+
+        Codes, following the table's own categories:
+            1  married-couple family (the merge marks these with sex -999,
+               because the table reports no single householder sex)
+            2  other family, male householder, no spouse present
+            3  other family, female householder, no spouse present
+            4  nonfamily household, male householder
+            5  nonfamily household, female householder
+         -999  not determined (vacant units, group quarters, or units the
+               merge could not reach)
+
+        Written under the internal name 'familytype'; the caller renames it
+        to the vintage-true product name.
+        """
+
+        out_df = hui_df.copy()
+        family = out_df['family']
+        sex = out_df['sex']
+
+        out_df['familytype'] = -999
+        out_df.loc[(family == 1) & (sex == -999), 'familytype'] = 1
+        out_df.loc[(family == 1) & (sex == 1), 'familytype'] = 2
+        out_df.loc[(family == 1) & (sex == 2), 'familytype'] = 3
+        out_df.loc[(family == 0) & (sex == 1), 'familytype'] = 4
+        out_df.loc[(family == 0) & (sex == 2), 'familytype'] = 5
+        return out_df
 
     @staticmethod
     def validate_householder_characteristics(hui_before, hui_after):
@@ -463,7 +521,17 @@ class hui_householder_functions():
             hui_after['huid'].is_unique,
             "%d duplicated" % int(hui_after['huid'].duplicated().sum()))
 
-        for column in ['agegroupH17','agegroupH18','sex']:
+        # Product columns carry vintage-true names (H13/H14 for 2020,
+        # H17/H18 for 2010); detect which naming this frame uses rather
+        # than assuming one, so the checks work on either vintage.
+        fine_band = ('agegroupH13' if 'agegroupH13' in hui_after.columns
+                     else 'agegroupH17')
+        coarse_band = ('agegroupH14' if 'agegroupH14' in hui_after.columns
+                       else 'agegroupH18')
+        sex_col = next((c for c in ('sexH14', 'sexH18', 'sex')
+                        if c in hui_after.columns), 'sex')
+
+        for column in [fine_band, coarse_band, sex_col]:
             present = column in hui_after.columns
             if not present:
                 checks["'%s' added" % column] = (False, "column missing")
@@ -473,9 +541,9 @@ class hui_householder_functions():
             checks["'%s' added" % column] = (
                 True, "%d of %d not set" % (unset, len(hui_after)))
 
-        if 'agegroupH17' in hui_after.columns and 'gqtype' in hui_after.columns:
-            unset = (hui_after['agegroupH17'].isin([-999, 0]) |
-                     hui_after['agegroupH17'].isnull())
+        if fine_band in hui_after.columns and 'gqtype' in hui_after.columns:
+            unset = (hui_after[fine_band].isin([-999, 0]) |
+                     hui_after[fine_band].isnull())
 
             # gqtype marks group quarters, but which value means "not group
             # quarters" depends on how far through the workflow the inventory
