@@ -137,6 +137,15 @@ class hui_householder_functions():
                 ". Known vintages: " + str(list(householder_tables.keys())) + ".")
         self.tables = householder_tables[self.basevintage]
 
+        if self.basevintage == '2020':
+            # The 2020 metadata discovery for H13 requires the DHC patches,
+            # and nothing installs them automatically (#140 challenge 1).
+            # Installing here is idempotent, so callers stay patch-free.
+            from pyncoda.CommunitySourceData.api_census_gov.acg_00a_createAPI_datastructure_2020_patch import (
+                patch_obtain_api_metadata_for_2020, patch_get_data_for_2020)
+            patch_obtain_api_metadata_for_2020()
+            patch_get_data_for_2020()
+
     @staticmethod
     def set_block_geography(datastructure_dict):
         """

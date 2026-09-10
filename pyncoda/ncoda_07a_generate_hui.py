@@ -47,6 +47,8 @@ import sys
 # open, read, and execute python program with reusable commands
 from pyncoda.CommunitySourceData.api_census_gov.acg_05a_hui_functions \
     import hui_workflow_functions
+from pyncoda.CommunitySourceData.api_census_gov.acg_05c_hui_householder \
+    import hui_householder_functions
 from pyncoda.ncoda_00b_directory_design import directory_design
 from pyncoda.ncoda_04a_Figures import *
 from pyncoda.ncoda_06c_Codebook import *
@@ -177,7 +179,40 @@ class generate_hui_functions():
 
                 # Generate base housing unit inventory
                 base_hui_df = generate_df.run_hui_workflow()
-                hui_df = generate_df.final_polish_hui(base_hui_df['primary'])
+
+                # Householder age band, sex and family type become part of
+                # the housing unit inventory product itself (#140
+                # housecleaning goal 2), under vintage-true column names.
+                householder = hui_householder_functions(
+                    state_county = state_county,
+                    state_county_name = state_county_name,
+                    seed = self.seed,
+                    version = self.version,
+                    version_text = self.version_text,
+                    basevintage = str(self.basevintage),
+                    basegeolevel = 'Block',
+                    outputfolder = self.outputfolder,
+                    outputfolders = outputfolders)
+                hui_with_householder = householder.add_householder_characteristics(
+                    base_hui_df['primary'])
+
+                hui_df = generate_df.final_polish_hui(hui_with_householder)
+
+                # The linkage-facing product: polished, and keeping the
+                # Block{vintage}str geography plus the householder columns
+                # the person linkage joins on (per the review note that a
+                # new HUI version should keep Block{vintage}str). Additive:
+                # the IN-CORE files below keep their exact schema, because
+                # save_incore_version2 selects its own column list.
+                if self.savefiles:
+                    linkage_filename = (f'hui_linkage_{self.version_text}'
+                                        f'_{state_county}_{self.basevintage}'
+                                        f'_rs{self.seed}')
+                    linkage_path = os.path.join(
+                        os.getcwd(), outputfolders['top'],
+                        linkage_filename + '.csv')
+                    hui_df.to_csv(linkage_path, index = False)
+                    print("File saved:", linkage_path)
 
                 # Save version for IN-CORE in v2 format
                 hui_incore_county_df[state_county] = \
