@@ -269,3 +269,44 @@ def build_datastructure(df, basevintage='2020'):
         print('UNDOCUMENTED COLUMNS (fix ncoda_09a before shipping the '
               'codebook):', undocumented)
     return datastructure, undocumented
+
+
+def create_product_codebook(csv_path, basevintage, header_title, output_folder,
+                            output_filename, overview_markdown_path=''):
+    """
+    Build one PDF codebook for a product file, in one call.
+
+    Reads the CSV, assembles the datastructure for exactly its columns,
+    refuses to proceed if any column is undocumented, and hands the result
+    to pypdfcodebook. overview_markdown_path, when given, is a markdown
+    file (a path, not text) rendered as the project overview.
+
+    pypdfcodebook is imported here rather than at module load so the
+    dictionaries stay usable without it installed (pip install
+    pypdfcodebook). Returns the path of the written PDF.
+    """
+
+    import os
+    import pandas as pd
+    try:
+        from pypdfcodebook.pdfcb_03c_codebook import codebook
+    except ImportError as error:
+        raise ImportError(
+            'create_product_codebook needs pypdfcodebook: '
+            'pip install pypdfcodebook') from error
+
+    product_df = pd.read_csv(csv_path, low_memory=False)
+    datastructure, undocumented = build_datastructure(product_df, basevintage)
+    if undocumented:
+        raise ValueError(
+            'Refusing to write a codebook with undocumented columns: '
+            + ', '.join(undocumented)
+            + '. Add them to ncoda_09a_codebook_dictionaries first.')
+
+    os.makedirs(output_folder, exist_ok=True)
+    codebook(input_df=product_df, datastructure=datastructure,
+             header_title=header_title,
+             projectoverview=overview_markdown_path,
+             output_filename=output_filename, outputfolder=output_folder,
+             instruction_mode=False).create_codebook()
+    return os.path.join(output_folder, output_filename + '.pdf')
