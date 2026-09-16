@@ -123,6 +123,29 @@ class prechui_workflow_functions():
 
         return df['gqtype'].fillna(0) == 0
 
+    @staticmethod
+    def normalize_householder_names(hui_df):
+        """
+        Accept a housing unit inventory under either naming scheme.
+
+        The inventory product names its householder columns for the census
+        table that carried the data (agegroupH13/agegroupH14/sexH14 in 2020,
+        agegroupH17/agegroupH18/sexH18 in 2010 - see acg_05c). The linkage
+        computes under the fixed 2010-style names, so renaming happens once
+        here on ingestion and the merge internals stay untouched, which is
+        what keeps results bit-identical across the renaming.
+        """
+
+        vintage_to_internal = {
+            'agegroupH13': 'agegroupH17', 'agegroupH14': 'agegroupH18',
+            'sexH14': 'sex', 'sexH18': 'sex',
+            'familytypeH14': 'familytype', 'familytypeH18': 'familytype'}
+        present = {k: v for k, v in vintage_to_internal.items()
+                   if k in hui_df.columns and v not in hui_df.columns}
+        if present:
+            hui_df = hui_df.rename(columns = present)
+        return hui_df
+
     def adjust_numprec7_hui(self, hui_df, prec_df, verify_results = False):
         """
         Raise the size of some 7 person households.
@@ -137,6 +160,7 @@ class prechui_workflow_functions():
         in such a block offer fewer seats than there are people to seat.
         """
 
+        hui_df = self.normalize_householder_names(hui_df)
         geo_id = self.geo_id
 
         # Total population implied by the housing unit inventory, by block
