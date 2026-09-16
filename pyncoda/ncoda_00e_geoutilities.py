@@ -473,3 +473,75 @@ table
 joblist_estab_gdf.groupby(['IndustryCode','NAICS4D','estabid']).\
         aggregate({'jobid':'count'})
 """
+
+
+def haversine_distance_m(lat1, lon1, lat2, lon2):
+    """
+    Great-circle distance in meters between coordinate pairs.
+
+    Vectorized: accepts scalars or aligned arrays/Series of decimal degrees
+    and returns meters (float or ndarray). Earth radius 6,371,000 m.
+    """
+
+    lat1, lon1, lat2, lon2 = (np.radians(np.asarray(v, dtype=float))
+                              for v in (lat1, lon1, lat2, lon2))
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = (np.sin(dlat / 2.0) ** 2
+         + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2.0) ** 2)
+    return 2.0 * 6371000.0 * np.arcsin(np.sqrt(a))
+
+
+def load_block_points(tiger_csv_path: str, basevintage: str = '2020'):
+    """
+    Load block internal points from a cached TIGER tabblock CSV.
+
+    Returns a dataframe indexed by the 15-digit block GEOID (string) with
+    columns 'lat' and 'lon' - the Census internal point of each block.
+    Works with the tl_{vintage}_{county}_tabblockplacepuma CSVs the block
+    data workflow caches.
+    """
+
+    yr = str(basevintage)[2:]
+    tiger_df = pd.read_csv(tiger_csv_path, low_memory=False,
+                           usecols=[f'GEOID{yr}', f'INTPTLAT{yr}',
+                                    f'INTPTLON{yr}'])
+    tiger_df['blockid'] = (tiger_df[f'GEOID{yr}'].astype(str)
+                           .str.extract(r'(\d{15})', expand=False))
+    tiger_df = tiger_df.rename(columns={f'INTPTLAT{yr}': 'lat',
+                                        f'INTPTLON{yr}': 'lon'})
+    return tiger_df.set_index('blockid')[['lat', 'lon']]
+
+
+def assignment_displacement_m(prechui_df, block_points, basevintage: str = '2020'):
+    """
+    Distance in meters between each person's own census block and the block
+    of their assigned housing unit.
+
+    The metric proposed in the 2010 vs 2020 comparison work: an uncertainty
+    measure of "how far off" an assignment could be. Zero for every person
+    placed within their own block; NaN for unassigned persons (huid missing
+    or -999) and for blocks absent from block_points.
+
+    prechui_df needs the person's Block{vintage}str (or Block{vintage})
+    column and the assigned huid, whose first 15 digits after the leading B
+    are the unit's block. block_points is the frame from load_block_points.
+    Returns a float Series aligned to prechui_df.index.
+    """
+
+    v = str(basevintage)
+    block_col = (f'Block{v}str' if f'Block{v}str' in prechui_df.columns
+                 else f'Block{v}')
+    person_block = (prechui_df[block_col].astype(str)
+                    .str.extract(r'(\d{15})', expand=False))
+    unit_block = (prechui_df['huid'].astype(str)
+                  .str.extract(r'B(\d{15})', expand=False))
+
+    person_pt = block_points.reindex(person_block.values)
+    unit_pt = block_points.reindex(unit_block.values)
+    distance = haversine_distance_m(person_pt['lat'].values,
+                                    person_pt['lon'].values,
+                                    unit_pt['lat'].values,
+                                    unit_pt['lon'].values)
+    return pd.Series(distance, index=prechui_df.index,
+                     name='displacement_m')
