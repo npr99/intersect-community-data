@@ -200,3 +200,101 @@ def folium_comparison_map(df_a, df_b, label_a: str, label_b: str,
     fm.LayerControl(collapsed=False).add_to(comparison_map)
     comparison_map.save(output_html)
     return comparison_map
+
+
+def overlay_heatmap(df_a, df_b, label_a: str, label_b: str,
+                    title: str, output_png: str,
+                    lon_col: str = 'x', lat_col: str = 'y',
+                    cell_size_m: float = 200.0,
+                    window_radius_m: float = 300.0,
+                    color_a: str = '#7B4FBF', color_b: str = '#E66101',
+                    zoom_to=None, zoom_pad_m: float = 1500.0,
+                    place_labels=None, dpi: int = 150):
+    """
+    Both groups on ONE map, in contrasting colors.
+
+    Purple for group A and orange for group B follow the ColorBrewer PuOr
+    diverging scheme, which is colorblind safe, print friendly and
+    photocopy safe. Each group's contours are drawn at fixed fractions of
+    that group's own peak density, so the map shows WHERE each group
+    concentrates rather than which group is larger; the point counts are
+    in the legend for scale.
+
+    zoom_to, when given as a dataframe of points (for example every person
+    in one city), restricts the map to that area plus zoom_pad_m on each
+    side - at city scale the spatial clustering becomes legible, which
+    county-wide maps blur. Points outside the area are dropped before the
+    density is computed. The defaults (200 m cells, 300 m bandwidth) suit
+    a city; use 400 m and 500 m for a county.
+
+    Returns a dict with the point counts drawn for each group.
+    """
+
+    pts_a = df_a[[lon_col, lat_col]].dropna()
+    pts_b = df_b[[lon_col, lat_col]].dropna()
+    if zoom_to is not None:
+        area = zoom_to[[lon_col, lat_col]].dropna()
+        lat0 = area[lat_col].median()
+        mx = 111320.0 * np.cos(np.radians(lat0))
+        my = 110540.0
+        pad_lon, pad_lat = zoom_pad_m / mx, zoom_pad_m / my
+        lon_min, lon_max = area[lon_col].min() - pad_lon, area[lon_col].max() + pad_lon
+        lat_min, lat_max = area[lat_col].min() - pad_lat, area[lat_col].max() + pad_lat
+        inside = lambda p: p[(p[lon_col].between(lon_min, lon_max))
+                             & (p[lat_col].between(lat_min, lat_max))]
+        pts_a, pts_b = inside(pts_a), inside(pts_b)
+        frame_for_bounds = pd.DataFrame({lon_col: [lon_min, lon_max],
+                                         lat_col: [lat_min, lat_max]})
+    else:
+        frame_for_bounds = pd.concat([pts_a, pts_b])
+
+    _, extent_km, bounds = people_density_surface(
+        frame_for_bounds, lon_col, lat_col, cell_size_m, window_radius_m)
+    surface_a, _, _ = people_density_surface(
+        pts_a, lon_col, lat_col, cell_size_m, window_radius_m, bounds)
+    surface_b, _, _ = people_density_surface(
+        pts_b, lon_col, lat_col, cell_size_m, window_radius_m, bounds)
+
+    lat0 = bounds[4]
+    mx = 111320.0 * np.cos(np.radians(lat0)) / 1000.0
+    my = 110540.0 / 1000.0
+
+    figure, ax = plt.subplots(figsize=(11, 9))
+    for surface, pts, color, label in ((surface_a, pts_a, color_a, label_a),
+                                       (surface_b, pts_b, color_b, label_b)):
+        peak = surface.max()
+        if peak > 0:
+            ax.contourf(surface.T, levels=np.linspace(peak * 0.25, peak, 5),
+                        origin='lower', extent=extent_km,
+                        colors=[color], alpha=0.18)
+            ax.contour(surface.T, levels=np.linspace(peak * 0.25, peak, 5),
+                       origin='lower', extent=extent_km,
+                       colors=color, linewidths=0.9)
+        ax.scatter(pts[lon_col] * mx, pts[lat_col] * my, s=6, c=color,
+                   alpha=0.55, label=f'{label} (n = {len(pts):,})',
+                   edgecolors='none')
+    if place_labels is not None:
+        for _, row in place_labels.iterrows():
+            px, py = row[lon_col] * mx, row[lat_col] * my
+            if extent_km[0] <= px <= extent_km[1] and extent_km[2] <= py <= extent_km[3]:
+                ax.annotate(row['name'], (px, py), fontsize=9, color='#333333',
+                            xytext=(0, 7), textcoords='offset points', ha='center')
+                ax.plot(px, py, marker='+', ms=6, c='#666666', mew=0.9)
+    ax.set_xlim(extent_km[0], extent_km[1])
+    ax.set_ylim(extent_km[2], extent_km[3])
+    ax.set_aspect('equal')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    bar_km = 2 if zoom_to is not None else 10
+    bar_x, bar_y = extent_km[0] + (extent_km[1] - extent_km[0]) * 0.04,                    extent_km[2] + (extent_km[3] - extent_km[2]) * 0.04
+    ax.plot([bar_x, bar_x + bar_km], [bar_y, bar_y], c='black', lw=2)
+    ax.annotate(f'{bar_km} km', (bar_x + bar_km / 2, bar_y), xytext=(0, 5),
+                textcoords='offset points', ha='center', fontsize=8)
+    ax.legend(loc='upper right', frameon=True, fontsize=9)
+    subtitle = ('Contours at 25-100% of each group' + chr(39) + 's own peak density '
+                f'({cell_size_m:.0f} m cells, {window_radius_m:.0f} m bandwidth)')
+    ax.set_title(title + chr(10) + subtitle, fontsize=12)
+    plt.tight_layout()
+    figure.savefig(output_png, dpi=dpi, bbox_inches='tight')
+    plt.close(figure)
+    return {'n_a': len(pts_a), 'n_b': len(pts_b)}
