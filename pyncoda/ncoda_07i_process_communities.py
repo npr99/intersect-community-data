@@ -382,6 +382,38 @@ class process_community_workflow():
         # Resave results for community name
         hua_hui_df.to_csv(savefile, index=False)
 
+        # Goal file 1 (#140): the allocation joined onto the FULL enriched
+        # inventory, original and new columns together. Each county's
+        # hui_linkage product carries Block{vintage}str, the householder
+        # characteristics and family type; the allocation adds the building
+        # id, place name, huestimate and coordinates (plus strctid and
+        # addrptid when the allocation carries them). Additive: the IN-CORE
+        # hua file above is unchanged.
+        linkage_frames = []
+        for county in community_dict['counties'].keys():
+            county_fips = community_dict['counties'][county]['FIPS Code']
+            linkage_path = (f'{self.outputfolder}/{community}/'
+                            f'hui_linkage_{self.version_text}_{county_fips}'
+                            f'_{self.basevintage}_rs{self.seed}.csv')
+            if os.path.exists(linkage_path):
+                linkage_frames.append(pd.read_csv(linkage_path, low_memory=False))
+        if linkage_frames:
+            allocation_cols = [c for c in hua_cols + ['strctid', 'addrptid']
+                               if c in hua_gdf.columns]
+            hua_linkage_df = pd.merge(left = pd.concat(linkage_frames, ignore_index=True),
+                                      right = hua_gdf[allocation_cols],
+                                      on='huid', how='left')
+            hua_linkage_df[bldg_uniqueid] =                 hua_linkage_df[bldg_uniqueid].fillna('missing building id')
+            linkage_filename = (f'hua_linkage_{self.version_text}_{community}'
+                                f'_{self.basevintage}_rs{self.seed}_{bldg_inv_id}')
+            linkage_savefile = os.path.join(os.getcwd(), check_folder,
+                                            linkage_filename + '.csv')
+            hua_linkage_df.to_csv(linkage_savefile, index=False)
+            print("File saved:", linkage_savefile)
+        else:
+            print("No hui_linkage product found for", community,
+                  "- hua_linkage not written (regenerate the HUI to produce it).")
+
         # make a county list for community
         county_list = ''
         for county in community_dict['counties'].keys():
