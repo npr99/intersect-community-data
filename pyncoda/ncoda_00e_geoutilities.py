@@ -510,6 +510,10 @@ def load_block_points(tiger_csv_path: str, basevintage: str = '2020'):
                            .str.extract(r'(\d{15})', expand=False))
     tiger_df = tiger_df.rename(columns={f'INTPTLAT{yr}': 'lat',
                                         f'INTPTLON{yr}': 'lon'})
+    # The tabblockplacepuma crosswalk can repeat a block (one row per
+    # block-place intersection, seen in the 2010 files); the internal
+    # point is identical on every repeat, so keep one row per block.
+    tiger_df = tiger_df.drop_duplicates(subset='blockid')
     return tiger_df.set_index('blockid')[['lat', 'lon']]
 
 
